@@ -77797,7 +77797,7 @@ e.meditation = mid => {
   const gitems = [
     'adjust the volume of headphones and the screen luminosity;',
     'concentrate; close your eyes whenever you wish;',
-    'breath with the vertical position of the oval or circular visual cue that don\'t change horizontal position and expands and contracts;',
+    'breath with the vertical position of the oval or circular visual cue that don\'t change horizontal position and that expands and contracts;',
     'such breathing cycles are also represented in the status and help colored section, at the bottom of the page;',
     'repeat the concentration a number of times so you develop the means to better perform;',
     'read the evocation message and adapt it to your repertoire;',
@@ -77948,6 +77948,11 @@ e.mkFooter = () => {
       float: 'left'
     }
   }).html('support this initiative').appendTo(ft)
+  wand.$('body', {
+    css: {
+      'background-color': '#dddddd'
+    }
+  })
 }
 
 },{}],222:[function(require,module,exports){
