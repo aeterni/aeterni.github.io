@@ -77465,7 +77465,8 @@ e.meditation = mid => {
       I, [your name], will start my mentalization soon (or am mentalizing),
       and will concentrate for a total of ${s.d} seconds<br>
       using binaural frequencies ${s.fl} and ${s.fr} in the waveforms ${s.waveformL} and ${s.waveformR},<br>
-      and respiration cycles taking from ${s.mp0} to ${s.mp1} seconds.<br><br>
+      and respiration cycles taking from ${s.mp0} to ${s.mp1} seconds,<br>
+      with the theme ${s.meditation}.<br><br>
       I ask [name of one or more entitites you worship or admire],<br>
       and my ally and akin essences,<br>
       for your company and conduction.
@@ -77763,7 +77764,6 @@ e.meditation = mid => {
     .css('opacity', 0)
   $('<div/>').text('exhale').appendTo(grid)
   const m2 = $('<div/>').appendTo(grid)
-    .css('background', 'rgb(255,255,0)')
     .css('opacity', 0)
   t.Master.mute = true
 
@@ -77787,6 +77787,8 @@ e.meditation = mid => {
     e.style.backgroundColor = `rgba(255,255,255,${Math.floor(i / 2) % 2 === 1 ? 0.3 : 0})`
     e.style.padding = '1%'
   })
+  m1.css('background', 'rgb(255,255,0)')
+  m2.css('background', 'rgb(255,255,0)')
   const evocation = $('<button/>', {
     css: {
       'margin-left': '5%',
