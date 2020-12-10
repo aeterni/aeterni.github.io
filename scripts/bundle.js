@@ -77460,10 +77460,16 @@ e.meditation = mid => {
   transfer.findAny({ meditation: mid }).then(s => {
     evocation.on('click', () => {
       $('#myModal').css('display', 'block')
-      $('#mcontent').text(`
-      I, <your name>, will start my mentalization soon (or am mentalizing),
-      and will concentrate for a total of ${s.d} seconds
-      using binaural frequencies ${s.fl} and ${s.fr}, waveforms ${s.waveformL} and ${s.waveformR}, and respiration cycles taking from ${s.mp0} to ${s.mp1} seconds.
+      $('#mcontent').html(`
+      <h2>Evocation</h2>
+      I, [your name], will start my mentalization soon (or am mentalizing),
+      and will concentrate for a total of ${s.d} seconds<br>
+      using binaural frequencies ${s.fl} and ${s.fr} in the waveforms ${s.waveformL} and ${s.waveformR},<br>
+      and respiration cycles taking from ${s.mp0} to ${s.mp1} seconds.<br><br>
+      I ask [name of one or more entitites you worship or admire],<br>
+      and my ally and akin essences,<br>
+      for your company company and conduction.
+      <br><br><br>:::
       `)
     })
     if (s === null) {
@@ -77788,6 +77794,15 @@ e.meditation = mid => {
       'margin-top': '2px'
     }
   }).html('Evocation').appendTo(grid)
+  const gitems = [
+    'adjust the volume of headphones and the screen luminosity;',
+    'concentrate; close your eyes whenever you wish;',
+    'breath with the vertical position of the oval or circular visual cue that don\'t change horizontal position and expands and contracts;',
+    'such breathing cycles are also represented in the status and help colored section, at the bottom of the page;',
+    'repeat the concentration a number of times so you develop the means to better perform;',
+    'read the evocation message and adapt it to your repertoire;',
+    'mentally visualize the changes in your life, in the life of the loved and known ones, and the whole of humanity.'
+  ].reduce((a, i) => a + `<li>${i}</li>`, '')
   $('<button/>', {
     css: {
       'margin-left': '5%',
@@ -77798,8 +77813,12 @@ e.meditation = mid => {
     .on('click', () => {
       $('#myModal').css('display', 'block')
       $('#mcontent').html(`
-      Some considerations for you to have a nice experience:
-  adjust the volume of headphones and the screen luminosity; concentrate; close your eyes whenever you wish; breath with the vertical position of the oval or circular cue that dont change horizontal position and expands and contracts.
+      <h2>Guidance</h2>
+      Some considerations for you to have a nice experience:<br>
+      <ul>${gitems}</ul>
+
+      Good luck and thank you!
+      <br><br><br>:::
       `)
     })
 }
