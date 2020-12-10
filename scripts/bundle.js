@@ -77466,7 +77466,7 @@ e.meditation = mid => {
       and will concentrate for a total of ${s.d} seconds<br>
       using binaural frequencies ${s.fl} and ${s.fr} in the waveforms ${s.waveformL} and ${s.waveformR},<br>
       and respiration cycles taking from ${s.mp0} to ${s.mp1} seconds,<br>
-      with the theme ${s.meditation}.<br><br>
+      with the theme "${s.meditation.replaceAll('_', '')}".<br><br>
       I ask [name of one or more entitites you worship or admire],<br>
       and my ally and akin essences,<br>
       for your company and conduction.
