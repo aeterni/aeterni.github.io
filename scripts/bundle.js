@@ -77474,19 +77474,30 @@ e.meditation = mid => {
     }
     let duration = (s.dateTime.getTime() - (new Date()).getTime()) / 1000
     if (u('t')) duration = parseFloat(u('t'))
-    if (duration < 0) {
-      vonoff.text('Already started, maybe finished, ask team for another session.')
+    function caseConcluded () {
+      vonoff.text('ask team to open a new session.')
+      countdown.text('concluded')
+    }
+    function caseOnOrConcluded () {
       conoff.attr('checked', true).attr('disabled', true)
-      countdown.text('finished')
+      console.log(duration, s.d)
+      if (-duration < s.d) { // ongoing
+        countdown.text('ongoing')
+        vonoff.text('participants have to join the session before it starts.')
+        // start timer for s.d - duration
+        setCountdown(s.d + duration, caseConcluded, undefined, 'countdown to conclude: ')
+      } else { // finished
+        caseConcluded()
+      }
       grid.css('background', '#bbaaff')
-      return
+    }
+    if (duration < 0) {
+      return caseOnOrConcluded()
     }
     setCountdown(duration, fun1, undefined, 'countdown to start: ')
     function fun1 () { // to start the med
       if (!conoff.prop('checked')) {
-        grid.css('background', 'lightblue')
-        conoff.prop('disabled', true)
-        return
+        return caseOnOrConcluded()
       }
       const { synth, synthR, mod_ } = setSounds(s)
       t.Master.mute = false
@@ -77539,7 +77550,7 @@ e.meditation = mid => {
 
   const app = new PIXI.Application({ // todo: make it resizable
     width: window.innerWidth,
-    height: window.innerHeight * 0.85
+    height: window.innerHeight * 0.80
   })
   document.body.appendChild(app.view)
   const [w, h] = [app.view.width, app.view.height]
@@ -77728,14 +77739,14 @@ e.meditation = mid => {
     .append($('<div/>').text('status:'))
   const countdown = $('<div/>').appendTo(grid).html('loading...')
 
-  const vonoff = $('<div/>', { id: 'vonoff' }).appendTo(grid).text('Check me!')
+  const vonoff = $('<div/>', { id: 'vonoff' }).appendTo(grid).text('Check me to join in:')
   const conoff = $('<input/>', { type: 'checkbox' })
     .appendTo(grid).change(function () {
       if (this.checked) {
         this.disabled = true
         t.start()
         t.Master.mute = true
-        vonoff.text('All set!')
+        vonoff.text('All set! Just wait.')
         grid.css('background', 'lightgreen')
       }
     })
@@ -77749,15 +77760,6 @@ e.meditation = mid => {
     .css('background', 'rgb(255,255,0)')
     .css('opacity', 0)
   t.Master.mute = true
-  const evocation = $('<button/>').html('Evocation').appendTo(grid)
-  $('<button/>').html('Guidance').appendTo(grid)
-    .on('click', () => {
-      $('#myModal').css('display', 'block')
-      $('#mcontent').html(`
-      Some considerations for you to have a nice experience:
-  adjust the volume of headphones and the screen luminosity; concentrate; close your eyes whenever you wish; breath with the vertical position of the oval or circular cue that dont change horizontal position and expands and contracts.
-      `)
-    })
 
   $('<div/>', { id: 'myModal', class: 'modal' }).appendTo('body')
     .append($('<div/>', { class: 'modal-content' })
@@ -77768,12 +77770,38 @@ e.meditation = mid => {
       )
       .append($('<p/>', { id: 'mcontent' }))
     )
-  window.mmm = $('#myModal')
   window.onclick = function (event) {
     if (event.target === $('#myModal')[0]) {
       $('#myModal').css('display', 'none')
     }
   }
+  // $('#mgrid-0 div').css('background-color', 'rgba(1,0,0,0.9)')
+  $('#mgrid-0 *').each((i, e) => {
+    window.eee = e
+    e.style.backgroundColor = `rgba(255,255,255,${Math.floor(i / 2) % 2 === 1 ? 0.3 : 0})`
+    e.style.padding = '1%'
+  })
+  const evocation = $('<button/>', {
+    css: {
+      'margin-left': '5%',
+      'margin-right': '5%',
+      'margin-top': '2px'
+    }
+  }).html('Evocation').appendTo(grid)
+  $('<button/>', {
+    css: {
+      'margin-left': '5%',
+      'margin-right': '5%',
+      'margin-top': '2px'
+    }
+  }).html('Guidance').appendTo(grid)
+    .on('click', () => {
+      $('#myModal').css('display', 'block')
+      $('#mcontent').html(`
+      Some considerations for you to have a nice experience:
+  adjust the volume of headphones and the screen luminosity; concentrate; close your eyes whenever you wish; breath with the vertical position of the oval or circular cue that dont change horizontal position and expands and contracts.
+      `)
+    })
 }
 
 },{"../maestro.js":217,"../router.js":221,"../transfer.js":223,"../utils.js":224,"jquery":60,"pixi.js":204,"tone":212}],220:[function(require,module,exports){
@@ -79655,8 +79683,11 @@ e.remove = query => {
 const e = module.exports
 const $ = require('jquery')
 
+let count = 0
 e.mkGrid = (cols, el, w, bgc) => {
   return $('<div/>', {
+    class: 'mgrid',
+    id: `mgrid-${count++}`,
     css: {
       display: 'grid',
       'grid-template-columns': Array(cols).fill('auto').join(' '),
