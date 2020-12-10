@@ -77626,11 +77626,11 @@ e.meditation = mid => {
     myCircle4.tint = tr(s.bcc)
     app.renderer.backgroundColor = tr(s.bgc)
 
-    const synth = maestro.mkOsc(0, -400, -1, 'sine')
+    const synth = maestro.mkOsc(0, -400, -1, s.waveformL || 'sine')
     const synthR = maestro.mkOsc(0, -400, 1, s.waveformR || 'sine')
     const mul = new t.Multiply(s.ma)
     const met2 = new t.DCMeter()
-    const mod_ = maestro.mkOsc(1 / s.mp0, 0, 0, s.waveformL || 'sine', true).fan(met2, mul)
+    const mod_ = maestro.mkOsc(1 / s.mp0, 0, 0, 'sine', true).fan(met2, mul)
     mul.chain(new t.Add(s.fl), synth.frequency)
     mul.chain(new t.Add(s.fr), synthR.frequency)
 
