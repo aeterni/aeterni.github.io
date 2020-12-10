@@ -77468,7 +77468,7 @@ e.meditation = mid => {
       and respiration cycles taking from ${s.mp0} to ${s.mp1} seconds.<br><br>
       I ask [name of one or more entitites you worship or admire],<br>
       and my ally and akin essences,<br>
-      for your company company and conduction.
+      for your company and conduction.
       <br><br><br>:::
       `)
     })
