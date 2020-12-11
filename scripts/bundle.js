@@ -77461,17 +77461,20 @@ e.meditation = mid => {
     evocation.on('click', () => {
       $('#myModal').css('display', 'block')
       $('#mcontent').html(`
-      <h2>Evocation</h2>
+      <h2>Evocation <button onclick="wand.$('#techdiv').toggle()" id="techBtn">tech</button></h2>
       I, [your name], will start my mentalization soon (or am mentalizing),
-      and will concentrate for a total of ${s.d} seconds<br>
-      using binaural frequencies ${s.fl} and ${s.fr} in the waveforms ${s.waveformL} and ${s.waveformR},<br>
-      and respiration cycles taking from ${s.mp0} to ${s.mp1} seconds,<br>
-      with the theme "${s.meditation.replaceAll('_', '')}".<br><br>
+      and will concentrate for a total of ${s.d} seconds on the theme "${s.meditation.replaceAll('_', '')}".<br><br>
+      <span id="techdiv">I'll be using binaural frequencies ${s.fl} and ${s.fr} in the waveforms
+      ${s.waveformL} and ${s.waveformR},<br>
+      and respiration cycles from ${s.mp0} to ${s.mp1} seconds in a transition of ${s.md} seconds.<br>
+      Respiration represented with oscillations of ${s.ma} Herz in the binaural frequencies.
+      <br><br></span>
       I ask [name of one or more entitites you worship or admire],<br>
       and my ally and akin essences,<br>
       for your company and conduction.
       <br><br><br>:::
       `)
+      $('#techBtn').click()
     })
     if (s === null) {
       grid.css('background', 'red')
@@ -78553,6 +78556,8 @@ e.mkMed = () => {
       panOscPeriod.val(e.panOscPeriod ? e.panOscPeriod : '')
       panOscPeriod.attr('disabled', e.panOsc < 2)
       lemniscate.prop('checked', e.lemniscate || false)
+      centerC.html(e.lemniscate ? 'left circ color:' : 'center circ color:')
+      lateralC.html(e.lemniscate ? 'right circ color:' : 'lateral circ color:')
       communionSchedule.prop('checked', e.communionSchedule || false)
     })
   transfer.findAll({ meditation: { $exists: true } }).then(r => {
