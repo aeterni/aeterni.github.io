@@ -78850,6 +78850,10 @@ e.mkMed = () => {
         mdict.panOscPeriod = oPeriod
         if (mdict.panOsc === '3') {
           const oTrans = f(panOscTrans.val())
+          if (isNaN(oTrans)) {
+            window.alert('define the value for the pan crossfade.')
+            return
+          }
           if (oPeriod < 2 * oTrans) {
             window.alert('duration of the pan oscillation has to be at least twice that of the pan crossfade:')
             return
