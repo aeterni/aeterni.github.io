@@ -77427,6 +77427,12 @@ e.mkOsc = (freq, vol, pan, type, noConnect) => {
   return synth
 }
 
+e.sounds = [
+  ['aloop', 38],
+  ['ocean1', 65],
+  ['boom', 1.5]
+].map(i => { return { name: i[0], duration: i[1] } })
+
 },{"./utils.js":224,"tone":212}],218:[function(require,module,exports){
 module.exports = {
   model: require('./model1').meditation
@@ -77445,18 +77451,6 @@ const e = module.exports
 const tr = PIXI.utils.string2hex
 
 e.meditation = mid => {
-  // todo:
-  // put a field for a message, prayer or so.
-  //   templates:
-  //      Eu <nome> inicio minha mentalizacao.... Frequencias X Y... etc.
-  //      Peço a companhia de Jesus, dos mestres iluminados, de meus espíritos aliados e esíritos afins, ...(quaisquer eixos de devoção pessoal)..., para que minha fé seja fortalecida e minhas orações escutadas.
-  // a help icon:
-  //  when hover, show some guidance:
-  //    change volume of headphones
-  //    change screen luminosity
-  //    concentrate
-  //    you can close your eyes if you wish
-  //    breath with the vertical position of the circles and the expansion of the circle to the (right, left, center, check bPos index)
   transfer.findAny({ meditation: mid }).then(s => {
     evocation.on('click', () => {
       $('#myModal').css('display', 'block')
@@ -77464,10 +77458,10 @@ e.meditation = mid => {
       <h2>Evocation <button onclick="wand.$('#techdiv').toggle()" id="techBtn">tech</button></h2>
       I, [your name], will start my mentalization soon (or am mentalizing),
       and will concentrate for a total of ${s.d} seconds on the theme "${s.meditation.replaceAll('_', '')}".<br><br>
-      <span id="techdiv">I'll be using binaural frequencies ${s.fl} and ${s.fr} in the waveforms
+      <span id="techdiv">I'll be using binaural frequencies ${s.fl} and ${s.fr} Hertz in the waveforms
       ${s.waveformL} and ${s.waveformR},<br>
       and respiration cycles from ${s.mp0} to ${s.mp1} seconds in a transition of ${s.md} seconds.<br>
-      Respiration represented with oscillations of ${s.ma} Herz in the binaural frequencies.
+      The respiration represented with oscillations of ${s.ma} Herz in the binaural frequencies.
       <br><br></span>
       I ask [name of one or more entitites you worship or admire],<br>
       and my ally and akin essences,<br>
@@ -77504,6 +77498,13 @@ e.meditation = mid => {
     if (duration < 0) {
       return caseOnOrConcluded()
     }
+    console.log(s, 'SETTIGNS')
+    let sample
+    if (s.soundSample > 0) {
+      sample = new t.Player(`assets/audio/${maestro.sounds[s.soundSample].name}.mp3`).toDestination()
+      sample.volume.value = parseFloat(s.soundSampleVolume)
+      sample.loop = s.soundSamplePeriod === 0
+    }
     setCountdown(duration, fun1, undefined, 'countdown to start: ')
     function fun1 () { // to start the med
       if (!conoff.prop('checked')) {
@@ -77511,6 +77512,17 @@ e.meditation = mid => {
       }
       const { synth, synthR, mod_ } = setSounds(s)
       t.Master.mute = false
+      if (s.soundSample > 0) {
+        setTimeout(() => {
+          if (sample.loop) {
+            sample.start()
+          } else {
+            new t.Loop(time => {
+              sample.start()
+            }, s.soundSamplePeriod).start()
+          }
+        }, (s.soundSampleStart || 0) * 1000)
+      }
       synth.volume.rampTo(-40, 1)
       synthR.volume.rampTo(-40, 1)
       mod_.frequency.rampTo(1 / s.mp1, s.md)
@@ -77653,11 +77665,15 @@ e.meditation = mid => {
       neg.connect(synthR.panner.pan)
     } else if (pOsc === 3) { // envelope pan oscillation
       // 1s transition, thus period > 1s
+      let oTrans = parseFloat(s.panOscTrans)
+      oTrans = oTrans === undefined ? 1 : oTrans
       const env = new t.Envelope({
-        attack: 1,
+        attack: oTrans,
         decay: 0.01,
         sustain: 1,
-        release: 1
+        release: oTrans,
+        attackCurve: 'linear',
+        releaseCurve: 'linear'
       }).chain(new t.Multiply(2), (new t.Add(-1)).connect(synth.panner.pan), new t.Negate(), synthR.panner.pan)
       const aPer = parseFloat(s.panOscPeriod)
       new t.Loop(time => {
@@ -77800,9 +77816,11 @@ e.meditation = mid => {
     }
   }).html('Evocation').appendTo(grid)
   const gitems = [
-    'adjust the volume of headphones and the screen luminosity;',
-    'concentrate; close your eyes whenever you wish;',
+    'use headphones whenever possible;',
     'breath with the vertical position of the oval or circular visual cue that don\'t change horizontal position and that expands and contracts;',
+    'adjust the sound volume and the screen luminosity;',
+    'concentrate;',
+    'close your eyes whenever you wish;',
     'such breathing cycles are also represented in the status and help colored section, at the bottom of the page;',
     'repeat the concentration a number of times so you develop the means to better perform;',
     'read the evocation message and adapt it to your repertoire;',
@@ -78549,12 +78567,24 @@ e.mkMed = () => {
       bcc.fromString(e.bcc)
       ccc.fromString(e.ccc)
       lcc.fromString(e.lcc)
-      if (e.panOsc === undefined) e.panOsc = '0'
-      $('#panOsc').val(e.panOsc)
       $('#waveformL').val(e.waveformL || 'sine')
       $('#waveformR').val(e.waveformR || 'sine')
+      if (e.panOsc === undefined) e.panOsc = '0'
+      $('#panOsc').val(e.panOsc)
       panOscPeriod.val(e.panOscPeriod ? e.panOscPeriod : '')
       panOscPeriod.attr('disabled', e.panOsc < 2)
+      panOscTrans.val(e.panOscTrans || '')
+      panOscTrans.attr('disabled', e.panOsc < 3)
+
+      e.soundSample = e.soundSample || -1
+      $('#soundSample').val(e.soundSample)
+      soundSampleVolume.val(e.soundSampleVolume ? e.soundSampleVolume : '')
+      soundSampleVolume.attr('disabled', e.soundSample < 0)
+      soundSamplePeriod.val(e.soundSamplePeriod ? e.soundSamplePeriod : '')
+      soundSamplePeriod.attr('disabled', e.soundSample < 0)
+      soundSampleStart.val(e.soundSampleStart ? e.soundSampleStart : '')
+      soundSampleStart.attr('disabled', e.soundSample < 0)
+
       lemniscate.prop('checked', e.lemniscate || false)
       centerC.html(e.lemniscate ? 'left circ color:' : 'center circ color:')
       lateralC.html(e.lemniscate ? 'right circ color:' : 'lateral circ color:')
@@ -78658,6 +78688,7 @@ e.mkMed = () => {
     .on('change', aself => {
       const ii = aself.currentTarget.value
       panOscPeriod.attr('disabled', ii < 2)
+      panOscTrans.attr('disabled', ii < 3)
     })
 
   $('<span/>').html('pan oscillation period:').appendTo(grid)
@@ -78665,6 +78696,50 @@ e.mkMed = () => {
     placeholder: 'in seconds'
   }).appendTo(grid)
     .attr('title', 'Duration of the pan oscillation in seconds.')
+    .attr('disabled', true)
+
+  $('<span/>').html('pan oscillation crossfade:').appendTo(grid)
+  const panOscTrans = $('<input/>', {
+    placeholder: 'in seconds'
+  }).appendTo(grid)
+    .attr('title', 'Duration of the pan crossfade (half the pan oscillation period or less).')
+    .attr('disabled', true)
+
+  $('<span/>').html('sound sample:').appendTo(grid)
+  const soundSample = $('<select/>', { id: 'soundSample' }).appendTo(grid)
+    .append($('<option/>').val(-1).html('none'))
+    .attr('title', 'Sound sample to be played continuously.')
+    .on('change', aself => {
+      const ii = aself.currentTarget.value
+      soundSampleVolume.attr('disabled', ii < 0)
+      soundSamplePeriod.attr('disabled', ii < 0)
+      soundSampleStart.attr('disabled', ii < 0)
+    })
+
+  maestro.sounds.forEach((s, ii) => {
+    soundSample.append($('<option/>').val(ii).html(`${s.name}, ${s.duration}s`))
+  })
+
+  $('<span/>').html('sample volume:').appendTo(grid)
+  const soundSampleVolume = $('<input/>', {
+    placeholder: 'in decibels',
+    value: '-6'
+  }).appendTo(grid)
+    .attr('title', 'relative volume of the sound sample.')
+    .attr('disabled', true)
+
+  $('<span/>').html('sample repetition period:').appendTo(grid)
+  const soundSamplePeriod = $('<input/>', {
+    placeholder: 'in seconds'
+  }).appendTo(grid)
+    .attr('title', 'period between repetitions of the sound.')
+    .attr('disabled', true)
+
+  $('<span/>').html('sample starting time:').appendTo(grid)
+  const soundSampleStart = $('<input/>', {
+    placeholder: 'in seconds'
+  }).appendTo(grid)
+    .attr('title', 'time for the first incidence of the sound.')
     .attr('disabled', true)
 
   $('<span/>').html('breathing ellipse:').appendTo(grid)
@@ -78762,9 +78837,10 @@ e.mkMed = () => {
           return
         }
       }
-      mdict.panOsc = panOsc.val()
       mdict.waveformL = waveformL.val()
       mdict.waveformR = waveformR.val()
+
+      mdict.panOsc = panOsc.val()
       if (mdict.panOsc > 1) {
         const oPeriod = f(panOscPeriod.val())
         if (isNaN(oPeriod)) {
@@ -78772,8 +78848,38 @@ e.mkMed = () => {
           return
         }
         mdict.panOscPeriod = oPeriod
+        if (mdict.panOsc === '3') {
+          const oTrans = f(panOscTrans.val())
+          if (oPeriod < 2 * oTrans) {
+            window.alert('duration of the pan oscillation has to be at least twice that of the pan crossfade:')
+            return
+          }
+          mdict.panOscTrans = oTrans
+        }
       }
-      console.log(mdict, 'MDICT')
+      mdict.soundSample = soundSample.val()
+      if (mdict.soundSample >= 0) {
+        const oVolume = f(soundSampleVolume.val())
+        if (isNaN(oVolume)) {
+          window.alert('define the volume for the sound sample.')
+          return
+        }
+        mdict.soundSampleVolume = oVolume
+        const oPeriod = f(soundSamplePeriod.val())
+        if (isNaN(oPeriod)) {
+          window.alert('define the period for the sample repetition.')
+          return
+        }
+        if (oPeriod !== 0 && oPeriod < maestro.sounds[mdict.soundSample].duration) {
+          window.alert('define a repetition period which is greater than the samples\' duration or 0 (for looping).')
+        }
+        mdict.soundSamplePeriod = oPeriod
+        const oStart = f(soundSampleStart.val())
+        if (isNaN(oStart) || oStart < 0) {
+          window.alert('define a zero or positive starting time for the sample')
+        }
+        mdict.soundSampleStart = oStart
+      }
       mdict.dateTime = mfp.selectedDates[0]
       if (mdict.dateTime === undefined || mdict.dateTime < new Date()) {
         if (!window.confirm('the date has passed. Are you shure?')) return
@@ -79653,6 +79759,29 @@ e.accounts = () => {
   }).append('<h2>Partners</h2>')
     .append(grid)
     .appendTo('body')
+}
+
+e.sampler = () => {
+  const player = new t.Player('assets/audio/boom.mp3').toDestination()
+  window.ppp = player
+  // play as soon as the buffer is loaded
+  // player.autostart = true
+  const grid = utils.mkGrid(2)
+  const vonoff = $('<div/>', { id: 'vonoff' }).appendTo(grid).text('Stopped')
+  // t.stop()
+  $('<input/>', {
+    type: 'checkbox'
+  }).appendTo(grid).change(function () {
+    if (this.checked) {
+      t.context.resume()
+      t.start()
+      player.start()
+      t.Master.mute = false
+      vonoff.text('Playing')
+    } else {
+      vonoff.text('Stopped')
+    }
+  })
 }
 
 },{"./maestro.js":217,"./med":218,"./net.js":220,"./router.js":221,"./transfer.js":223,"./utils.js":224,"@eastdesire/jscolor":1,"flatpickr":43,"graphology-layout-forceatlas2":50,"jquery":60,"pixi.js":204,"tone":212}],223:[function(require,module,exports){
