@@ -79935,7 +79935,6 @@ module.exports = {
 
 },{}],217:[function(require,module,exports){
 /* global wand */
-console.log('yeah man')
 window.wand = {
   router: require('./modules/router.js'),
   net: require('./modules/net.js'),
@@ -80011,7 +80010,7 @@ e.meditation = mid => {
       $('#techBtn').click()
     })
     if (s === null) {
-      grid.css('background', 'red')
+      grid.css('background', '#ffaaaa')
       countdown.text("don't exist")
       conoff.attr('disabled', true)
       vonoff.text('-----')
@@ -80026,14 +80025,13 @@ e.meditation = mid => {
       conoff.attr('checked', true).attr('disabled', true)
       console.log(duration, s.d)
       if (-duration < s.d) { // ongoing
-        countdown.text('ongoing')
-        vonoff.text('participants have to join the session before it starts.')
+        vonoff.text('join a session before it starts.')
         // start timer for s.d - duration
-        setCountdown(s.d + duration, caseConcluded, undefined, 'countdown to conclude: ')
+        setCountdown(s.d + duration, caseConcluded, undefined, 'ongoing; countdown to conclude: ')
       } else { // finished
         caseConcluded()
       }
-      grid.css('background', '#bbaaff')
+      grid.css('background', '#ddddff')
     }
     if (duration < 0) {
       return caseOnOrConcluded()
@@ -80504,10 +80502,13 @@ e.ParticleNet = class {
 
 },{"graphology":56,"graphology-generators/random":48,"pixi.js":205}],222:[function(require,module,exports){
 /* global wand */
+const utils = require('./utils.js')
+
 const e = module.exports
 
 const pn = decodeURIComponent(window.location.href)
 const u = new URL(pn)
+
 const urlArgument = e.urlArgument = (arg, rotOrFun) => {
   const a = u.searchParams.get(arg)
   if (typeof rotOrFun === 'function' && a) {
@@ -80518,7 +80519,19 @@ const urlArgument = e.urlArgument = (arg, rotOrFun) => {
   }
 }
 
+e.urlAllArguments = () => {
+  const urlParams = new URLSearchParams(window.location.search)
+  const entries = urlParams.entries()
+  for (const entry of entries) {
+    console.log(entry[0], entry[1])
+  }
+}
+
 e.mkFooter = () => {
+  function sWord () {
+    const wlist = ['support', 'back', 'encourage', 'strengthen', 'assist', 'angel', 'boost']
+    return utils.chooseUnique(wlist, 1)
+  }
   const ft = wand.$('<div/>', {
     id: 'afooter',
     css: {
@@ -80527,29 +80540,29 @@ e.mkFooter = () => {
       'overflow-x': 'auto',
       margin: '0 auto',
       padding: '8px',
-      width: '50%'
+      width: '30%'
     }
   }).appendTo('body')
   const lflag = urlArgument('lang') ? `&lang=${urlArgument('lang')}` : ''
   wand.$('<a/>', {
-    href: `?page=about${lflag}`,
+    href: `?p=about${lflag}`,
     target: '_blank',
     css: {
       'margin-left': '1%',
       display: 'inline-block',
       float: 'left'
     }
-  }).html('about <b>aeterni</b>').appendTo(ft)
+  }).html('<b>About Æterni</b>').appendTo(ft)
   wand.$('<div/>', { class: 'notranslate', css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft).html(' / ')
   wand.$('<a/>', {
-    href: `?page=donate${lflag}`,
+    href: `?p=angel${lflag}`,
     target: '_blank',
     css: {
       'margin-left': '1%',
       display: 'inline-block',
       float: 'left'
     }
-  }).html('support this initiative').appendTo(ft)
+  }).html(`<b>${sWord()} this initiative</b>`).appendTo(ft)
   wand.$('body', {
     css: {
       'background-color': '#dddddd'
@@ -80557,7 +80570,7 @@ e.mkFooter = () => {
   })
 }
 
-},{}],223:[function(require,module,exports){
+},{"./utils.js":225}],223:[function(require,module,exports){
 const PIXI = require('pixi.js')
 const forceAtlas2 = require('graphology-layout-forceatlas2')
 
@@ -81110,6 +81123,7 @@ e.mkMed = () => {
   const flatpickr = require('flatpickr')
 
   const grid = utils.mkGrid(2)
+  const gd = () => utils.gridDivider(0, 160, 0, grid)
 
   const s = $('<select/>', { id: 'mselect' }).appendTo(grid)
     .append($('<option/>').val(-1).html('~ creating ~'))
@@ -81204,6 +81218,14 @@ e.mkMed = () => {
     enableTime: true
   })
 
+  $('<span/>').html('total duration:').appendTo(grid)
+  const d = $('<input/>', {
+    placeholder: 'in seconds (0 if forever)'
+  }).appendTo(grid)
+    .attr('title', 'Duration of the meditation in seconds.')
+
+  gd()
+
   $('<span/>').html('freq left:').appendTo(grid)
   const fl = $('<input/>', {
     placeholder: 'freq in Herz'
@@ -81230,6 +81252,8 @@ e.mkMed = () => {
     .append($('<option/>').val('sawtooth').html('sawtooth'))
     .append($('<option/>').val('triangle').html('triangle'))
 
+  gd()
+
   $('<span/>').html('Martigli amplitude:').appendTo(grid)
   const ma = $('<input/>', {
     placeholder: 'in Herz'
@@ -81254,11 +81278,7 @@ e.mkMed = () => {
   }).appendTo(grid)
     .attr('title', 'Duration of the transition from the initial to the final Martigli period.')
 
-  $('<span/>').html('total duration:').appendTo(grid)
-  const d = $('<input/>', {
-    placeholder: 'in seconds (0 if forever)'
-  }).appendTo(grid)
-    .attr('title', 'Duration of the meditation in seconds.')
+  gd()
 
   $('<span/>').html('pan oscillation:').appendTo(grid)
   const panOsc = $('<select/>', { id: 'panOsc' }).appendTo(grid)
@@ -81286,6 +81306,8 @@ e.mkMed = () => {
   }).appendTo(grid)
     .attr('title', 'Duration of the pan crossfade (half the pan oscillation period or less).')
     .attr('disabled', true)
+
+  gd()
 
   $('<span/>').html('sound sample:').appendTo(grid)
   const soundSample = $('<select/>', { id: 'soundSample' }).appendTo(grid)
@@ -81324,6 +81346,8 @@ e.mkMed = () => {
     .attr('title', 'time for the first incidence of the sound.')
     .attr('disabled', true)
 
+  gd()
+
   $('<span/>').html('breathing ellipse:').appendTo(grid)
   const ellipse = $('<input/>', {
     type: 'checkbox'
@@ -81341,6 +81365,8 @@ e.mkMed = () => {
       bPos.html(posPos[bPos.bindex])
     })
   bPos.bindex = 0
+
+  gd()
 
   $('<span/>').html('rainbow flakes:').appendTo(grid)
   const rainbowFlakes = $('<input/>', {
@@ -81373,6 +81399,8 @@ e.mkMed = () => {
   $('<input/>', { id: 'lcc' }).appendTo(grid)
     .attr('title', 'The color of the moving circle in (or most to) the laterals.')
   const lcc = new J('#lcc', { value: '#FFFF00' })
+
+  gd()
 
   $('<span/>').html('lemniscate:').appendTo(grid)
   const lemniscate = $('<input/>', {
@@ -82401,6 +82429,10 @@ e.tgui = () => {
   })
 }
 
+e.angel = () => {
+  console.log('ok man')
+}
+
 },{"./maestro.js":218,"./med":219,"./net.js":221,"./router.js":222,"./transfer.js":224,"./utils.js":225,"@eastdesire/jscolor":1,"dat.gui":39,"flatpickr":44,"graphology-layout-forceatlas2":51,"jquery":61,"pixi.js":205,"tone":213}],224:[function(require,module,exports){
 const s = require('mongodb-stitch-browser-sdk')
 const e = module.exports
@@ -82475,6 +82507,33 @@ e.mkGrid = (cols, el, w, bgc) => {
       width: w || '30%'
     }
   }).appendTo(el || 'body')
+}
+
+e.gridDivider = (r, g, b, grid) => {
+  $('<div/>', { css: { 'background-color': `rgba(${r},${g},${b},1)`, color: 'rgba(0,0,0,0)', height: '3px' } }).appendTo(grid).text('--')
+  $('<div/>', { css: { 'background-color': `rgba(${r},${g},${b},0)`, color: 'rgba(0,0,0,0)', height: '3px' } }).appendTo(grid).text('--')
+}
+
+e.chooseUnique = (marray, nelements) => {
+  let i = marray.length
+  // if (nelements >= i) {
+  //   console.log(`chooseUnique received nelements ${nelements}, and array with length ${i}. Returning scrambled array`)
+  // }
+  marray = [...marray]
+  if (i === 0) { return false }
+  let c = 0
+  const choice = []
+  while (i) {
+    const j = Math.floor(Math.random() * i)
+    const tempi = marray[--i]
+    const tempj = marray[j]
+    choice.push(tempj)
+    marray[i] = tempj
+    marray[j] = tempi
+    c++
+    if (c === nelements) { return choice }
+  }
+  return choice
 }
 
 e.defaultArg = (arg, def) => arg === undefined ? def : arg
