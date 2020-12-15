@@ -80052,7 +80052,7 @@ e.meditation = mid => {
       }
       const { synth, synthR, mod_ } = setSounds(s)
       t.Master.mute = false
-      tgui(synth, synthR, sampler)
+      if (s.vcontrol) tgui(synth, synthR, sampler)
       if (s.soundSample > 0) {
         setTimeout(() => {
           if (sampler.loop) {
@@ -80396,7 +80396,6 @@ function tgui (synth, synthR, sampler) {
   const syInitV = -40
   binaural.onChange(v => {
     const aval = v - 50 + masterV + syInitV
-    console.log(aval, 'AVAL')
     synthR.volume.rampTo(aval, 0.1)
     synth.volume.rampTo(aval, 0.1)
   })
@@ -80407,7 +80406,14 @@ function tgui (synth, synthR, sampler) {
       sampler.volume.value = v - 50 + masterV + sInitV
     })
     const master = gui.add({ master: 50 }, 'master', 0, 100).listen()
-    master.onChange(v => { masterV = v - 50 })
+    master.onChange(v => {
+      masterV = v - 50
+      sampler.volume.value = v - 50 + masterV + sInitV
+      const aval = v - 50 + masterV + syInitV
+      console.log(aval, 'AVAL')
+      synthR.volume.rampTo(aval, 0.1)
+      synth.volume.rampTo(aval, 0.1)
+    })
   }
   window.agui = gui
   $('.close-top').text('Open Volume Controls')
@@ -81097,11 +81103,6 @@ e.particles2 = () => {
 }
 
 e.mkMed = () => {
-  // define:
-  // id (any string without points), date and time,
-  // freq1, freq2, mod freq1-2 and duration transition and depth
-  // and total duration
-  // save to mongo
   $('<link/>', {
     rel: 'stylesheet',
     href: 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css'
@@ -81160,9 +81161,11 @@ e.mkMed = () => {
       soundSampleStart.attr('disabled', e.soundSample < 0)
 
       lemniscate.prop('checked', e.lemniscate || false)
+      vcontrol.prop('checked', e.vcontrol || false)
+      communionSchedule.prop('checked', e.communionSchedule || false)
+
       centerC.html(e.lemniscate ? 'left circ color:' : 'center circ color:')
       lateralC.html(e.lemniscate ? 'right circ color:' : 'lateral circ color:')
-      communionSchedule.prop('checked', e.communionSchedule || false)
     })
   transfer.findAll({ meditation: { $exists: true } }).then(r => {
     window.allthem2 = r
@@ -81388,6 +81391,12 @@ e.mkMed = () => {
       }
     })
 
+  $('<span/>').html('volume control:').appendTo(grid)
+  const vcontrol = $('<input/>', {
+    type: 'checkbox'
+  }).appendTo(grid)
+    .attr('title', 'Enables volume control widget if checked.')
+
   $('<span/>').html('<a target="_blank" href="?p=communion">communion schedule</a>:').appendTo(grid)
   const communionSchedule = $('<input/>', {
     type: 'checkbox'
@@ -81490,6 +81499,7 @@ e.mkMed = () => {
       mdict.bcc = bcc.toString()
       mdict.ccc = ccc.toString()
       mdict.lcc = lcc.toString()
+      mdict.vcontrol = vcontrol.prop('checked')
       mdict.lemniscate = lemniscate.prop('checked')
       mdict.communionSchedule = communionSchedule.prop('checked')
       console.log(fl.val())
