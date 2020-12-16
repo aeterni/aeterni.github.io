@@ -80029,7 +80029,6 @@ e.meditation = mid => {
       <br><br><br>:::
       `)
       $('#techBtn').click()
-      $('#loading').hide()
     })
     if (s === null) {
       grid.css('background', '#ffaaaa')
@@ -80097,6 +80096,7 @@ e.meditation = mid => {
       synthR.volume.rampTo(-400, 10)
     }
     grid.css('background', '#ffffaa')
+    $('#loading').hide()
   })
   function setCountdown (duration, fun, args, countdownText) { // duration in seconds
     const targetTime = (new Date()).getTime() / 1000 + duration
