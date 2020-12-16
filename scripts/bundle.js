@@ -79943,11 +79943,31 @@ window.wand = {
   $: require('jquery')
 }
 
-const page = wand.router.urlArgument('p')
-if (page !== null) wand.test[wand.router.urlArgument('p')]()
+const uargs = wand.router.urlAllArguments()
 
-const meditation = wand.router.urlArgument('m')
-if (meditation !== null) wand.med.model(meditation)
+// page is first arg key without value
+// meditation is the same, but starts with _
+// sync is specified with <sync id>=<participant ref>
+// else just welcome page
+let found = false
+if (uargs.values[0] === '') {
+  const k = uargs.keys[0]
+  if (k[0] === '_') { // meditation:
+    wand.med.model(k.slice(1))
+    found = true
+  } else if (k in wand.test) { // standard page:
+    wand.test[k]()
+    found = true
+  }
+} else {
+  const syncId = uargs.keys[0]
+  const userRef = uargs.keys[1]
+  // something as: wand.conductor.gradus(syncId, userRef)
+  console.log(`sync is under migration: id: ${syncId}, user: ${userRef}`)
+}
+if (!found) { // includes empty/no URL parameters:
+  wand.test.welcome()
+}
 
 wand.router.mkFooter()
 
@@ -80522,9 +80542,15 @@ const urlArgument = e.urlArgument = (arg, rotOrFun) => {
 e.urlAllArguments = () => {
   const urlParams = new URLSearchParams(window.location.search)
   const entries = urlParams.entries()
+  const keys = []
+  const values = []
+  const dict = {}
   for (const entry of entries) {
-    console.log(entry[0], entry[1])
+    keys.push(entry[0])
+    values.push(entry[1])
+    dict[entry[0]] = entry[1]
   }
+  return { keys, values, dict }
 }
 
 e.mkFooter = () => {
@@ -80545,7 +80571,7 @@ e.mkFooter = () => {
   }).appendTo('body')
   const lflag = urlArgument('lang') ? `&lang=${urlArgument('lang')}` : ''
   wand.$('<a/>', {
-    href: `?p=about${lflag}`,
+    href: `?about${lflag}`,
     target: '_blank',
     css: {
       'margin-left': '1%',
@@ -80555,7 +80581,7 @@ e.mkFooter = () => {
   }).html('<b>About Æterni</b>').appendTo(ft)
   wand.$('<div/>', { class: 'notranslate', css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft).html(' / ')
   wand.$('<a/>', {
-    href: `?p=angel${lflag}`,
+    href: `?angel${lflag}`,
     target: '_blank',
     css: {
       'margin-left': '1%',
@@ -81544,7 +81570,7 @@ e.mkMed = () => {
     .attr('title', 'Open URL of the meditation.')
     .click(() => {
       // open url with
-      window.open(`?m=${mdiv.val()}`)
+      window.open(`?_${mdiv.val()}`)
     })
     .appendTo(grid)
     .attr('disabled', true)
@@ -82064,7 +82090,7 @@ e.communion = () => {
 
   <p>Join us at <a target="_blank" href="https://meet.google.com/bkr-vzhw-zfc">our video conference</a></a>.</p>
   `)
-  const l = t => `<a href="?m=${t}" target="_blank">${t}</a>`
+  const l = t => `<a href="?_${t}" target="_blank">${t}</a>`
   const grid = utils.mkGrid(2)
   $('<span/>').html('<b>when</b> (GMT-0)').appendTo(grid)
   $('<span/>').html('<b>subject</b>').appendTo(grid)
@@ -82431,6 +82457,10 @@ e.tgui = () => {
 
 e.angel = () => {
   console.log('ok man')
+}
+
+e.welcome = () => {
+  console.log('welcome')
 }
 
 },{"./maestro.js":218,"./med":219,"./net.js":221,"./router.js":222,"./transfer.js":224,"./utils.js":225,"@eastdesire/jscolor":1,"dat.gui":39,"flatpickr":44,"graphology-layout-forceatlas2":51,"jquery":61,"pixi.js":205,"tone":213}],224:[function(require,module,exports){
