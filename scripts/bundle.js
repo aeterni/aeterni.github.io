@@ -81211,6 +81211,7 @@ e.mkMed = () => {
     window.allthem2 = r
     r.forEach((i, ii) => {
       s.append($('<option/>', { class: 'pres' }).val(ii).html(i.meditation))
+      $('#loading').hide()
     })
   })
   window.ass = s
@@ -82107,6 +82108,7 @@ e.communion = () => {
     })
     $('<span/>').text('December 1st, 6h:').appendTo(grid)
     $('<span/>').html('health (for one\'s self, loved ones,<br>people in need, all humanity)').appendTo(grid)
+    $('#loading').hide()
   })
 }
 
