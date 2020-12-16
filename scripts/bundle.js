@@ -79939,6 +79939,7 @@ window.wand = {
   router: require('./modules/router.js'),
   net: require('./modules/net.js'),
   med: require('./modules/med'),
+  monk: require('./modules/monk'),
   test: require('./modules/test.js'),
   $: require('jquery')
 }
@@ -79971,7 +79972,7 @@ if (!found) { // includes empty/no URL parameters:
 
 wand.router.mkFooter()
 
-},{"./modules/med":219,"./modules/net.js":221,"./modules/router.js":222,"./modules/test.js":223,"jquery":61}],218:[function(require,module,exports){
+},{"./modules/med":219,"./modules/monk":221,"./modules/net.js":222,"./modules/router.js":223,"./modules/test.js":224,"jquery":61}],218:[function(require,module,exports){
 const d = require('./utils.js').defaultArg
 const t = require('tone')
 
@@ -79992,7 +79993,7 @@ e.sounds = [
   ['boom', 1.5]
 ].map(i => { return { name: i[0], duration: i[1] } })
 
-},{"./utils.js":225,"tone":213}],219:[function(require,module,exports){
+},{"./utils.js":226,"tone":213}],219:[function(require,module,exports){
 module.exports = {
   model: require('./model1').meditation
 }
@@ -80028,6 +80029,7 @@ e.meditation = mid => {
       <br><br><br>:::
       `)
       $('#techBtn').click()
+      $('#loading').hide()
     })
     if (s === null) {
       grid.css('background', '#ffaaaa')
@@ -80443,7 +80445,20 @@ function tgui (synth, synthR, sampler) {
   })
 }
 
-},{"../maestro.js":218,"../router.js":222,"../transfer.js":224,"../utils.js":225,"dat.gui":39,"jquery":61,"pixi.js":205,"tone":213}],221:[function(require,module,exports){
+},{"../maestro.js":218,"../router.js":223,"../transfer.js":225,"../utils.js":226,"dat.gui":39,"jquery":61,"pixi.js":205,"tone":213}],221:[function(require,module,exports){
+const $ = require('jquery')
+const utils = require('../utils.js')
+
+$.ajax({
+  url: 'assets/biblePt.txt',
+  success: data => {
+    module.exports.biblePt = utils.chunkArray(data.split('\n'), 3).map(e => {
+      return { text: e[0], ref: e[1] }
+    })
+  }
+})
+
+},{"../utils.js":226,"jquery":61}],222:[function(require,module,exports){
 const Graph = require('graphology')
 const { erdosRenyi } = require('graphology-generators/random')
 const PIXI = require('pixi.js')
@@ -80520,7 +80535,7 @@ e.ParticleNet = class {
   }
 }
 
-},{"graphology":56,"graphology-generators/random":48,"pixi.js":205}],222:[function(require,module,exports){
+},{"graphology":56,"graphology-generators/random":48,"pixi.js":205}],223:[function(require,module,exports){
 /* global wand */
 const utils = require('./utils.js')
 
@@ -80596,7 +80611,7 @@ e.mkFooter = () => {
   })
 }
 
-},{"./utils.js":225}],223:[function(require,module,exports){
+},{"./utils.js":226}],224:[function(require,module,exports){
 const PIXI = require('pixi.js')
 const forceAtlas2 = require('graphology-layout-forceatlas2')
 
@@ -80604,6 +80619,7 @@ const t = require('tone')
 const $ = require('jquery')
 
 const m = require('./med')
+const monk = require('./monk')
 const maestro = require('./maestro.js')
 const net = require('./net.js')
 const utils = require('./utils.js')
@@ -82457,15 +82473,96 @@ e.tgui = () => {
   })
 }
 
+const link = (text, path) => {
+  const ua = window.wand.router.urlArgument
+  const lflag = ua('lang') ? `&lang=${ua('lang')}` : ''
+  return `<a href="?page=${path + lflag}">${text}</a>`
+}
+
 e.angel = () => {
-  console.log('ok man')
+  const paragraphs = [
+    `Please contribute to Our Aquarium (OA). You can find many suggestions for addind to OA in the ${link('contributing page', 'contribute')}.
+    `,
+    `
+    This page is dedicated to monetary donations. Any amount may be transfered. We currently provide the following ways for you to accomplish a donation:
+    `
+  ].reduce((a, t) => a + `<p>${t}</p>`, '')
+
+  const items = [
+    `Donate through ${link('Paypal', 'donatePaypal')}.`,
+    `Donate through ${link('Pagseguro', 'donatePagseguro')}.`,
+    `Donate using ${link('Bitcoin', 'donateBitcoin')}.`,
+    'Write us at <a href="mailto:sync.aquarium@gmail.com" target="_blank"> sync <ADOT> aquarium <AT> gmail <ANOTHERDOR> com</a> to transfer into an online account or donate through any other means.'
+  ].reduce((a, t) => a + `<li>${t}</li>`, '')
+
+  $('<div/>', {
+    css: {
+      width: '50%',
+      margin: '2% 10%',
+      background: '#6DC2E1',
+      padding: '2%',
+      border: 'solid green 5px'
+    }
+  }).html(`
+  <h2>Donate to Our Aquarium</h2>
+
+  ${paragraphs}
+
+  ${items}
+
+<br/>
+    <p>
+    We want to include other e-coins, such as Ethereum, but we have not managed to get into them.
+    If you wish to help us in including them, please write us.
+    </p>
+
+    <p>Please donate so <b>Our Aquarium</b> receives further developments and online instances.</p>
+    <br/>
+:::
+    `
+  ).appendTo('body')
+  $('canvas').hide()
+  $('#loading').hide()
 }
 
 e.welcome = () => {
   console.log('welcome')
+  $('#loading').hide()
 }
 
-},{"./maestro.js":218,"./med":219,"./net.js":221,"./router.js":222,"./transfer.js":224,"./utils.js":225,"@eastdesire/jscolor":1,"dat.gui":39,"flatpickr":44,"graphology-layout-forceatlas2":51,"jquery":61,"pixi.js":205,"tone":213}],224:[function(require,module,exports){
+e.about = () => {
+  console.log('HEAY')
+  $('#loading').hide()
+}
+
+e.monk = () => {
+  const adiv = $('<div/>', {
+    css: {
+      'background-color': '#c2F6c3',
+      padding: '20%',
+      margin: '0 auto',
+      width: '30%'
+    }
+  }).appendTo('body')
+  let tossed = false
+  let el
+  const but = $('<button/>').html('toss').click(() => {
+    if (!tossed) {
+      el = utils.chooseUnique(monk.biblePt, 1)[0]
+      div.html(el.ref)
+      but.html('show')
+      tossed = true
+    } else {
+      div.html(el.text)
+      but.html('toss again')
+      tossed = false
+    }
+  }).appendTo(adiv)
+  const div = $('<div/>').appendTo(adiv)
+  $('#loading').hide()
+}
+
+},{"./maestro.js":218,"./med":219,"./monk":221,"./net.js":222,"./router.js":223,"./transfer.js":225,"./utils.js":226,"@eastdesire/jscolor":1,"dat.gui":39,"flatpickr":44,"graphology-layout-forceatlas2":51,"jquery":61,"pixi.js":205,"tone":213}],225:[function(require,module,exports){
 const s = require('mongodb-stitch-browser-sdk')
 const e = module.exports
 
@@ -82520,7 +82617,7 @@ e.remove = query => {
   })
 }
 
-},{"mongodb-stitch-browser-sdk":107}],225:[function(require,module,exports){
+},{"mongodb-stitch-browser-sdk":107}],226:[function(require,module,exports){
 const e = module.exports
 const $ = require('jquery')
 
@@ -82548,9 +82645,6 @@ e.gridDivider = (r, g, b, grid) => {
 
 e.chooseUnique = (marray, nelements) => {
   let i = marray.length
-  // if (nelements >= i) {
-  //   console.log(`chooseUnique received nelements ${nelements}, and array with length ${i}. Returning scrambled array`)
-  // }
   marray = [...marray]
   if (i === 0) { return false }
   let c = 0
@@ -82566,6 +82660,15 @@ e.chooseUnique = (marray, nelements) => {
     if (c === nelements) { return choice }
   }
   return choice
+}
+
+e.chunkArray = (array, chunkSize) => {
+  const results = []
+  array = array.slice()
+  while (array.length) {
+    results.push(array.splice(0, chunkSize))
+  }
+  return results
 }
 
 e.defaultArg = (arg, def) => arg === undefined ? def : arg
