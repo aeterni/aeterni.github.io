@@ -81451,7 +81451,7 @@ e.mkMed = () => {
   }).appendTo(grid)
     .attr('title', 'Enables volume control widget if checked.')
 
-  $('<span/>').html('<a target="_blank" href="?p=communion">communion schedule</a>:').appendTo(grid)
+  $('<span/>').html('<a target="_blank" href="?communion">communion schedule</a>:').appendTo(grid)
   const communionSchedule = $('<input/>', {
     type: 'checkbox'
   }).appendTo(grid)
@@ -82025,16 +82025,16 @@ e.binauralMeta = () => {
   Examples:
   <ul>
   <li>
-  skull screening: ${linkL('?p=binauralMeta&l=400.1&r=400&o=2&a=200&g=0.01')}
+  skull screening: ${linkL('?binauralMeta&l=400.1&r=400&o=2&a=200&g=0.01')}
   </li>
   <li>
-  skull screening 2: ${linkL('?p=binauralMeta&l=400.2&r=400&o=0.5&a=50&g=0.01')}
+  skull screening 2: ${linkL('?binauralMeta&l=400.2&r=400&o=0.5&a=50&g=0.01')}
   </li>
   <li>
-  concentration sweep: ${linkL('?p=binauralMeta&l=400&r=415&o=0.01&a=200&g=0.01')}
+  concentration sweep: ${linkL('?binauralMeta&l=400&r=415&o=0.01&a=200&g=0.01')}
   </li>
   <li>
-  concentration sweep2: ${linkL('?p=binauralMeta&l=400&r=410&o=0.01&a=200&g=0.01')}
+  concentration sweep2: ${linkL('?binauralMeta&l=400&r=410&o=0.01&a=200&g=0.01')}
   </li>
   <li>
   Alpha (|l - r| in 8-13 Hz).
