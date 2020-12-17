@@ -80450,7 +80450,7 @@ const $ = require('jquery')
 const utils = require('../utils.js')
 
 $.ajax({
-  url: 'assets/biblePt.txt',
+  url: 'assets/text/biblePt.txt',
   success: data => {
     module.exports.biblePt = utils.chunkArray(data.split('\n'), 3).map(e => {
       return { text: e[0], ref: e[1] }
@@ -82527,6 +82527,7 @@ e.angel = () => {
 
 e.welcome = () => {
   console.log('welcome')
+  utils.centerDiv().html('oioi')
   $('#loading').hide()
 }
 
@@ -82643,6 +82644,16 @@ e.gridDivider = (r, g, b, grid) => {
   $('<div/>', { css: { 'background-color': `rgba(${r},${g},${b},0)`, color: 'rgba(0,0,0,0)', height: '3px' } }).appendTo(grid).text('--')
 }
 
+e.centerDiv = (width, container, color, margin) => {
+  return $('<div/>', {
+    css: {
+      'background-color': '#c2F6c3',
+      margin: `${d(margin, 0)}% auto`,
+      width: '30%'
+    }
+  }).appendTo('body')
+}
+
 e.chooseUnique = (marray, nelements) => {
   let i = marray.length
   marray = [...marray]
@@ -82671,6 +82682,6 @@ e.chunkArray = (array, chunkSize) => {
   return results
 }
 
-e.defaultArg = (arg, def) => arg === undefined ? def : arg
+const d = e.defaultArg = (arg, def) => arg === undefined ? def : arg
 
 },{"jquery":61}]},{},[217]);
