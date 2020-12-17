@@ -82526,13 +82526,40 @@ e.angel = () => {
 }
 
 e.welcome = () => {
-  console.log('welcome')
-  utils.centerDiv().html('oioi')
+  utils.centerDiv(undefined, undefined, utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee'], 1)[0], 3, 2).html(`
+  <h2>Welcome</h2>
+
+  <p>
+  We are glad you are taking time to visit this site.
+  </p>
+  <p>
+  Please visit the links below to enjoy and reinforce the
+  <b>Æterni</b> initiatives.
+  </p>
+  <p>
+  They are fostered to be useful to each individual, group and the Cosmos.
+  </p>
+
+  `)
   $('#loading').hide()
 }
 
 e.about = () => {
-  console.log('HEAY')
+  utils.stdDiv().html(`
+  <h2>About</h2>
+
+  <p>
+  <b>Æterni Anima</b> started in December 2020 to boost longevity, ideally to enable human immortality in the next decades.
+  </p>
+  <p>
+  Previous efforts are being consolidated herein:
+  <ul>
+  <li>audiovisual artifacts for mentalization / meditation / manifestation;</li>
+  <li>social synchronization mechanisms;</li>
+  <li>text publisher.</li>
+  </p>
+
+  `)
   $('#loading').hide()
 }
 
@@ -82644,14 +82671,18 @@ e.gridDivider = (r, g, b, grid) => {
   $('<div/>', { css: { 'background-color': `rgba(${r},${g},${b},0)`, color: 'rgba(0,0,0,0)', height: '3px' } }).appendTo(grid).text('--')
 }
 
-e.centerDiv = (width, container, color, margin) => {
+e.stdDiv = () => e.centerDiv(undefined, undefined, e.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee'], 1)[0], 3, 2)
+
+e.centerDiv = (width, container, color, margin, padding) => {
   return $('<div/>', {
     css: {
-      'background-color': '#c2F6c3',
+      'background-color': color || '#c2F6c3',
       margin: `${d(margin, 0)}% auto`,
-      width: '30%'
+      padding: `${d(padding, 1)}%`,
+      width: d(width, '50%'),
+      'border-radius': '5%'
     }
-  }).appendTo('body')
+  }).appendTo(container || 'body')
 }
 
 e.chooseUnique = (marray, nelements) => {
