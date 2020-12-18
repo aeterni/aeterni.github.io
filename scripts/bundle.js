@@ -80017,6 +80017,7 @@ const tr = PIXI.utils.string2hex
 e.meditation = mid => {
   transfer.findAny({ meditation: mid }).then(s => {
     evocation.on('click', () => {
+      $('#loading').hide()
       $('#myModal').css('display', 'block')
       $('#mcontent').html(`
       <h2>Evocation <button onclick="wand.$('#techdiv').toggle()" id="techBtn">tech</button></h2>
@@ -80100,7 +80101,6 @@ e.meditation = mid => {
       synthR.volume.rampTo(-400, 10)
     }
     grid.css('background', '#ffffaa')
-    $('#loading').hide()
   })
   function setCountdown (duration, fun, args, countdownText) { // duration in seconds
     const targetTime = (new Date()).getTime() / 1000 + duration
@@ -80613,7 +80613,14 @@ e.mkFooter = () => {
       'background-color': '#dddddd'
     }
   })
-  wand.$('<div/>', { id: 'disqus_thread' }).appendTo('body')
+  wand.$('<div/>', {
+    id: 'disqus_thread',
+    css: {
+      margin: '0 auto',
+      padding: '1%',
+      width: '50%'
+    }
+  }).appendTo('body')
   // <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
   wand.$('<noscript/>').html('Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>')
   disqus()
