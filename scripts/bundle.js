@@ -79967,7 +79967,11 @@ if (uargs.values[0] === '') {
   console.log(`sync is under migration: id: ${syncId}, user: ${userRef}`)
 }
 if (!found) { // includes empty/no URL parameters:
-  wand.test.welcome()
+  if (uargs.keys.length === 0) {
+    wand.test.welcome()
+  } else {
+    window.open(window.location.origin, '_self')
+  }
 }
 
 wand.router.mkFooter()
@@ -80609,6 +80613,24 @@ e.mkFooter = () => {
       'background-color': '#dddddd'
     }
   })
+  wand.$('<div/>', { id: 'disqus_thread' }).appendTo('body')
+  // <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  wand.$('<noscript/>').html('Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>')
+  disqus()
+}
+
+window.disqus_config = function () {
+  this.page.url = window.location.href // Replace PAGE_URL with your page's canonical URL variable
+  this.page.identifier = window.location.search
+}
+
+function disqus () { // DON'T EDIT BELOW THIS LINE
+  const d = document
+  const s = d.createElement('script')
+  s.src = 'https://aeterni.disqus.com/embed.js'
+  s.setAttribute('data-timestamp', +new Date())
+  const asec = (d.head || d.body)
+  asec.appendChild(s)
 }
 
 },{"./utils.js":226}],224:[function(require,module,exports){
@@ -82096,14 +82118,14 @@ e.communion = () => {
   <h2>Communions</h2>
 
   <p>We have daily meetings around 6h, 12h, and 18h (GMT-3).
-  They are concentrations for Humanity's
+  In them we concentrate for Humanity's
   well-being, and by extension also for World and Cosmic well-being.
   </p>
 
   <p>The intended outline:
   <ul>
     <li>10 minutes to gather, talk, agree on the mentalization subject and preparations in general.</li>
-    <li>15 minutes of concentration/meditation, with breathing and brainwaves synchronized through the online gadgets linked below. Thus <b>anyone that arrives late misses the meditation</b>.</li>
+    <li>15 minutes to concentrate/meditate, with breathing and brainwaves synchronized through the online gadgets linked below. Thus <b>anyone that arrives late misses the meditation</b>.</li>
     <li>5 minutes for final words and considerations and farewells.</li>
   </ul>
   </p>
