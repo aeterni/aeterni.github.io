@@ -80016,8 +80016,8 @@ const tr = PIXI.utils.string2hex
 
 e.meditation = mid => {
   transfer.findAny({ meditation: mid }).then(s => {
+    $('#loading').hide()
     evocation.on('click', () => {
-      $('#loading').hide()
       $('#myModal').css('display', 'block')
       $('#mcontent').html(`
       <h2>Evocation <button onclick="wand.$('#techdiv').toggle()" id="techBtn">tech</button></h2>
