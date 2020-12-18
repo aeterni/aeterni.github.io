@@ -82085,32 +82085,37 @@ const linkL = path => {
 }
 
 e.communion = () => {
-  $('<div/>', {
-    css: {
-      margin: '0 auto',
-      padding: '8px',
-      width: '50%'
-    }
-  }).appendTo('body').html(`
+  // $('<div/>', {
+  //   css: {
+  //     margin: '0 auto',
+  //     padding: '8px',
+  //     width: '50%'
+  //   }
+  // }).appendTo('body').html(`
+  const adiv = utils.stdDiv().html(`
   <h2>Communions</h2>
 
-  <p>We have daily meetings 0h, 6h, 12h, and 18h (GMT-3).
-  They are dedicated to be a group concentration for humanity's
-  well-being (by extention also for the world and all creation's well-being).</p>
+  <p>We have daily meetings around 6h, 12h, and 18h (GMT-3).
+  They are concentrations for Humanity's
+  well-being, and by extension also for World and Cosmic well-being.
+  </p>
 
-  <p>The outline is not rigid and intended as follows:
+  <p>The intended outline:
   <ul>
     <li>10 minutes to gather, talk, agree on the mentalization subject and preparations in general.</li>
-    <li>15 minutes of meditation, with breathing and brainwaves synchronized through the online gadgets linked below. Thus <b>anyone that arrives late misses the meditation, there is no way around it</b>.</li>
+    <li>15 minutes of concentration/meditation, with breathing and brainwaves synchronized through the online gadgets linked below. Thus <b>anyone that arrives late misses the meditation</b>.</li>
     <li>5 minutes for final words and considerations and farewells.</li>
   </ul>
+  </p>
 
   <p>Join us at <a target="_blank" href="https://meet.google.com/bkr-vzhw-zfc">our video conference</a></a>.</p>
   `)
   const l = t => `<a href="?_${t}" target="_blank">${t}</a>`
-  const grid = utils.mkGrid(2)
-  $('<span/>').html('<b>when</b> (GMT-0)').appendTo(grid)
-  $('<span/>').html('<b>subject</b>').appendTo(grid)
+  const grid = utils.mkGrid(1, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
+  $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>when</b>&nbsp;&nbsp; (GMT-0)&nbsp : <b>subject</b>').appendTo(grid)
+  // $('<span/>').html('<b>subject</b>').appendTo(grid)
+  // $('<span/>').html('').appendTo(grid)
+  utils.gridDivider(160, 160, 160, grid)
   transfer.findAll({ communionSchedule: true }).then(r => {
     window.myr = r
     r.sort((a, b) => b.dateTime - a.dateTime)
@@ -82119,11 +82124,13 @@ e.communion = () => {
         .replace(/T/, ' ')
         .replace(/:\d\d\..+/, '')
       console.log(adate)
-      $('<span/>').text(adate).appendTo(grid)
-      $('<span/>').html(l(e.meditation)).appendTo(grid)
+      // $('<span/>').text(adate).appendTo(grid)
+      // $('<span/>').html(l(e.meditation)).appendTo(grid)
+      $('<span/>', { css: { 'margin-left': '10%' } }).html(`${adate}: ${l(e.meditation)}`).appendTo(grid)
+      // $('<span/>').html(l(e.meditation)).appendTo(grid)
     })
-    $('<span/>').text('December 1st, 6h:').appendTo(grid)
-    $('<span/>').html('health (for one\'s self, loved ones,<br>people in need, all humanity)').appendTo(grid)
+    $('<span/>', { css: { 'margin-left': '10%' } }).text('December 1st, 6h: health (for one\'s self, loved ones,<br>people in need, all humanity)').appendTo(grid)
+    // $('<span/>').html('health (for one\'s self, loved ones,<br>people in need, all humanity)').appendTo(grid)
     $('#loading').hide()
   })
 }
@@ -82715,7 +82722,8 @@ e.mkGrid = (cols, el, w, bgc) => {
       padding: '8px',
       margin: '0 auto',
       // height: Math.floor(wand.artist.use.height * 0.065) + 'px',
-      width: w || '30%'
+      width: w || '30%',
+      'border-radius': '2%'
     }
   }).appendTo(el || 'body')
 }
