@@ -80621,17 +80621,17 @@ e.mkFooter = () => {
       width: '50%'
     }
   }).appendTo('body')
-  // <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  const uargs = e.urlAllArguments()
+  if (uargs.keys[0] && uargs.keys[0][0] === '_') disqus(uargs.keys[0][0].slice(1))
+}
+
+function disqus (id) {
+  window.disqus_config = function () {
+    // this.page.url = window.location.href
+    this.page.url = `${window.location.origin}?_${id}`
+    this.page.identifier = id
+  }
   wand.$('<noscript/>').html('Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>')
-  disqus()
-}
-
-window.disqus_config = function () {
-  this.page.url = window.location.href // Replace PAGE_URL with your page's canonical URL variable
-  this.page.identifier = window.location.search
-}
-
-function disqus () { // DON'T EDIT BELOW THIS LINE
   const d = document
   const s = d.createElement('script')
   s.src = 'https://aeterni.disqus.com/embed.js'
@@ -82158,7 +82158,7 @@ e.communion = () => {
       $('<span/>', { css: { 'margin-left': '10%' } }).html(`${adate}: ${l(e.meditation)}`).appendTo(grid)
       // $('<span/>').html(l(e.meditation)).appendTo(grid)
     })
-    $('<span/>', { css: { 'margin-left': '10%' } }).text('December 1st, 6h: health (for one\'s self, loved ones,<br>people in need, all humanity)').appendTo(grid)
+    $('<span/>', { css: { 'margin-left': '10%' } }).html('December 1st, 6h: health (for one\'s self, loved ones, people in need, all humanity)').appendTo(grid)
     // $('<span/>').html('health (for one\'s self, loved ones,<br>people in need, all humanity)').appendTo(grid)
     $('#loading').hide()
   })
