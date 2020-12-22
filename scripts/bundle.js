@@ -80389,7 +80389,9 @@ e.meditation = mid => {
     'such breathing cycles are also represented in the status and help colored section, at the bottom of the page;',
     'repeat the concentration a number of times so you develop the means to better perform;',
     'read the evocation message and adapt it to your repertoire;',
-    'mentally visualize the changes in your life, in the life of the loved and known ones, and the whole of humanity.'
+    'mentally visualize the changes in your life, in the life of the loved and known ones, the ones that need the most, and the whole of humanity;',
+    'it is usually best to breath using less air when the breathing cycle is fast, and more air as it slows down;',
+    'be flexible in your breathing and use the cues mainly to maintain the breathing rhythm: you may hold air in your lungs or hold your breath without air as you wish.'
   ].reduce((a, i) => a + `<li>${i}</li>`, '')
   $('<button/>', {
     css: {
@@ -80598,7 +80600,7 @@ e.mkFooter = () => {
       float: 'left'
     }
   }).html('<b>About Æterni</b>').appendTo(ft)
-  wand.$('<div/>', { class: 'notranslate', css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft).html(' / ')
+  wand.$('<div/>', { css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft).html(' / ')
   wand.$('<a/>', {
     href: `?angel${lflag}`,
     target: '_blank',
@@ -80621,6 +80623,7 @@ e.mkFooter = () => {
       width: '50%'
     }
   }).appendTo('body')
+  lang(ft)
   const uargs = e.urlAllArguments()
   if (uargs.keys[0] && uargs.keys[0][0] === '_') disqus(uargs.keys[0][0].slice(1))
 }
@@ -80638,6 +80641,60 @@ function disqus (id) {
   s.setAttribute('data-timestamp', +new Date())
   const asec = (d.head || d.body)
   asec.appendChild(s)
+}
+
+function lang (ft) {
+  // const ft = wand.$('<div/>', { id: 'afooter', css: { width: '100%', display: 'flex', 'white-space': 'nowrap', 'overflow-x': 'auto' } }).appendTo('body')
+  // wand.$('<div/>', { class: 'notranslate', css: { display: 'inline-block', 'margin-left': '30%', float: 'left' } }).appendTo(ft).html('language:')
+  wand.$('<div/>', { css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft).html(' / lang: ')
+  // wand.$('<div/>', { id: 'google_translate_element', class: 'notranslate', css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo('body').hide()
+  wand.$('<div/>', { id: 'google_translate_element' }).appendTo('body').hide()
+  wand.$('<script/>', {
+    type: 'text/javascript',
+    src: '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
+  }).appendTo('body')
+  // const adiv = wand.$('<div/>', { class: 'flag' }).appendTo(ft)
+  wand.$('<div/>', { class: 'flag_link eng', 'data-lang': 'en' })
+    .appendTo(ft)
+    .append(wand.$('<img/>', {
+      // src: 'assets/flags/uk.png',
+      class: 'fimg',
+      src: 'assets/flags/uk2.svg',
+      css: {
+        width: '50%',
+        height: '100%',
+        'margin-left': '10%'
+      }
+    }))
+  wand.$('<div/>', { class: 'flag_link por', 'data-lang': 'pt' })
+    .appendTo(ft)
+    .append(wand.$('<img/>', {
+      // src: 'assets/flags/br.png',
+      class: 'fimg',
+      src: 'assets/flags/br2.svg',
+      css: {
+        width: '50%',
+        height: '100%'
+      }
+    }))
+  const afun = e => {
+    Array.prototype.forEach.call(iels, e => { e.style.backgroundColor = '' })
+    window.eee = e
+    e.firstChild.style.backgroundColor = '#ccc'
+    const lang = e.getAttribute('data-lang')
+    const languageSelect = document.querySelector('select.goog-te-combo')
+    languageSelect.value = lang
+    languageSelect.dispatchEvent(new window.Event('change'))
+  }
+  const iels = document.getElementsByClassName('fimg')
+  const els = document.getElementsByClassName('flag_link')
+  window.elss = els
+  Array.prototype.forEach.call(els, function (e) {
+    e.addEventListener('click', function () {
+      afun(e)
+      afun(e)
+    })
+  })
 }
 
 },{"./utils.js":226}],224:[function(require,module,exports){
@@ -82579,7 +82636,9 @@ e.about = () => {
   <li>audiovisual artifacts for mentalization / meditation / manifestation;</li>
   <li>social coordination mechanisms;</li>
   <li>press (text publisher).</li>
+  </ul>
   </p>
+
   `)
   $('#loading').hide()
 }
