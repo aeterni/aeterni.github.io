@@ -80643,44 +80643,73 @@ function disqus (id) {
   asec.appendChild(s)
 }
 
-function lang (ft) {
+function lang (ft2) {
   // const ft = wand.$('<div/>', { id: 'afooter', css: { width: '100%', display: 'flex', 'white-space': 'nowrap', 'overflow-x': 'auto' } }).appendTo('body')
   // wand.$('<div/>', { class: 'notranslate', css: { display: 'inline-block', 'margin-left': '30%', float: 'left' } }).appendTo(ft).html('language:')
-  wand.$('<div/>', { css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft).html(' / lang: ')
+  wand.$('<div/>', { css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft2).html(' / lang: ')
   // wand.$('<div/>', { id: 'google_translate_element', class: 'notranslate', css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo('body').hide()
+  const ft = wand.$('<div/>', {
+    id: 'afooter2',
+    css: {
+      display: 'flex'
+      // 'white-space': 'nowrap',
+      // 'overflow-x': 'auto',
+      // margin: '0 auto',
+      // padding: '8px',
+      // height: '100%',
+      // width: '100%'
+    }
+  }).appendTo(ft2)
   wand.$('<div/>', { id: 'google_translate_element' }).appendTo('body').hide()
   wand.$('<script/>', {
     type: 'text/javascript',
     src: '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
   }).appendTo('body')
   // const adiv = wand.$('<div/>', { class: 'flag' }).appendTo(ft)
-  wand.$('<div/>', { class: 'flag_link eng', 'data-lang': 'en' })
-    .appendTo(ft)
+  wand.$('<div/>', {
+    class: 'flag_link eng',
+    'data-lang': 'en',
+    css: {
+    //   flex: '33.3%'
+    }
+  }).appendTo(ft)
     .append(wand.$('<img/>', {
       // src: 'assets/flags/uk.png',
       class: 'fimg',
       src: 'assets/flags/uk2.svg',
       css: {
-        width: '50%',
-        height: '100%',
-        'margin-left': '10%'
+        // display: 'inline',
+        // width: '50%',
+        // flex: '33.3%',
+        // margin: '0 100%',
+        height: '100%'
       }
     }))
-  wand.$('<div/>', { class: 'flag_link por', 'data-lang': 'pt' })
-    .appendTo(ft)
+  wand.$('<div/>', {
+    class: 'flag_link por',
+    'data-lang': 'pt',
+    css: {
+      // flex: '33.3%'
+    }
+  }).appendTo(ft)
     .append(wand.$('<img/>', {
       // src: 'assets/flags/br.png',
       class: 'fimg',
       src: 'assets/flags/br2.svg',
       css: {
-        width: '50%',
+        // display: 'inline',
+        // width: '50%',
+        // margin: '0 100%',
         height: '100%'
       }
     }))
   const afun = e => {
-    Array.prototype.forEach.call(iels, e => { e.style.backgroundColor = '' })
+    // Array.prototype.forEach.call(iels, e => { e.style.backgroundColor = '' })
+    // window.eee = e
+    // e.firstChild.style.backgroundColor = '#ccc'
+    Array.prototype.forEach.call(iels, e => { e.style.border = '' })
     window.eee = e
-    e.firstChild.style.backgroundColor = '#ccc'
+    e.firstChild.style.border = '1px solid #555'
     const lang = e.getAttribute('data-lang')
     const languageSelect = document.querySelector('select.goog-te-combo')
     languageSelect.value = lang
