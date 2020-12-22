@@ -80651,13 +80651,13 @@ function lang (ft2) {
   const ft = wand.$('<div/>', {
     id: 'afooter2',
     css: {
-      display: 'flex'
+      display: 'flex',
       // 'white-space': 'nowrap',
       // 'overflow-x': 'auto',
       // margin: '0 auto',
       // padding: '8px',
       // height: '100%',
-      // width: '100%'
+      width: '100%'
     }
   }).appendTo(ft2)
   wand.$('<div/>', { id: 'google_translate_element' }).appendTo('body').hide()
