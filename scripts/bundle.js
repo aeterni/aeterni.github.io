@@ -80682,7 +80682,8 @@ function lang (ft2) {
         // width: '50%',
         // flex: '33.3%',
         // margin: '0 100%',
-        height: '100%'
+        // height: '100%'
+        height: ft2.height()
       }
     }))
   wand.$('<div/>', {
@@ -80700,7 +80701,8 @@ function lang (ft2) {
         // display: 'inline',
         // width: '50%',
         // margin: '0 100%',
-        height: '100%'
+        // height: '100%'
+        height: ft2.height()
       }
     }))
   const afun = e => {
