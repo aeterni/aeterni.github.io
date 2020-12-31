@@ -82781,20 +82781,20 @@ e['000-preparation'] = () => {
   <p>
   Among 2020's highlights are some advances in anti-aging.
   In fact, it is now somewhat more reasonable to expect that at least a fraction of the population
-  that survive the next few decdes will live to at least a few hundre years.
+  that survive the next few decades will live to at least a few hundred years.
   </p>
 
   <p>
   But what does that mean for Humanity?
-  Does that imply that soon we will be a bit aleviated from the harsh ephemerity of life?
-  Or will near furture bring extreme inequality adn sectarism?
+  Does that imply that soon we will be a bit alleviated from the harsh ephemerality of life?
+  Or will the near future bring extreme inequality and sectarianism?
   </p>
 
   <p>
   It probably depends on how well we are to prepare for such extended lifespan advent.
-  If we do enhance our ability to collaborate, to employ our capacities and time wisely,
-  to bring the disabled into better conditions, to preserve and restore Nature,
-  we might see the bightest of the possibilities.
+  If we do enhance our ability to collaborate, employ our capacities and time wisely,
+  bring the disabled into better conditions, preserve and restore Nature,
+  we might see the brightest of the possibilities.
   On the other hand...
   </p>
 
