@@ -79957,12 +79957,12 @@ if (uargs.values[0] === '') {
     wand.med.model(k.slice(1))
     found = true
   } else if (k in wand.test) { // standard page:
-    wand.test[k]()
+    wand.test[k]() // if k[0] === '-': k is an article
     found = true
   }
 } else {
   const syncId = uargs.keys[0]
-  const userRef = uargs.keys[1]
+  const userRef = uargs.values[0]
   // something as: wand.conductor.gradus(syncId, userRef)
   console.log(`sync is under migration: id: ${syncId}, user: ${userRef}`)
 }
@@ -80021,17 +80021,18 @@ e.meditation = mid => {
       $('#myModal').css('display', 'block')
       $('#mcontent').html(`
       <h2>Evocation <button onclick="wand.$('#techdiv').toggle()" id="techBtn">tech</button></h2>
+      <p>
       I, [your name], will start my mentalization soon (or am mentalizing),
-      and will concentrate for a total of ${s.d} seconds on the theme "${s.meditation.replaceAll('_', '')}".<br><br>
-      <span id="techdiv">I'll be using binaural frequencies ${s.fl} and ${s.fr} Hertz in the waveforms
+      and will concentrate for a total of ${s.d} seconds on the theme "${s.meditation.replaceAll('_', '')}".</p><br><br>
+      <span id="techdiv"><p>I'll be using binaural frequencies ${s.fl} and ${s.fr} Hertz in the waveforms
       ${s.waveformL} and ${s.waveformR},<br>
       and respiration cycles from ${s.mp0} to ${s.mp1} seconds in a transition of ${s.md} seconds.<br>
       The respiration represented with oscillations of ${s.ma} Herz in the binaural frequencies.
-      <br><br></span>
-      I ask [name of one or more entitites you worship or admire],<br>
+      <br><br></p></span>
+      <p>I ask [name of one or more entitites you worship or admire],<br>
       and my ally and akin essences,<br>
       for your company and conduction.
-      <br><br><br>:::
+      </p><br><br><br>:::
       `)
       $('#techBtn').click()
     })
@@ -80628,12 +80629,15 @@ e.mkFooter = () => {
   if (uargs.keys[0] && uargs.keys[0][0] === '_') disqus(uargs.keys[0][0].slice(1))
 }
 
+window.disqus_config = function () {
+  // this.page.url = `${window.location.origin}?_${id}`
+  const url = window.location.href
+  this.page.url = url
+  // this.page.identifier = id
+  this.page.identifier = url.includes('?') ? url.split('?')[1] : '/'
+}
+
 function disqus (id) {
-  window.disqus_config = function () {
-    // this.page.url = window.location.href
-    this.page.url = `${window.location.origin}?_${id}`
-    this.page.identifier = id
-  }
   wand.$('<noscript/>').html('Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>')
   const d = document
   const s = d.createElement('script')
@@ -82745,6 +82749,58 @@ e.pagseguro = () => {
   <!-- FINAL FORMULARIO BOTAO PAGSEGURO -->
   </p>
 
+  <br>
+  `)
+  $('#loading').hide()
+}
+
+e.bitcoin = () => {
+  utils.stdDiv().html(`
+  <h2>Donate using Bitcoins</h2>
+
+  <p>Transfer any amount of bitcoins to the wallet in the address:
+  <b>bc1qjw72xa6c8c924j8aj8y737q56let8envx4j0xd</b>
+  </p>
+
+  <p>
+  <p>
+  Or use the QR Code:
+  </p>
+  <img src="assets/donation/qrBitcoin.png" alt="QR Code for donating using the Bitcoin Wallet">
+  </p>
+
+  <br>
+  `)
+  $('#loading').hide()
+}
+
+e['000-preparation'] = () => {
+  utils.stdDiv().html(`
+  <h2>on the consequences of longevity</h2>
+
+  <p>
+  Among 2020's highlights are some advances in anti-aging.
+  In fact, it is now somewhat more reasonable to expect that at least a fraction of the population
+  that survive the next few decdes will live to at least a few hundre years.
+  </p>
+
+  <p>
+  But what does that mean for Humanity?
+  Does that imply that soon we will be a bit aleviated from the harsh ephemerity of life?
+  Or will near furture bring extreme inequality adn sectarism?
+  </p>
+
+  <p>
+  It probably depends on how well we are to prepare for such extended lifespan advent.
+  If we do enhance our ability to collaborate, to employ our capacities and time wisely,
+  to bring the disabled into better conditions, to preserve and restore Nature,
+  we might see the bightest of the possibilities.
+  On the other hand...
+  </p>
+
+  <p>
+Thu Dec 31 11:17:02 -03 2020
+  </p>
   <br>
   `)
   $('#loading').hide()
