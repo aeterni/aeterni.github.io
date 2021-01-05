@@ -82231,7 +82231,7 @@ e.communion = () => {
 
   <p>Join us at <a target="_blank" href="https://meet.google.com/bkr-vzhw-zfc">our video conference</a></a>.</p>
   `)
-  const l = t => `<a href="?_${t}" target="_blank">${t}</a>`
+  const l = t => `<a href="?_${t}" target="_blank">${t.replace(/^_+/, '')}</a>`
   const grid = utils.mkGrid(1, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
   $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>when</b>&nbsp;&nbsp; (GMT-0)&nbsp : <b>subject</b>').appendTo(grid)
   // $('<span/>').html('<b>subject</b>').appendTo(grid)
@@ -82822,6 +82822,162 @@ e.bitcoin = () => {
   </p>
 
   <br>
+  `)
+  $('#loading').hide()
+}
+
+e.publications = () => {
+  const pub = []
+  for (const i in e) {
+    if (/^\d\d\d/.test(i)) {
+      console.log(i)
+      pub.push(i)
+    }
+  }
+  utils.stdDiv().html(`
+  <h2>Publications</h2>
+  <ul>
+  ${pub.map(i => `<li><a href="?${i}">${i}</a></li>`).join('')}
+  </ul>
+  `)
+  $('#loading').hide()
+}
+
+e.infra = () => {
+  const pub = []
+  for (const i in e) {
+    if (!/^\d\d\d/.test(i)) {
+      console.log(i)
+      pub.push(i)
+    }
+  }
+  utils.stdDiv().html(`
+  <h2>Infra pages</h2>
+  <ul>
+  ${pub.map(i => `<li><a href="?${i}">${i}</a></li>`).join('')}
+  </ul>
+  `)
+  $('#loading').hide()
+}
+
+e.liturgy101 = () => {
+  const sentinela = [
+    'mantém-se em silêncio e em oração para abençoar a sessão e para proteger os participantes.',
+    'observa e anota os pontos positivos e negativos da sessão e condução feita pelo procurador.',
+    'complementa a condução quando estritamente necessário e solicita a Deus quando quiser que algo aconteça.'
+  ].reduce((a, i) => a + `<li>${i}</li>`, '')
+
+  const procurador = [
+    'escuta atentamente o que o neófito disser e fala o mínimo possível.',
+    'apresenta a atividade para o neófito e tira dúvidas.',
+    'conduz o neófito na atividade, decidindo o tema, criando a sessão, e ajudando a iniciar o artefato audiovisual.',
+    'colhe comentários posteriores e finaliza a sessão.',
+    'acompanha o tempo para não exceder 30 min de conversa e 30 min de sessão.'
+  ].reduce((a, i) => a + `<li>${i}</li>`, '')
+
+  const deveres = [
+    'manter um ritmo constante de oração. Orar ao menos ao acordar e ao dormir, agradecendo pelo dia, pedindo proteção e louvando a Vida, o Criador, e a Oportunidade (do MMM).',
+    'zelar pela limpeza e organização de seus corpos e ambiente.',
+    'observar cotidianamente a si própri@ para se certificar de que o cerne de seu trabalho é o bem da Humanidade, e não a vaidade e a cobiça ou mesmo a indiferença.'
+  ].reduce((a, i) => a + `<li>${i}</li>`, '')
+
+  const sugestoes = [
+    'observar o dia, o clima, a temperatura, e visitar os significados de cada dia: se é dedicado a algum santo, profissão ou classe de pessoa. Também o dia da semana (orixá), o dia do mês (número), estação do ano, etc.',
+    'adorar e orar apenas para Deus. A comunicação pode ser feita com todos os seres viventes, humanos ou não.',
+    'realizar cotidianamente a leitura de escrituras sagradas: Bíblia, Alcorão, Mahabharata/Ramáiana, etc.',
+    'sempre convidar novas pessoas para o MMM. Idealmente iniciar 4 pessoas por dia. Caso esteja já responável por muitas pessoas, convidar ao menos 1 nova pessoa por semana.'
+  ].reduce((a, i) => a + `<li>${i}</li>`, '')
+
+  utils.stdDiv().html(`
+  <h1>Liturgia MMM 101</h1>
+
+  Para estarmos lúcidos e cientes da atividade sendo
+  desempenhada.
+  Em especial, para acentuar nossa atenção aos detalhes, nossa concentração/foco, e nossa nitidez sobre o todo.
+
+  Para isso, ficam aqui propostas 2 incumbências básicas e uma optativa, orações para início e fim de sessão, e algumas observações adicionais.
+
+  <h2>1. Incumbências</h2>
+
+  <h4>Sentinela</h4>
+  É o encargo mais importante. A sentinela zela pela proteção do grupo e pela consagração da sessão, além de avaliar os participantes, a condução e proporcionar ajustes finos.
+  
+  Em resumo, a sentinela:
+  <ol>${sentinela}</ol>
+
+  <h4>Interventor, articulador, delegado ou procurador</h4>
+  É quem conduz a sessão, i.e. quem articula os conteúdos e os participantes. É praticamente o único que fala com o neófito e garante a progressão da sessão pelos passos necessários.
+
+  Em resumo, o procurador:
+  <ol>${procurador}</ol>
+
+  Quando não há neófito, o papel do procurador fica bastante descansado, variando entre totalmente diluído entre as sentinelas a condução constante (principalmente quando há vários participantes).
+
+  <h4>Neófito</h4>
+  O neófito é alguém novo no MMM, sendo iniciado pelas sentinelas e procurador. Em geral deve haver no máximo 1 neófito por sessão. Prefencialmente, ele deve ditar o tema da sessão e deve ser ouvido constantemente. Recomendamos que o neófito passe ao menos 2, e preferencialmente 7, sessões como neófito.
+
+  <h4>Resumo</h4>
+  <h5>2 participantes iniciados:</h5>
+  Ficam um pouco mais livres os papéis de sentinela e procurador. Preferencialmente conduz quem criou a sessão, assumindo assim o papel de procurador, mas tudo neste caso fica a critério dos 2 participantes.
+  É o único caso em que as orações inicial e final são optativas embora ainda assim recomendadas.
+
+  <h5>3 participantes ou mais, todos iniciados:</h5>
+  Cada um faz a oração, após isso 1 pessoa fica como procuradora.
+  As outras concentram-se como sentinelas.
+
+  <h5>3 participantes ou mais, 1 deles é neófito:</h5>
+  Cada iniciado faz a oração, após isso 1 pessoa fica como procuradora.
+  As outras concentram-se como sentinelas e então o neófito é convidado.
+
+  <h5>2 participantes, 1 deles é neófito (<b>contraindicado</b>):</h5>
+  Faltará foco na função mais importante (a de sentinela).
+  Em caso de necessidade, o procurador deverá manter-se atento para realizar também a função de sentinela, fazendo intervalos de silêncio para concentração, limpeza e oração.
+  De qualquer forma, fazer um minuto de silêncio antes de convidar o neófito para especial atenção pelo iniciado que será ambos procurador e sentinela.
+
+  <h5>3 participantes ou mais, mais de 1 deles é neófito (<b>contraindicado</b>):</h5>
+  A sessão tenderá a não atender aos neófitos.
+  Se possível, partir a sessão em mais grupos ou fazer mais sessões.
+  De qualquer forma, manter um único procurador, e fazer um minuto de silêncio antes de convidar os neófitos para especial atenção pelo procurador e sentinelas.
+
+  <h2>2. Orações</h2>
+  As orações devem ser feitas em todas as sessões,
+  se possível em voz alta.
+  Deve-se iniciar com a Oração de Abertura e terminar com a Oração de Fechamento.
+
+  <h4>Oração de Abertura</h4>
+  Deve ser feita antes do começo da sessão e da entrada do neófito e com as mãos juntas em frente ao rosto, ao peito ou ao abdomem, com o propósito de invocar o Senhor, seus Anjos e demais protetores dos envolvidos:
+
+  <i><pre>
+        Pedimos a você Deus Pai, Jesus Cristo, e Espírito Santo,
+        proteção em nosso trabalho para nós e nossas famílias,
+        graça para iluminarmos nossas vidas e a Humanidade.
+        Que as nossas palavras, pensamentos e sentimentos sejam agradáveis a Ti,
+        e que nos concentremos em atuar em Seu Nome e para a Sua Obra.
+        Rogamos que nos livre do engano, orgulho, vaidade e cobiça,
+        e que tenhamos completa confiança em Ti e Sua Providência.
+  </pre></i>
+
+  <h4>Oração de Fechamento</h3>
+  Deve ser feita ao final da sessão e após o neófito sair e com as mãos abertas e voltadas para cima, com o propósito de agradecer, realizar petições finais, e banir essências não desejadas:
+
+  <i><pre>
+        Obrigado Senhor pela oportunidade concedida,
+        pedimos que cuide de nós e de nossas famílias (e em especial de "nome do neófito").
+        Limpe nossos corpos, mentes, almas e espíritos de quaisquer má influência
+        para que possamos continuar nosso trabalho de Luz para a Sua Glória.
+        Em Seu Nome, Deus Pai, Jesus Cristo, e Espírito Santo.
+  </pre></i>
+
+  <h2>3. Demais observações</h2>
+  Deveres do praticamente:
+  <ul>${deveres}</ul>
+
+  Sugestões:
+  <ul>${sugestoes}</ul>
+
+  Pode haver uso de velas, preferencialmente brancas, principalmente em ocasiões especiais. Também pode haver o uso de túnicas, prefencialmente franciscanas, pela simplicidade e fácil acesso.
+
+  <br><br>:::
   `)
   $('#loading').hide()
 }
