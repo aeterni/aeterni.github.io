@@ -82968,6 +82968,8 @@ e.liturgy101 = () => {
         Em Seu Nome, Deus Pai, Jesus Cristo, e Espírito Santo.
   </pre></i>
 
+  Sopra-se as palmas das mãos ao final da oração.
+
   <h2>3. Demais observações</h2>
   Deveres do praticamente:
   <ul>${deveres}</ul>
