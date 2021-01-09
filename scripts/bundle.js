@@ -79960,7 +79960,7 @@ if (uargs.values[0] === '') {
     wand.test[k]() // if k[0] === '-': k is an article
     found = true
   }
-} else {
+} else { // sync:
   const syncId = uargs.keys[0]
   const userRef = uargs.values[0]
   // something as: wand.conductor.gradus(syncId, userRef)
@@ -82774,6 +82774,26 @@ e.bitcoin = () => {
   $('#loading').hide()
 }
 
+e.bitcoin = () => {
+  utils.stdDiv().html(`
+  <h2>Donate using Bitcoins</h2>
+
+  <p>Transfer any amount of bitcoins to the wallet in the address:
+  <b>bc1qjw72xa6c8c924j8aj8y737q56let8envx4j0xd</b>
+  </p>
+
+  <p>
+  <p>
+  Or use the QR Code:
+  </p>
+  <img src="assets/donation/qrBitcoin.png" alt="QR Code for donating using the Bitcoin Wallet">
+  </p>
+
+  <br>
+  `)
+  $('#loading').hide()
+}
+
 e['000-preparation'] = () => {
   utils.stdDiv().html(`
   <h2>on the consequences of longevity</h2>
@@ -82806,30 +82826,115 @@ Thu Dec 31 11:17:02 -03 2020
   $('#loading').hide()
 }
 
-e.bitcoin = () => {
+e['001-first-week'] = () => {
   utils.stdDiv().html(`
-  <h2>Donate using Bitcoins</h2>
+  <h2>Primeira semana de MMM</h2>
 
-  <p>Transfer any amount of bitcoins to the wallet in the address:
-  <b>bc1qjw72xa6c8c924j8aj8y737q56let8envx4j0xd</b>
+  <p>
   </p>
 
   <p>
-  <p>
-  Or use the QR Code:
-  </p>
-  <img src="assets/donation/qrBitcoin.png" alt="QR Code for donating using the Bitcoin Wallet">
   </p>
 
+  <p>
+  </p>
+
+  <p>
+Thu Dec 31 11:17:02 -03 2020
+  </p>
   <br>
   `)
   $('#loading').hide()
 }
 
+e['001-first-week'] = () => {
+  utils.stdDiv().html(`
+  <h2>Primeira semana de MMM</h2>
+
+  <p>
+  </p>
+
+  <p>
+  </p>
+
+  <p>
+  </p>
+
+  <p>
+Thu Dec 31 11:17:02 -03 2020
+  </p>
+  <br>
+  `)
+  $('#loading').hide()
+}
+
+e['t001-rfabbri'] = () => {
+  utils.stdDiv().html(`
+  <h2>Renato, primeira semana</h2>
+
+  <p>
+  Sendo nossa primeira semana, começamos a desbravar a prática do MMM, as sessões:
+  como nos comunicar com os novatos, como conduzir as atividades, quais parametrizações ficam melhor, etc..
+  </p>
+
+  <p>
+  Logo ao final do primeiro dia ficou nítida a necessidade de ao menos um pouco de convenções para os procedimentos, portanto fiquei acordado até de madrugada concebendo o que ficou registrado como nossa <a href="?liturgy101">liturgia</a>.
+  </p>
+
+  <p>
+  As sessões todas renderam novos entendimentos profundos, eu os recebia durante a concentração de 15 minutos com o audiovisual.
+  Portanto estou ainda mais convicto de que o caminho que estamos trilhando e propondo é excelente e será útil para muitos.
+  </p>
+
+  <p>
+  Ao final da semana, na última sessão, sobre o tema "verdade", apareceu-me nitidamente 3 recursos básicos para eu manter em uso constantemente:
+  <ul>
+  <li>
+    Deus/Jesus está à minha direita, como me foi revelado há muitos anos.
+  </li>
+  <li>
+    Eu sou mesmo uma antena, sempre captando de tudo à minha volta e emanando.
+    Cada pessoa também é assim.
+    Ao menos no meu caso, devo estar atento para o que estou captando, de preferência mantendo a coluna ereta e atenção às posições do corpo, contrações musculares, pensamentos e respiração..
+  </li>
+  <li>
+    Arte em todos os aspectos da vida como uma forma de manter esmero e obter resultados trancendentais ("tirar leite de pedra"): em cada coisa que eu fizer, no meu tratamento comigo mesmo, com os outros e com Deus, e na minha vida mental (cada pensamento e o que me propor a absorver/desenvolver).
+  </li>
+  </p>
+  <p>
+
+Renato Fabbri,
+Sat Jan  9 19:25:16 -03 2021
+  </p>
+  <br>
+  `)
+  $('#loading').hide()
+}
+
+function pattern (str, type) {
+  const types = {
+    pub: /^\d\d\d/, // publication
+    tes: /^t\d\d\d/
+  }
+  if (type in types) {
+    return types[type].test(str)
+  } else if (type === 'infra') {
+    for (const t in types) {
+      if (types[t].test(str)) {
+        return false
+      }
+    }
+    return true
+  }
+  return false
+}
+
+window.ppp = pattern
+
 e.publications = () => {
   const pub = []
   for (const i in e) {
-    if (/^\d\d\d/.test(i)) {
+    if (pattern(i, 'pub')) {
       console.log(i)
       pub.push(i)
     }
@@ -82843,10 +82948,27 @@ e.publications = () => {
   $('#loading').hide()
 }
 
+e.testimonials = () => {
+  const pub = []
+  for (const i in e) {
+    if (pattern(i, 'tes')) {
+      console.log(i)
+      pub.push(i)
+    }
+  }
+  utils.stdDiv().html(`
+  <h2>Testimonials</h2>
+  <ul>
+  ${pub.map(i => `<li><a href="?${i}">${i}</a></li>`).join('')}
+  </ul>
+  `)
+  $('#loading').hide()
+}
+
 e.infra = () => {
   const pub = []
   for (const i in e) {
-    if (!/^\d\d\d/.test(i)) {
+    if (pattern(i, 'infra')) {
       console.log(i)
       pub.push(i)
     }
@@ -82951,7 +83073,7 @@ e.liturgy101 = () => {
         Pedimos a você Deus Pai, Jesus Cristo, e Espírito Santo,
         proteção em nosso trabalho para nós e nossas famílias,
         graça para iluminarmos nossas vidas e a Humanidade.
-        Que as nossas palavras, pensamentos e sentimentos sejam agradáveis a Ti,
+        Que as nossas palavras, pensamentos, sentimentos e ações sejam agradáveis a Ti,
         e que nos concentremos em atuar em Seu Nome e para a Sua Obra.
         Rogamos que nos livre do engano, orgulho, vaidade e cobiça,
         e que tenhamos completa confiança em Ti e Sua Providência.
@@ -82963,7 +83085,7 @@ e.liturgy101 = () => {
   <i><pre>
         Obrigado Senhor pela oportunidade concedida,
         pedimos que cuide de nós e de nossas famílias (e em especial de "nome do neófito").
-        Limpe nossos corpos, mentes, almas e espíritos de quaisquer má influência
+        Limpe nossos corpos, mentes, almas e espíritos de qualquer má influência
         para que possamos continuar nosso trabalho de Luz para a Sua Glória.
         Em Seu Nome, Deus Pai, Jesus Cristo, e Espírito Santo.
   </pre></i>
