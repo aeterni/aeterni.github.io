@@ -82852,12 +82852,22 @@ e['001-first-week'] = () => {
   <h2>Primeira semana de MMM</h2>
 
   <p>
+  Esta foi a primeira semana em que abrimos a participação no MMM para pessoas além das iniciadoras (Renato e Otávio).
   </p>
 
   <p>
+  Começamos na segunda-feira com 4 novas pessoas agendadas, para experimentarmos nós e elas a prática e ver o que aconteceria.
+  Uma delas estava de fato em uma situação complicada, já as outras 3 marcaram uma segunda sessão para o dia seguinte, quando tivemos 2 novas pessoas.
   </p>
 
   <p>
+  Este ritmo de novas pessoas e adesão se seguiu pela semana toda,
+  o que resultou diariamente em jornadas longas e muitos novos entendimentos
+  que recebemos em cada sessão.
+  </p>
+
+  <p>
+  No geral, as pessoas relataram gostar da prática e proveito quanto ao bem-estar e obtenção de novos entendimentos.
   </p>
 
   <p>
@@ -82878,7 +82888,7 @@ e['t001-rfabbri'] = () => {
   </p>
 
   <p>
-  Logo ao final do primeiro dia ficou nítida a necessidade de (ao menos um pouco de) convenções para os procedimentos, portanto fiquei acordado até de madrugada concebendo o que ficou registrado como nossa <a href="?liturgy101">liturgia</a>.
+  Logo ao final do primeiro dia ficou nítida a necessidade de (ao menos um pouco de) convenções para os procedimentos, portanto fiquei acordado até de madrugada concebendo o que ficou registrado como nossa liturgia.
   </p>
 
   <p>
