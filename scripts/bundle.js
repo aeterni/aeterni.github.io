@@ -82868,6 +82868,18 @@ e['001-first-week'] = () => {
 
   <p>
   No geral, as pessoas relataram gostar da prática e proveito quanto ao bem-estar e obtenção de novos entendimentos.
+  Percebemos que cuidar desta linha de ação requeriu e irá requerer dedicação contínua e praticamente exclusiva.
+  Portanto, para consideramos importante para manter a linha de ação:
+  <ul>
+  <li>
+  </li>
+  <li>
+  </li>
+  <li>
+  </li>
+  <li>
+  </li>
+  </ul>
   </p>
 
   <p>
@@ -83014,7 +83026,7 @@ e.liturgy101 = () => {
   ].reduce((a, i) => a + `<li>${i}</li>`, '')
 
   const sugestoes = [
-    'observar o dia, o clima, a temperatura, e visitar os significados de cada dia: se é dedicado a algum santo, profissão ou aspecto da existência. Também o dia da semana (orixá), o dia do mês (número), estação do ano, etc.',
+    'observar o dia, o clima, a temperatura, e visitar os significados de cada dia: se é dedicado a algum santo, profissão ou aspecto da existência. Também o dia da semana, o dia do mês (número), estação do ano, etc.',
     'adorar e orar apenas para Deus. Já a comunicação pode ser feita com todos os seres viventes, humanos ou não.',
     'realizar cotidianamente a leitura de escrituras sagradas: Bíblia, Alcorão, Mahabharata/Ramáiana, etc.',
     'sempre convidar novas pessoas para o MMM. Idealmente iniciar 4 pessoas por dia. Caso esteja já responável por muitas pessoas, convidar ao menos 1 nova pessoa por semana.'
