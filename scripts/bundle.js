@@ -82878,7 +82878,7 @@ e['t001-rfabbri'] = () => {
   </p>
 
   <p>
-  Logo ao final do primeiro dia ficou nítida a necessidade de ao menos um pouco de convenções para os procedimentos, portanto fiquei acordado até de madrugada concebendo o que ficou registrado como nossa <a href="?liturgy101">liturgia</a>.
+  Logo ao final do primeiro dia ficou nítida a necessidade de (ao menos um pouco de) convenções para os procedimentos, portanto fiquei acordado até de madrugada concebendo o que ficou registrado como nossa <a href="?liturgy101">liturgia</a>.
   </p>
 
   <p>
@@ -82895,7 +82895,7 @@ e['t001-rfabbri'] = () => {
   <li>
     Eu sou mesmo uma antena, sempre captando de tudo à minha volta e emanando.
     Cada pessoa também é assim.
-    Ao menos no meu caso, devo estar atento para o que estou captando, de preferência mantendo a coluna ereta e atenção às posições do corpo, contrações musculares, pensamentos e respiração..
+    Ao menos no meu caso, devo estar atento para o que estou captando, de preferência mantendo a coluna ereta e atenção às posições do corpo, contrações musculares, pensamentos e respiração.
   </li>
   <li>
     Arte em todos os aspectos da vida como uma forma de manter esmero e obter resultados trancendentais ("tirar leite de pedra"): em cada coisa que eu fizer, no meu tratamento comigo mesmo, com os outros e com Deus, e na minha vida mental (cada pensamento e o que me propor a absorver/desenvolver).
@@ -83004,8 +83004,8 @@ e.liturgy101 = () => {
   ].reduce((a, i) => a + `<li>${i}</li>`, '')
 
   const sugestoes = [
-    'observar o dia, o clima, a temperatura, e visitar os significados de cada dia: se é dedicado a algum santo, profissão ou classe de pessoa. Também o dia da semana (orixá), o dia do mês (número), estação do ano, etc.',
-    'adorar e orar apenas para Deus. A comunicação pode ser feita com todos os seres viventes, humanos ou não.',
+    'observar o dia, o clima, a temperatura, e visitar os significados de cada dia: se é dedicado a algum santo, profissão ou aspecto da existência. Também o dia da semana (orixá), o dia do mês (número), estação do ano, etc.',
+    'adorar e orar apenas para Deus. Já a comunicação pode ser feita com todos os seres viventes, humanos ou não.',
     'realizar cotidianamente a leitura de escrituras sagradas: Bíblia, Alcorão, Mahabharata/Ramáiana, etc.',
     'sempre convidar novas pessoas para o MMM. Idealmente iniciar 4 pessoas por dia. Caso esteja já responável por muitas pessoas, convidar ao menos 1 nova pessoa por semana.'
   ].reduce((a, i) => a + `<li>${i}</li>`, '')
@@ -83033,7 +83033,7 @@ e.liturgy101 = () => {
   Em resumo, o procurador:
   <ol>${procurador}</ol>
 
-  Quando não há neófito, o papel do procurador fica bastante descansado, variando entre totalmente diluído entre as sentinelas a condução constante (principalmente quando há vários participantes).
+  Quando não há neófito, o papel do procurador fica bastante descansado, variando entre totalmente diluído entre as sentinelas e a condução constante (principalmente quando há vários participantes).
 
   <h4>Neófito</h4>
   O neófito é alguém novo no MMM, sendo iniciado pelas sentinelas e procurador. Em geral deve haver no máximo 1 neófito por sessão. Prefencialmente, ele deve ditar o tema da sessão e deve ser ouvido constantemente. Recomendamos que o neófito passe ao menos 2, e preferencialmente 7, sessões como neófito.
@@ -83099,7 +83099,7 @@ e.liturgy101 = () => {
   Sugestões:
   <ul>${sugestoes}</ul>
 
-  Pode haver uso de velas, preferencialmente brancas, principalmente em ocasiões especiais. Também pode haver o uso de túnicas, prefencialmente franciscanas, pela simplicidade e fácil acesso.
+  Pode haver uso de velas, preferencialmente brancas, principalmente em ocasiões especiais. Também pode haver o uso de túnicas, prefencialmente franciscanas pela simplicidade e fácil acesso.
 
   <br><br>:::
   `)
