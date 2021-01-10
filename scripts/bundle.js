@@ -82869,19 +82869,43 @@ e['001-first-week'] = () => {
   <p>
   No geral, as pessoas relataram gostar da prática e proveito quanto ao bem-estar e obtenção de novos entendimentos.
   Percebemos que cuidar desta linha de ação requeriu e irá requerer dedicação contínua e praticamente exclusiva.
-  Portanto, para consideramos importante para manter a linha de ação:
+  Portanto, consideramos importante para manter a linha de ação:
   <ul>
   <li>
+    minimizar o tempo das sessões. Tanto para que os iniciados quando os novatos possam manter as sessões com continuidade.
   </li>
   <li>
+    formar novos participantes capazes de conduzir as sessões.
   </li>
   <li>
-  </li>
-  <li>
+    estabelecer os períodos diários em que estaremos disponíveis para as sessões.
   </li>
   </ul>
   </p>
 
+  <p>
+    Considerações finais de balanço:
+    <ul>
+    <li>
+      Finalizamos a semana com 5 reuniões, mais do que começamos, embora não tivéssemos buscado novas pessoas durante a semana.
+    </li>
+    <li>
+     A última reunião teve 8 pessoas, sobre o tema "verdade", foi fortíssima (no melhor dos sentidos).
+    </li>
+    <li>
+      Uma participante foi considerada já em condições de receber um material mais aprofundado sobre os procedimentos da prática e poderá atuar já como condutora.
+    </li>
+    <li>
+      A condução da sessão ficou já definida e talvez permaneça como está por algum tempo.
+    </li>
+    <li>
+      Recebemos novos entendimentos a cada sessão e tivemos melhoras de bem-estar.
+    </li>
+    <li>
+      Iniciaremos a próxima semana já com participantes embora não tenhamos buscado novas pessoas.
+    </li>
+    </ul>
+  </p>
   <p>
 Thu Dec 31 11:17:02 -03 2020
   </p>
