@@ -82914,6 +82914,22 @@ Thu Dec 31 11:17:02 -03 2020
   $('#loading').hide()
 }
 
+e['t002-omartigli'] = () => {
+  utils.stdDiv().html(`
+  <h2>Otavio, primeira semana</h2>
+
+  <p>
+  mais energia, mais pé no chão, certo cansaço, perspectivas positivas, inseguranças, organização da vida, solidez na vida, boas responsabilidades, amor, fé, sutileza, malabarismos de tempo, sono confuso, mais contato, menos silêncio, novos desafios, velhas questões,
+  </p>
+
+  <p>
+Otavio Martigli,
+Sun Jan 10 11:09:40 -03 2021
+  </p>
+  <br>
+  `)
+  $('#loading').hide()
+}
 e['t001-rfabbri'] = () => {
   utils.stdDiv().html(`
   <h2>Renato, primeira semana</h2>
