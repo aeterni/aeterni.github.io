@@ -83423,31 +83423,40 @@ e.aa = () => {
 }
 
 e.aalogs = () => {
-  transfer.findAll({ shout: { $exists: true } }, true).then(r => {
+  const user = u('user')
+  const session = u('session')
+  const adiv = utils.stdDiv().html(`
+  <h2>AA is Algorithmic Autoregulation</h2>
+  This is the logs page${user ? 'for user <b>' + user + '</b>' : ''}${session ? 'for session <b>' + session.slice(-10) + '</b>' : ''}. Check the <a href="?aa" target="_blank">AA interface</a>.
+  `)
+  const grid = utils.mkGrid(4, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
+  $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>user</b>').appendTo(grid)
+  $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>shout</b>').appendTo(grid)
+  $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>when</b>').appendTo(grid)
+  $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>session</b>').appendTo(grid)
+  utils.gridDivider(160, 160, 160, grid, 1)
+  utils.gridDivider(160, 160, 160, grid, 1)
+  utils.gridDivider(160, 160, 160, grid, 1)
+  utils.gridDivider(160, 160, 160, grid, 1)
+  const query = { shout: { $exists: true } }
+  if (user) {
+    query.uid = user
+  }
+  if (session) {
+    query.sessionId = session
+  }
+  transfer.findAll(query, true).then(r => {
     console.log(r)
     r.sort((a, b) => b.date - a.date)
     window.rrr = r
-    const adiv = utils.stdDiv().html(`
-    <h2>AA is Algorithmic Autoregulation</h2>
-    Check the <a href="?aa" target="_blank">AA interface</a>.
-    `)
-    const grid = utils.mkGrid(4, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
-    $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>user</b>').appendTo(grid)
-    $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>shout</b>').appendTo(grid)
-    $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>when</b>').appendTo(grid)
-    $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>session</b>').appendTo(grid)
-    utils.gridDivider(160, 160, 160, grid)
-    utils.gridDivider(160, 160, 160, grid)
-    utils.gridDivider(160, 160, 160, grid)
-    utils.gridDivider(160, 160, 160, grid)
     r.forEach(s => {
-      const user = $('<span/>', { css: { 'margin-left': '10%' } }).html(s.uid).appendTo(grid)
+      const user = $('<span/>', { css: { 'margin-left': '10%' } }).html(`<a href="?aalogs&user=${s.uid}", target="_blank">${s.uid}</a>`).appendTo(grid)
       const shout = $('<span/>', { css: { 'margin-left': '10%' } }).html(s.shout).appendTo(grid)
       const adate = (new Date(s.date)).toISOString()
         .replace(/T/, ' ')
         .replace(/:\d\d\..+/, '')
       const date = $('<span/>', { css: { 'margin-left': '10%' } }).html(adate).appendTo(grid)
-      const session = $('<span/>', { css: { 'margin-left': '10%' } }).html(s.sessionId ? s.sessionId.slice(-10) : '').appendTo(grid)
+      const session = $('<span/>', { css: { 'margin-left': '10%' } }).html(s.sessionId ? `<a href="?aalogs&session=${s.sessionId} target="_blank">${s.sessionId.slice(-10)}</a>` : '').appendTo(grid)
       if (u('admin')) {
         shout.click(() => {
           console.log(s)
@@ -83458,10 +83467,8 @@ e.aalogs = () => {
           session.hide()
         })
       }
-      // utils.gridDivider(160, 160, 160, grid)
-      // $('<span/>').html('.').appendTo(grid)
-      // $('<span/>').html('.').appendTo(grid)
-      // $('<span/>').html('.').appendTo(grid)
+      utils.gridDivider(190, 190, 190, grid, 1)
+      utils.gridDivider(190, 190, 190, grid, 1)
     })
   })
   $('#loading').hide()
@@ -83544,9 +83551,9 @@ e.mkGrid = (cols, el, w, bgc) => {
   }).appendTo(el || 'body')
 }
 
-e.gridDivider = (r, g, b, grid) => {
+e.gridDivider = (r, g, b, grid, sec) => {
   $('<div/>', { css: { 'background-color': `rgba(${r},${g},${b},1)`, color: 'rgba(0,0,0,0)', height: '3px' } }).appendTo(grid).text('--')
-  $('<div/>', { css: { 'background-color': `rgba(${r},${g},${b},0)`, color: 'rgba(0,0,0,0)', height: '3px' } }).appendTo(grid).text('--')
+  $('<div/>', { css: { 'background-color': `rgba(${r},${g},${b},${d(sec, 0)})`, color: 'rgba(0,0,0,0)', height: '3px' } }).appendTo(grid).text('--')
 }
 
 e.stdDiv = () => e.centerDiv(undefined, undefined, e.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee'], 1)[0], 3, 2)
