@@ -79940,6 +79940,7 @@ window.wand = {
   net: require('./modules/net.js'),
   med: require('./modules/med'),
   monk: require('./modules/monk'),
+  utils: require('./modules/utils.js'),
   test: require('./modules/test.js'),
   $: require('jquery')
 }
@@ -79976,7 +79977,7 @@ if (!found) { // includes empty/no URL parameters:
 
 wand.router.mkFooter()
 
-},{"./modules/med":219,"./modules/monk":221,"./modules/net.js":222,"./modules/router.js":223,"./modules/test.js":224,"jquery":61}],218:[function(require,module,exports){
+},{"./modules/med":219,"./modules/monk":221,"./modules/net.js":222,"./modules/router.js":223,"./modules/test.js":224,"./modules/utils.js":226,"jquery":61}],218:[function(require,module,exports){
 const d = require('./utils.js').defaultArg
 const t = require('tone')
 
@@ -80625,8 +80626,10 @@ e.mkFooter = () => {
     }
   }).appendTo('body')
   lang(ft)
-  const uargs = e.urlAllArguments()
-  if (uargs.keys[0] && uargs.keys[0][0] === '_') disqus(uargs.keys[0][0].slice(1))
+  // uncomment to enable disqus
+  // todo: debug to load correct discussions in each page
+  // const uargs = e.urlAllArguments()
+  // if (uargs.keys[0] && uargs.keys[0][0] === '_') disqus(uargs.keys[0][0].slice(1))
 }
 
 window.disqus_config = function () {
@@ -80646,6 +80649,7 @@ function disqus (id) {
   const asec = (d.head || d.body)
   asec.appendChild(s)
 }
+window.disqus = disqus
 
 function lang (ft2) {
   // const ft = wand.$('<div/>', { id: 'afooter', css: { width: '100%', display: 'flex', 'white-space': 'nowrap', 'overflow-x': 'auto' } }).appendTo('body')
@@ -80751,6 +80755,47 @@ const e = module.exports
 const a = utils.defaultArg
 
 e.rtest = () => console.log('router working!')
+e.sytest = () => {
+  const sy = new t.MembraneSynth().toDestination()
+  const dat = require('dat.gui')
+  // const gui = new dat.GUI({ closed: true, closeOnTop: true })
+  const gui = new dat.GUI()
+  const param = gui.add({ freq: 500 }, 'freq', 50, 1000).listen()
+  const vol = gui.add({ vol: 0 }, 'vol', -100, 30).listen()
+  window.sy = sy
+  const st = 2 ** (1 / 12)
+  const tt = 0.1
+  const ttt = tt / 2
+  vol.onFinishChange(v => {
+    sy.volume.value = v
+  })
+  function mkSound () {
+    const now = t.now()
+    sy.triggerAttackRelease(vv, ttt, now)
+    sy.triggerAttackRelease(vv * (st ** 3), ttt, now + tt)
+    sy.triggerAttackRelease(vv * (st ** 7), ttt, now + 2 * tt)
+
+    sy.triggerAttackRelease(vv * (st ** 4), ttt, now + 3 * tt)
+    sy.triggerAttackRelease(vv * (st ** 8), ttt, now + 4 * tt)
+    sy.triggerAttackRelease(vv * (st ** 11), ttt, now + 5 * tt)
+  }
+  let vv = 500
+  param.onFinishChange(v => {
+    vv = v
+    // t.start(0)
+    // t.Master.mute = false
+    mkSound()
+  })
+  $('<input/>', {
+    type: 'checkbox'
+  }).appendTo('body').change(function () {
+    if (this.checked) {
+      t.start()
+      t.Master.mute = false
+    }
+  })
+  $('#loading').hide()
+}
 e.ttest = () => {
   const synth = maestro.mkOsc(u('l') || 400, -200, -1, 'sine')
   const synth2 = maestro.mkOsc(u('r') || 410, -200, 1, 'sine')
@@ -83168,6 +83213,247 @@ e.liturgy101 = () => {
   $('#loading').hide()
 }
 
+e.aa = () => {
+  // for enabling AA
+  // fields: nick/id/name
+  // shout
+  // (slot dur, n slots) to start a session
+  const adiv = utils.stdDiv().html(`
+  <h2>AA is Algorithmic Autoregulation</h2>
+  Check the <a href="?aalogs" target="_blank">logs</a>.
+  `)
+  let grid = utils.mkGrid(2, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
+  $('<span/>').html('user id:').appendTo(grid)
+  const uid = $('<input/>', {
+    placeholder: 'id for user'
+  }).appendTo(grid)
+    .attr('title', 'The ID for the user (name, nick, etc).')
+    .val(u('user'))
+
+  $('<span/>').html('shout message:').appendTo(grid)
+  const shout = $('<input/>', {
+    placeholder: utils.chooseUnique(['learning AA', 'developing X', 'doing Y', 'talking to Z', 'writing W', 'some description'], 1)[0]
+  }).appendTo(grid)
+    .attr('title', 'The shout description (what have you done or are you doing).')
+
+  $('<button/>')
+    .html('Submit shout')
+    .appendTo(grid)
+    .attr('title', 'Register the shout message given.')
+    .click(() => {
+      // get current date and time, user, session ID and submit
+      const data = { uid: uid.val(), shout: shout.val(), sessionId: sessionData.sessionId }
+      console.log(data)
+      if (!data.uid) {
+        window.alert('please insert a user identification string.')
+      } else if (!data.shout) {
+        window.alert('please insert shout message.')
+      } else {
+        data.date = new Date()
+        transfer.writeAny(data, true).then(resp => {
+          shoutsExp.html(--shoutsExpected)
+          if (slotsFinished === sessionData.nslots) {
+            if (shoutsExpected === 0) { // finish session routine:
+              ssBtn.attr('disabled', false)
+              sdur.attr('disabled', false)
+              nslots.attr('disabled', false)
+              grid.hide()
+            }
+          }
+          console.log(resp)
+          window.rrr = resp
+        })
+      }
+    })
+
+  grid = utils.mkGrid(2, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
+  $('<span/>').html('slot duration:').appendTo(grid)
+  const sdur = $('<input/>', {
+    placeholder: '15'
+  }).appendTo(grid)
+    .attr('title', 'In minutes.')
+
+  $('<span/>').html('number of slots:').appendTo(grid)
+  const nslots = $('<input/>', {
+    placeholder: '8'
+  }).appendTo(grid)
+    .attr('title', 'Slots to be dedicated and reported on.')
+
+  const f = e => parseFloat(e.val())
+  let sessionData
+  const ssBtn = $('<button/>')
+    .html('Start session')
+    .appendTo(grid)
+    .attr('title', 'Start an AA session (sequence of slots with shouts).')
+    .click(() => {
+      // get current date and time, user, create session ID and submit
+      console.log(sdur, nslots)
+      const data = { uid: uid.val(), sdur: f(sdur), nslots: f(nslots) }
+      if (!data.uid) {
+        window.alert('please insert a user identification string.')
+      } else if (isNaN(data.sdur)) {
+        // window.alert('type a numeric slot duration (minutes).')
+        data.sdur = 15
+      } else if (!Number.isInteger(data.nslots)) {
+        // window.alert('type an integer number of slots.')
+        data.nslots = 8
+      } else {
+        data.date = new Date()
+        transfer.writeAny(data, true).then(resp => {
+          data.sessionId = resp.insertedId.toString()
+          sessionData = data
+          startSession()
+        })
+      }
+    })
+
+  let tLeft
+  let slotsFinished
+  let shoutsExpected
+  grid = utils.mkGrid(2, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee'])).hide()
+
+  $('<span/>').html('session started at:').appendTo(grid)
+  const sStarted = $('<span/>').appendTo(grid)
+  $('<span/>').html('slots finished:').appendTo(grid)
+  const slotsFin = $('<span/>').appendTo(grid)
+  $('<span/>').html('shouts expected:').appendTo(grid)
+  const shoutsExp = $('<span/>').appendTo(grid)
+  $('<span/>').html('time left in current slot:').appendTo(grid)
+  const tLeft2 = $('<span/>').appendTo(grid)
+
+  function startSession () {
+    ssBtn.attr('disabled', true)
+    sdur.attr('disabled', true)
+    nslots.attr('disabled', true)
+
+    sStarted.html(sessionData.date.toLocaleString())
+    shoutsExpected = 1
+    shoutsExp.html(1)
+    grid.show()
+
+    window.ddd = { slotsFin, shoutsExp, tLeft, tLeft2 }
+
+    slotsFinished = 0
+    slotsFin.html(0)
+    setCountdown(sessionData.sdur, sFun)
+  }
+  function setCountdown (dur, fun) {
+    const duration = dur * 60
+    const targetTime = (new Date()).getTime() / 1000 + duration
+    setTimeout(() => {
+      fun()
+      clearInterval(timer)
+    }, duration * 1000)
+    const reduce = dur => [Math.floor(dur / 60), Math.floor(dur % 60)]
+    const p = num => num < 10 ? '0' + num : num
+    const timer = setInterval(() => {
+      const moment = targetTime - (new Date()).getTime() / 1000
+      let [minutes, seconds] = reduce(moment)
+      let hours = ''
+      if (minutes > 59) {
+        [hours, minutes] = reduce(minutes)
+        hours += ':'
+      }
+      tLeft2.text(`${hours}${p(minutes)}:${p(seconds)}`)
+    }, 100)
+  }
+  function sFun () {
+    mkSound()
+    shoutsExp.html(++shoutsExpected)
+    if (++slotsFinished !== sessionData.nslots) { // spork new slot:
+      setCountdown(sessionData.sdur, sFun)
+    }
+    slotsFin.html(slotsFinished)
+  }
+
+  const sy = new t.MembraneSynth().toDestination()
+  const dat = require('dat.gui')
+  // const gui = new dat.GUI({ closed: true, closeOnTop: true })
+  const gui = new dat.GUI()
+  const param = gui.add({ freq: 500 }, 'freq', 50, 1000).listen()
+  const vol = gui.add({ vol: 0 }, 'vol', -100, 30).listen()
+  window.sy = sy
+  const st = 2 ** (1 / 12)
+  const tt = 0.1
+  const ttt = tt / 2
+  vol.onFinishChange(v => {
+    sy.volume.value = v
+    mkSound()
+  })
+  function mkSound () {
+    const now = t.now()
+    sy.triggerAttackRelease(vv, ttt, now)
+    sy.triggerAttackRelease(vv * (st ** 3), ttt, now + tt)
+    sy.triggerAttackRelease(vv * (st ** 7), ttt, now + 2 * tt)
+
+    sy.triggerAttackRelease(vv * (st ** 4), ttt, now + 3 * tt)
+    sy.triggerAttackRelease(vv * (st ** 8), ttt, now + 4 * tt)
+    sy.triggerAttackRelease(vv * (st ** 11), ttt, now + 5 * tt)
+  }
+  let vv = 500
+  param.onFinishChange(v => {
+    // t.start(0)
+    // t.Master.mute = false
+    vv = v
+    vv = v
+    mkSound()
+  })
+  $('<input/>', {
+    type: 'checkbox'
+  }).appendTo('body').change(function () {
+    if (this.checked) {
+      t.start()
+      t.Master.mute = false
+    }
+  })
+  $('#loading').hide()
+}
+
+e.aalogs = () => {
+  transfer.findAll({ shout: { $exists: true } }, true).then(r => {
+    console.log(r)
+    r.sort((a, b) => b.date - a.date)
+    window.rrr = r
+    const adiv = utils.stdDiv().html(`
+    <h2>AA is Algorithmic Autoregulation</h2>
+    Check the <a href="?aa" target="_blank">AA interface</a>.
+    `)
+    const grid = utils.mkGrid(4, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
+    $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>user</b>').appendTo(grid)
+    $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>shout</b>').appendTo(grid)
+    $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>when</b>').appendTo(grid)
+    $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>session</b>').appendTo(grid)
+    utils.gridDivider(160, 160, 160, grid)
+    utils.gridDivider(160, 160, 160, grid)
+    utils.gridDivider(160, 160, 160, grid)
+    utils.gridDivider(160, 160, 160, grid)
+    r.forEach(s => {
+      const user = $('<span/>', { css: { 'margin-left': '10%' } }).html(s.uid).appendTo(grid)
+      const shout = $('<span/>', { css: { 'margin-left': '10%' } }).html(s.shout).appendTo(grid)
+      const adate = (new Date(s.date)).toISOString()
+        .replace(/T/, ' ')
+        .replace(/:\d\d\..+/, '')
+      const date = $('<span/>', { css: { 'margin-left': '10%' } }).html(adate).appendTo(grid)
+      const session = $('<span/>', { css: { 'margin-left': '10%' } }).html(s.sessionId ? s.sessionId.slice(-10) : '').appendTo(grid)
+      if (u('admin')) {
+        shout.click(() => {
+          console.log(s)
+          transfer.remove({ _id: s._id }, true)
+          user.hide()
+          shout.hide()
+          date.hide()
+          session.hide()
+        })
+      }
+      // utils.gridDivider(160, 160, 160, grid)
+      // $('<span/>').html('.').appendTo(grid)
+      // $('<span/>').html('.').appendTo(grid)
+      // $('<span/>').html('.').appendTo(grid)
+    })
+  })
+  $('#loading').hide()
+}
+
 },{"./maestro.js":218,"./med":219,"./monk":221,"./net.js":222,"./router.js":223,"./transfer.js":225,"./utils.js":226,"@eastdesire/jscolor":1,"dat.gui":39,"flatpickr":44,"graphology-layout-forceatlas2":51,"jquery":61,"pixi.js":205,"tone":213}],225:[function(require,module,exports){
 const s = require('mongodb-stitch-browser-sdk')
 const e = module.exports
@@ -83185,7 +83471,7 @@ const regName = (name, app, url, db, coll) => {
 
 regName('ttm', 'freene-gui-fzgxa', 'https://ttm.github.io/oa/', 'freenet-all', 'test3') // renato.fabbri@
 // regName('ttm', 'freene-gui-fzgxa', 'https://ttm.github.io/oa/', 'freenet-all', 'nets') // dummy
-regName('tokisona', 'aplicationcreated-mkwpm', 'https://tokisona.github.io/oa/', 'adbcreated', 'acolectioncreated') // sync.aquarium@
+regName('tokisona', 'aplicationcreated-mkwpm', 'https://tokisona.github.io/oa/', 'adbcreated', 'acolectioncreated') // sync.aquarium@ and aeterni
 regName('mark', 'anyapplication-faajz', 'https://markturian.github.io/ouraquarium/', 'anydb', 'anycollection') // markarcturian@
 regName('sync', 'anyapplication-faajz', 'https://worldhealing.github.io/ouraquarium/', 'anydb', 'anycollection') // markarcturian@
 
@@ -83199,27 +83485,27 @@ const auth = creds.tokisona
 const client = s.Stitch.initializeDefaultAppClient(auth.app)
 const db = client.getServiceClient(s.RemoteMongoClient.factory, auth.cluster).db(auth.db)
 
-e.writeAny = data => {
+e.writeAny = (data, aa) => {
   return client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-    return db.collection(auth.collections.test).insertOne(data)
+    return db.collection(aa ? 'aatest' : auth.collections.test).insertOne(data)
   })
 }
 
-e.findAny = data => {
+e.findAny = (data, aa) => {
   return client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-    return db.collection(auth.collections.test).findOne(data)
+    return db.collection(aa ? 'aatest' : auth.collections.test).findOne(data)
   })
 }
 
-e.findAll = query => {
+e.findAll = (query, aa) => {
   return client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-    return db.collection(auth.collections.test).find(query).asArray()
+    return db.collection(aa ? 'aatest' : auth.collections.test).find(query).asArray()
   })
 }
 
-e.remove = query => {
+e.remove = (query, aa) => {
   return client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-    return db.collection(auth.collections.test).deleteMany(query)
+    return db.collection(aa ? 'aatest' : auth.collections.test).deleteMany(query)
   })
 }
 
