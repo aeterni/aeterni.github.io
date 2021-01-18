@@ -83251,7 +83251,10 @@ e.aa = () => {
       } else {
         data.date = new Date()
         transfer.writeAny(data, true).then(resp => {
-          shoutsExp.html(--shoutsExpected)
+          if (shoutsExpected !== undefined) {
+            shoutsExp.html(--shoutsExpected)
+          }
+          shout.val('')
           if (sessionData && (slotsFinished === sessionData.nslots)) {
             if (shoutsExpected === 0) { // finish session routine:
               ssBtn.attr('disabled', false)
