@@ -83242,7 +83242,7 @@ e.aa = () => {
     .attr('title', 'Register the shout message given.')
     .click(() => {
       // get current date and time, user, session ID and submit
-      const data = { uid: uid.val(), shout: shout.val(), sessionId: sessionData.sessionId }
+      const data = { uid: uid.val(), shout: shout.val(), sessionId: sessionData ? sessionData.sessionId : undefined }
       console.log(data)
       if (!data.uid) {
         window.alert('please insert a user identification string.')
@@ -83258,6 +83258,7 @@ e.aa = () => {
               sdur.attr('disabled', false)
               nslots.attr('disabled', false)
               grid.hide()
+              sessionData = undefined
             }
           }
           console.log(resp)
