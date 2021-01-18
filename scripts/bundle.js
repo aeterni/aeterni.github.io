@@ -83256,7 +83256,7 @@ e.aa = () => {
       } else {
         data.date = new Date()
         transfer.writeAny(data, true).then(resp => {
-          if (shoutsExpected !== undefined) {
+          if (shoutsExpected !== undefined && shoutsExpected > 0) {
             shoutsExp.html(--shoutsExpected)
           }
           shout.val('')
@@ -83267,6 +83267,7 @@ e.aa = () => {
               nslots.attr('disabled', false)
               grid.hide()
               sessionData = undefined
+              shoutsExpected = undefined
             }
           }
           console.log(resp)
