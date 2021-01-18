@@ -83261,7 +83261,7 @@ e.aa = () => {
           }
           shout.val('')
           if (sessionData && (slotsFinished === sessionData.nslots)) {
-            if (shoutsExpected === 0) { // finish session routine:
+            if (shoutsExpected <= 0) { // finish session routine:
               ssBtn.attr('disabled', false)
               sdur.attr('disabled', false)
               nslots.attr('disabled', false)
