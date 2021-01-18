@@ -83235,8 +83235,13 @@ e.aa = () => {
     placeholder: utils.chooseUnique(['learning AA', 'developing X', 'doing Y', 'talking to Z', 'writing W', 'some description'], 1)[0]
   }).appendTo(grid)
     .attr('title', 'The shout description (what have you done or are you doing).')
+    .on('keyup', e => {
+      if (e.key === 'Enter' || e.keyCode === 13) {
+        submitShout.click()
+      }
+    })
 
-  $('<button/>')
+  const submitShout = $('<button/>')
     .html('Submit shout')
     .appendTo(grid)
     .attr('title', 'Register the shout message given.')
@@ -83276,14 +83281,16 @@ e.aa = () => {
     placeholder: '15'
   }).appendTo(grid)
     .attr('title', 'In minutes.')
+    .val(15)
 
   $('<span/>').html('number of slots:').appendTo(grid)
   const nslots = $('<input/>', {
     placeholder: '8'
   }).appendTo(grid)
     .attr('title', 'Slots to be dedicated and reported on.')
+    .val(8)
 
-  const f = e => parseFloat(e.val())
+  const f = e => e.val() === '' ? '' : parseFloat(e.val())
   let sessionData
   const ssBtn = $('<button/>')
     .html('Start session')
@@ -83292,6 +83299,7 @@ e.aa = () => {
     .click(() => {
       // get current date and time, user, create session ID and submit
       console.log(sdur, nslots)
+      window.sss = [sdur, nslots]
       const data = { uid: uid.val(), sdur: f(sdur), nslots: f(nslots) }
       if (!data.uid) {
         window.alert('please insert a user identification string.')
