@@ -81528,7 +81528,7 @@ e.mkMed = () => {
   }).appendTo(grid)
     .attr('title', 'carrier frequency for the Martigli Oscillation.')
     .hide()
-  const waveformM_ = $('<span/>').html('Martigli carrier frequency:').appendTo(grid).hide()
+  const waveformM_ = $('<span/>').html('Martigli carrier waveform:').appendTo(grid).hide()
     .css('background', '#D9FF99')
   const waveformM = $('<select/>', { id: 'waveformM' }).appendTo(grid)
     .append($('<option/>').val('sine').html('sine'))
