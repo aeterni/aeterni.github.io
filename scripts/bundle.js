@@ -83457,7 +83457,7 @@ e.aalogs = () => {
         .replace(/T/, ' ')
         .replace(/:\d\d\..+/, '')
       const date = $('<span/>', { css: { 'margin-left': '10%' } }).html(adate).appendTo(grid)
-      const session = $('<span/>', { css: { 'margin-left': '10%' } }).html(s.sessionId ? `<a href="?aalogs&session=${s.sessionId} target="_blank">${s.sessionId.slice(-10)}</a>` : '').appendTo(grid)
+      const session = $('<span/>', { css: { 'margin-left': '10%' } }).html(s.sessionId ? `<a href="?aalogs&session=${s.sessionId}" target="_blank">${s.sessionId.slice(-10)}</a>` : '').appendTo(grid)
       if (u('admin')) {
         shout.click(() => {
           console.log(s)
