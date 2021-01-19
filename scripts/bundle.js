@@ -80017,6 +80017,7 @@ const tr = PIXI.utils.string2hex
 
 e.meditation = mid => {
   transfer.findAny({ meditation: mid }).then(s => {
+    window.sss = s
     $('#loading').hide()
     evocation.on('click', () => {
       $('#myModal').css('display', 'block')
@@ -80076,9 +80077,9 @@ e.meditation = mid => {
       if (!conoff.prop('checked')) {
         return caseOnOrConcluded()
       }
-      const { synth, synthR, mod_ } = setSounds(s)
+      const { synth, synthR, synthM, mod_ } = setSounds(s)
       t.Master.mute = false
-      if (s.vcontrol) tgui(synth, synthR, sampler)
+      if (s.vcontrol) tgui(synth, synthR, synthM, sampler)
       if (s.soundSample > 0) {
         setTimeout(() => {
           if (sampler.loop) {
@@ -80092,15 +80093,17 @@ e.meditation = mid => {
       }
       synth.volume.rampTo(-40, 1)
       synthR.volume.rampTo(-40, 1)
+      synthM.volume.rampTo(-40, 1)
       mod_.frequency.rampTo(1 / s.mp1, s.md)
       grid.css('background', 'lightgreen')
-      setCountdown(s.d, fun2, [synth, synthR], 'countdown to conclude: ')
+      setCountdown(s.d, fun2, [synth, synthR, synthM], 'countdown to conclude: ')
     }
-    function fun2 (synth, synthR) { // to finish the med
+    function fun2 (synth, synthR, synthM) { // to finish the med
       grid.css('background', '#aaaaff')
       countdown.text('finished')
       synth.volume.rampTo(-400, 10)
       synthR.volume.rampTo(-400, 10)
+      synthM.volume.rampTo(-400, 10)
     }
     grid.css('background', '#ffffaa')
   })
@@ -80209,13 +80212,19 @@ e.meditation = mid => {
     myCircle4.tint = tr(s.bcc)
     app.renderer.backgroundColor = tr(s.bgc)
 
-    const synth = maestro.mkOsc(0, -400, -1, s.waveformL || 'sine')
-    const synthR = maestro.mkOsc(0, -400, 1, s.waveformR || 'sine')
+    const synth = maestro.mkOsc(s.fl, -400, -1, s.waveformL || 'sine')
+    const synthR = maestro.mkOsc(s.fr, -400, 1, s.waveformR || 'sine')
     const mul = new t.Multiply(s.ma)
     const met2 = new t.DCMeter()
     const mod_ = maestro.mkOsc(1 / s.mp0, 0, 0, 'sine', true).fan(met2, mul)
-    mul.chain(new t.Add(s.fl), synth.frequency)
-    mul.chain(new t.Add(s.fr), synthR.frequency)
+    let synthM
+    if (s.model === '0') {
+      mul.chain(new t.Add(s.fl), synth.frequency)
+      mul.chain(new t.Add(s.fr), synthR.frequency)
+    } else if (s.model === '1') {
+      synthM = maestro.mkOsc(0, -400, 0, s.waveformM || 'sine') // todo: insert waveform choice
+      mul.chain(new t.Add(s.mf0), synthM.frequency)
+    }
 
     const pOsc = parseInt(s.panOsc)
     if (pOsc === 1 || pOsc === 2) { // sinusoid pan oscillation
@@ -80324,7 +80333,7 @@ e.meditation = mid => {
         }
       }
     })
-    return { synth, synthR, mod_ }
+    return { synth, synthR, synthM, mod_ }
   }
 
   const grid = utils.mkGrid(2)
@@ -80415,10 +80424,11 @@ e.meditation = mid => {
     })
 }
 
-function tgui (synth, synthR, sampler) {
-  console.log(synth, synthR, 'HEREEE')
+function tgui (synth, synthR, synthM, sampler) {
+  console.log(synth, synthR, synthM, 'HEREEE')
   const dat = require('dat.gui')
   const gui = new dat.GUI({ closed: true, closeOnTop: true })
+
   const binaural = gui.add({ binaural: 50 }, 'binaural', 0, 100).listen()
   let masterV = 0
   const syInitV = -40
@@ -80427,20 +80437,32 @@ function tgui (synth, synthR, sampler) {
     synthR.volume.rampTo(aval, 0.1)
     synth.volume.rampTo(aval, 0.1)
   })
+  const syInitM = -40
+  if (synthM) {
+    const m = gui.add({ Martigli: 50 }, 'Martigli', 0, 100).listen()
+    m.onChange(v => {
+      const aval = v - 50 + masterV + syInitM
+      synthM.volume.rampTo(aval, 0.1)
+    })
+  }
+  let sInitV
   if (sampler) {
-    const sInitV = sampler.volume.value
+    sInitV = sampler.volume.value
     const sample = gui.add({ sample: 50 }, 'sample', 0, 100).listen()
     sample.onChange(v => {
       sampler.volume.value = v - 50 + masterV + sInitV
     })
+  }
+  if (sampler || synthM) {
     const master = gui.add({ master: 50 }, 'master', 0, 100).listen()
     master.onChange(v => {
       masterV = v - 50
-      sampler.volume.value = v - 50 + masterV + sInitV
       const aval = v - 50 + masterV + syInitV
       console.log(aval, 'AVAL')
       synthR.volume.rampTo(aval, 0.1)
       synth.volume.rampTo(aval, 0.1)
+      if (sampler) sampler.volume.rampTo(v - 50 + masterV + sInitV, 0.1)
+      if (synthM) synthM.volume.rampTo(v - 50 + masterV + syInitM, 0.1)
     })
   }
   window.agui = gui
@@ -81346,6 +81368,19 @@ e.mkMed = () => {
       const e = window.allthem2[ii]
       console.log(e)
       mdiv.val(e.meditation)
+      $('#baseModel').val(e.model || '0')
+      if (e.model === '1') {
+        mf0.val(e.mf0)
+        mf0.show()
+        mf0_.show()
+        waveformM.show()
+        waveformM_.show()
+      } else {
+        mf0.hide()
+        mf0_.hide()
+        waveformM.hide()
+        waveformM_.hide()
+      }
       fl.val(e.fl)
       fr.val(e.fr)
       mp0.val(e.mp0)
@@ -81366,6 +81401,7 @@ e.mkMed = () => {
       lcc.fromString(e.lcc)
       $('#waveformL').val(e.waveformL || 'sine')
       $('#waveformR').val(e.waveformR || 'sine')
+      $('#waveformM').val(e.waveformM || 'sine')
       if (e.panOsc === undefined) e.panOsc = '0'
       $('#panOsc').val(e.panOsc)
       panOscPeriod.val(a(e.panOscPeriod, ''))
@@ -81433,6 +81469,28 @@ e.mkMed = () => {
   }).appendTo(grid)
     .attr('title', 'Duration of the meditation in seconds.')
 
+  $('<span/>').html('model:').appendTo(grid)
+  const model = $('<select/>', { id: 'baseModel' }).appendTo(grid)
+    .append($('<option/>').val(0).html('model 1 - coupled binaural and Martigli'))
+    .append($('<option/>').val(1).html('model 2 - decoupled binaural and Martigli'))
+    .attr('title', 'Base audiovidual model.')
+    .on('change', aself => {
+      const ii = aself.currentTarget.value
+      console.log(ii)
+      if (ii === '0') {
+        mf0.hide()
+        mf0_.hide()
+        waveformM.hide()
+        waveformM_.hide()
+      } else {
+        mf0.show()
+        mf0_.show()
+        waveformM.show()
+        waveformM_.show()
+      }
+    })
+  window.model = model
+
   gd()
 
   $('<span/>').html('freq left:').appendTo(grid)
@@ -81444,9 +81502,9 @@ e.mkMed = () => {
   $('<span/>').html('waveform left:').appendTo(grid)
   const waveformL = $('<select/>', { id: 'waveformL' }).appendTo(grid)
     .append($('<option/>').val('sine').html('sine'))
+    .append($('<option/>').val('triangle').html('triangle'))
     .append($('<option/>').val('square').html('square'))
     .append($('<option/>').val('sawtooth').html('sawtooth'))
-    .append($('<option/>').val('triangle').html('triangle'))
 
   $('<span/>').html('freq right:').appendTo(grid)
   const fr = $('<input/>', {
@@ -81457,11 +81515,27 @@ e.mkMed = () => {
   $('<span/>').html('waveform right:').appendTo(grid)
   const waveformR = $('<select/>', { id: 'waveformR' }).appendTo(grid)
     .append($('<option/>').val('sine').html('sine'))
+    .append($('<option/>').val('triangle').html('triangle'))
     .append($('<option/>').val('square').html('square'))
     .append($('<option/>').val('sawtooth').html('sawtooth'))
-    .append($('<option/>').val('triangle').html('triangle'))
 
   gd()
+
+  const mf0_ = $('<span/>').html('Martigli carrier frequency:').appendTo(grid).hide()
+    .css('background', '#D9FF99')
+  const mf0 = $('<input/>', {
+    placeholder: 'in Herz'
+  }).appendTo(grid)
+    .attr('title', 'carrier frequency for the Martigli Oscillation.')
+    .hide()
+  const waveformM_ = $('<span/>').html('Martigli carrier frequency:').appendTo(grid).hide()
+    .css('background', '#D9FF99')
+  const waveformM = $('<select/>', { id: 'waveformM' }).appendTo(grid)
+    .append($('<option/>').val('sine').html('sine'))
+    .append($('<option/>').val('triangle').html('triangle'))
+    .append($('<option/>').val('square').html('square'))
+    .append($('<option/>').val('sawtooth').html('sawtooth'))
+    .hide()
 
   $('<span/>').html('Martigli amplitude:').appendTo(grid)
   const ma = $('<input/>', {
@@ -81640,7 +81714,7 @@ e.mkMed = () => {
   }).appendTo(grid)
     .attr('title', 'Is this meeting to be put on the communion meetings table?')
 
-  const f = parseFloat
+  const f = v => parseFloat(v.val())
   $('<button/>')
     .attr('title', 'Create the meditation with the settings defined.')
     .html('Create')
@@ -81648,13 +81722,16 @@ e.mkMed = () => {
       console.log('the date:', mfp.selectedDates[0])
       console.log('the id:', mdiv.val() === '')
       const mdict = {
-        fl: f(fl.val()),
-        fr: f(fr.val()),
-        mp0: f(mp0.val()),
-        mp1: f(mp1.val()),
-        ma: f(ma.val()),
-        md: f(md.val()),
-        d: f(d.val())
+        fl: f(fl),
+        fr: f(fr),
+        mp0: f(mp0),
+        mp1: f(mp1),
+        ma: f(ma),
+        md: f(md),
+        d: f(d)
+      }
+      if (model.val() === '1') {
+        mdict.mf0 = f(mf0)
       }
       for (const key in mdict) {
         if (isNaN(mdict[key])) {
@@ -81663,23 +81740,28 @@ e.mkMed = () => {
         }
       }
 
-      if (mdict.ma > Math.min(mdict.fl, mdict.fr)) {
+      if (model.val() === '0' && mdict.ma > Math.min(mdict.fl, mdict.fr)) {
         if (!window.confirm('Martigli amplitude is greater than binaural frequencies. Are you shure?')) return
       }
 
+      mdict.model = model.val()
+
       mdict.waveformL = waveformL.val()
       mdict.waveformR = waveformR.val()
+      if (mdict.model === '1') {
+        mdict.waveformM = waveformM.val()
+      }
 
       mdict.panOsc = panOsc.val()
       if (mdict.panOsc > 1) {
-        const oPeriod = f(panOscPeriod.val())
+        const oPeriod = f(panOscPeriod)
         if (isNaN(oPeriod)) {
           window.alert('define the value for the pan oscillation period.')
           return
         }
         mdict.panOscPeriod = oPeriod
         if (mdict.panOsc === '3') {
-          const oTrans = f(panOscTrans.val())
+          const oTrans = f(panOscTrans)
           if (isNaN(oTrans)) {
             window.alert('define the value for the pan crossfade.')
             return
@@ -81693,13 +81775,13 @@ e.mkMed = () => {
       }
       mdict.soundSample = soundSample.val()
       if (mdict.soundSample >= 0) {
-        const oVolume = f(soundSampleVolume.val())
+        const oVolume = f(soundSampleVolume)
         if (isNaN(oVolume)) {
           window.alert('define the volume for the sound sample.')
           return
         }
         mdict.soundSampleVolume = oVolume
-        const oPeriod = f(soundSamplePeriod.val())
+        const oPeriod = f(soundSamplePeriod)
         if (isNaN(oPeriod)) {
           window.alert('define the period for the sample repetition.')
           return
@@ -81708,7 +81790,7 @@ e.mkMed = () => {
           window.alert('define a repetition period which is greater than the samples\' duration or 0 (for looping).')
         }
         mdict.soundSamplePeriod = oPeriod
-        const oStart = f(soundSampleStart.val())
+        const oStart = f(soundSampleStart)
         if (isNaN(oStart) || oStart < 0) {
           window.alert('define a zero or positive starting time for the sample')
         }
@@ -81739,8 +81821,6 @@ e.mkMed = () => {
       mdict.vcontrol = vcontrol.prop('checked')
       mdict.lemniscate = lemniscate.prop('checked')
       mdict.communionSchedule = communionSchedule.prop('checked')
-      console.log(fl.val())
-      if (f(fr.val()) < 4) return
       transfer.writeAny(mdict).then(resp => console.log(resp))
       // enable button with the name
       s.append($('<option/>', { class: 'pres' }).val(window.allthem2.length).html(mdict.meditation))
