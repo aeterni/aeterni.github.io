@@ -83214,6 +83214,7 @@ e.liturgy101 = () => {
 }
 
 e.aa = () => {
+  $('#favicon').attr('href', 'assets/aafav2.png')
   // for enabling AA
   // fields: nick/id/name
   // shout
