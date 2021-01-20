@@ -79938,6 +79938,7 @@ module.exports = {
 window.wand = {
   router: require('./modules/router.js'),
   net: require('./modules/net.js'),
+  maestro: require('./modules/maestro.js'),
   med: require('./modules/med'),
   monk: require('./modules/monk'),
   utils: require('./modules/utils.js'),
@@ -79977,8 +79978,9 @@ if (!found) { // includes empty/no URL parameters:
 
 wand.router.mkFooter()
 
-},{"./modules/med":219,"./modules/monk":221,"./modules/net.js":222,"./modules/router.js":223,"./modules/test.js":224,"./modules/utils.js":226,"jquery":61}],218:[function(require,module,exports){
+},{"./modules/maestro.js":218,"./modules/med":219,"./modules/monk":221,"./modules/net.js":222,"./modules/router.js":223,"./modules/test.js":224,"./modules/utils.js":226,"jquery":61}],218:[function(require,module,exports){
 const d = require('./utils.js').defaultArg
+const { chooseUnique } = require('./utils.js')
 const t = require('tone')
 
 const e = module.exports
@@ -79997,6 +79999,64 @@ e.sounds = [
   ['ocean1', 65],
   ['boom', 1.5]
 ].map(i => { return { name: i[0], duration: i[1] } })
+
+e.Speaker = class {
+  play (ttext, lang) {
+    if (!ttext) {
+      ttext = chooseUnique(this.sentences, 1)[0]
+    }
+    const utterThis = new window.SpeechSynthesisUtterance(ttext)
+    utterThis.volume = this.volume || 1
+    if (!lang) {
+      lang = chooseUnique(this.languages, 1)[0]
+    } else {
+      lang = this.languages.filter(i => i.lang.slice(0, 2) === lang)
+      lang = chooseUnique(lang, 1)[0]
+    }
+    utterThis.voice = lang
+    this.synth.speak(utterThis)
+  }
+
+  langs () {
+    console.log(this.languages.map(i => i.lang))
+  }
+
+  langsNames () {
+    console.log(this.languages.map(i => [i.lang, i.name]))
+  }
+
+  constructor (sentences = [], languages = []) {
+    this.synth = window.speechSynthesis
+    if (!this.synth) {
+      return
+    }
+    this.languages = languages
+    this.sentences = sentences
+    if (!languages || languages.length === 0) {
+      this.languages = this.synth.getVoices()
+      setTimeout(() => {
+        this.languages = this.synth.getVoices()
+      }, 100)
+    }
+    if (!sentences || sentences.length === 0) {
+      this.sentences = [
+        'abracadabra',
+        'abracadabra, pêlo de cabra',
+        'abra de sésamo',
+        'sim sim salabim',
+        '96, 96 / 96',
+        'peace and grace',
+        'Refuá Elohim',
+        'I eye and the "I AM"!',
+        'chokurei',
+        'sina toki e toki sona anu seme?',
+        'time is money'
+      ]
+    }
+  }
+}
+
+e.speaker = new e.Speaker()
 
 },{"./utils.js":226,"tone":213}],219:[function(require,module,exports){
 module.exports = {
@@ -83552,6 +83612,34 @@ e.aalogs = () => {
       utils.gridDivider(190, 190, 190, grid, 1)
     })
   })
+  $('#loading').hide()
+}
+
+e.paiNosso = () => {
+  const oracao = `
+    Pai Nosso que estais nos Céus, 
+    santificado seja o vosso Nome, 
+    venha a nós o vosso Reino, 
+    seja feita a vossa vontade 
+    assim na terra como no Céu. 
+    O pão nosso de cada dia nos dai hoje, 
+    perdoai-nos as nossas ofensas 
+    assim como nós perdoamos 
+    a quem nos tem ofendido, 
+    e não nos deixeis cair em tentação, 
+    mas livrai-nos do Mal.`
+  const adiv = utils.stdDiv().html(`
+  <h2>Pai Nosso</h2>
+  Artefato <b>Æterni</b> de reza automatizado.
+  <pre>${oracao}</pre>
+  `)
+  $('<button/>').html('rezar').click(() => {
+    maestro.speaker.synth.cancel()
+    maestro.speaker.play(oracao, 'pt')
+  }).appendTo(adiv)
+  $('<button/>', { css: { margin: '1%' } }).html('parar').click(() => {
+    maestro.speaker.synth.cancel()
+  }).appendTo(adiv)
   $('#loading').hide()
 }
 
