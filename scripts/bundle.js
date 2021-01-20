@@ -81820,6 +81820,9 @@ e.mkMed = () => {
       mdict.waveformR = waveformR.val()
       if (mdict.model === '1') {
         mdict.waveformM = waveformM.val()
+        if (mdict.ma > mdict.mf0) {
+          if (!window.confirm('Martigli amplitude is greater than Martigli carrier frequency. Are you shure?')) return
+        }
       }
 
       mdict.panOsc = panOsc.val()
@@ -83640,7 +83643,7 @@ e.paiNosso = () => {
     mas livrai-nos do Mal.`
   const adiv = utils.stdDiv().html(`
   <h2>Pai Nosso</h2>
-  Artefato <b>Æterni</b> de reza automatizado.
+  Artefato <b>Æterni</b> de reza computacional.
   <pre>${oracao}</pre>
   `)
   $('<button/>').html('rezar').click(() => {
@@ -83693,7 +83696,7 @@ e.daPaz = () => {
     Amém`
   const adiv = utils.stdDiv().html(`
   <h2>Oração da Paz (Oração de São Francisco)</h2>
-  Artefato <b>Æterni</b> de reza automatizado.
+  Artefato <b>Æterni</b> de reza computacional.
   <pre>${oracao}</pre>
   `)
   $('<button/>').html('rezar').click(() => {
