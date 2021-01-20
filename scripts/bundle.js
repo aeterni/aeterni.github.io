@@ -83643,6 +83643,44 @@ e.paiNosso = () => {
   $('#loading').hide()
 }
 
+e.daPaz = () => {
+  const oracao = `
+    Senhor,
+    Fazei de mim um instrumento de vossa Paz.
+    Onde houver Ódio, que eu leve o Amor,
+    Onde houver Ofensa, que eu leve o Perdão.
+    Onde houver Discórdia, que eu leve a União.
+    Onde houver Dúvida, que eu leve a Fé.
+    Onde houver Erro, que eu leve a Verdade.
+    Onde houver Desespero, que eu leve a Esperança.
+    Onde houver Tristeza, que eu leve a Alegria.
+    Onde houver Trevas, que eu leve a Luz!
+
+    Ó Mestre,
+    fazei que eu procure mais:
+    consolar, que ser consolado;
+    compreender, que ser compreendido;
+    amar, que ser amado.
+    Pois é dando, que se recebe.
+    Perdoando, que se é perdoado e
+    é morrendo, que se vive para a vida eterna!
+
+    Amém`
+  const adiv = utils.stdDiv().html(`
+  <h2>Oração da Paz (Oração de São Francisco)</h2>
+  Artefato <b>Æterni</b> de reza automatizado.
+  <pre>${oracao}</pre>
+  `)
+  $('<button/>').html('rezar').click(() => {
+    maestro.speaker.synth.cancel()
+    maestro.speaker.play(oracao, 'pt')
+  }).appendTo(adiv)
+  $('<button/>', { css: { margin: '1%' } }).html('parar').click(() => {
+    maestro.speaker.synth.cancel()
+  }).appendTo(adiv)
+  $('#loading').hide()
+}
+
 },{"./maestro.js":218,"./med":219,"./monk":221,"./net.js":222,"./router.js":223,"./transfer.js":225,"./utils.js":226,"@eastdesire/jscolor":1,"dat.gui":39,"flatpickr":44,"graphology-layout-forceatlas2":51,"jquery":61,"pixi.js":205,"tone":213}],225:[function(require,module,exports){
 const s = require('mongodb-stitch-browser-sdk')
 const e = module.exports
