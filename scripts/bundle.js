@@ -80001,7 +80001,7 @@ e.sounds = [
 ].map(i => { return { name: i[0], duration: i[1] } })
 
 e.Speaker = class {
-  play (ttext, lang) {
+  play (ttext, lang, loop) {
     if (!ttext) {
       ttext = chooseUnique(this.sentences, 1)[0]
     }
@@ -80010,11 +80010,21 @@ e.Speaker = class {
     if (!lang) {
       lang = chooseUnique(this.languages, 1)[0]
     } else {
-      lang = this.languages.filter(i => i.lang.slice(0, 2) === lang)
+      if (lang.length === 2) {
+        lang = this.languages.filter(i => i.lang.slice(0, 2) === lang)
+      } else {
+        lang = this.languages.filter(i => i.lang === lang)
+      }
+      lang = lang.filter(i => !i.name.includes('Google'))
       lang = chooseUnique(lang, 1)[0]
     }
+    console.log(lang)
     utterThis.voice = lang
     this.synth.speak(utterThis)
+    if (loop) {
+      utterThis.onend = () => this.synth.speak(utterThis)
+      return utterThis
+    }
   }
 
   langs () {
@@ -83638,8 +83648,23 @@ e.paiNosso = () => {
     maestro.speaker.play(oracao, 'pt')
   }).appendTo(adiv)
   $('<button/>', { css: { margin: '1%' } }).html('parar').click(() => {
+    if (ut) ut.onend = undefined
     maestro.speaker.synth.cancel()
+    check.prop('checked', false)
   }).appendTo(adiv)
+  adiv.append('loop: ')
+  let ut
+  const check = $('<input/>', {
+    type: 'checkbox'
+  }).appendTo(adiv).change(function () {
+    if (this.checked) {
+      maestro.speaker.synth.cancel()
+      ut = maestro.speaker.play(oracao, 'pt', true)
+    } else {
+      ut.onend = undefined
+      maestro.speaker.synth.cancel()
+    }
+  })
   $('#loading').hide()
 }
 
@@ -83676,8 +83701,23 @@ e.daPaz = () => {
     maestro.speaker.play(oracao, 'pt')
   }).appendTo(adiv)
   $('<button/>', { css: { margin: '1%' } }).html('parar').click(() => {
+    if (ut) ut.onend = undefined
     maestro.speaker.synth.cancel()
+    check.prop('checked', false)
   }).appendTo(adiv)
+  adiv.append('loop: ')
+  let ut
+  const check = $('<input/>', {
+    type: 'checkbox'
+  }).appendTo(adiv).change(function () {
+    if (this.checked) {
+      maestro.speaker.synth.cancel()
+      ut = maestro.speaker.play(oracao, 'pt', true)
+    } else {
+      ut.onend = undefined
+      maestro.speaker.synth.cancel()
+    }
+  })
   $('#loading').hide()
 }
 
