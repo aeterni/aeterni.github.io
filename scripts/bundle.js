@@ -24724,7 +24724,7 @@ exports.LoaderResource = LoaderResource;
 exports.TextureLoader = TextureLoader;
 
 
-},{"@pixi/core":5,"resource-loader":229}],17:[function(require,module,exports){
+},{"@pixi/core":5,"resource-loader":324}],17:[function(require,module,exports){
 /*!
  * @pixi/math - v5.3.3
  * Compiled Tue, 04 Aug 2020 16:23:09 UTC
@@ -29475,7 +29475,7 @@ if (!window.Int32Array) {
 }
 
 
-},{"es6-promise-polyfill":42,"object-assign":219}],25:[function(require,module,exports){
+},{"es6-promise-polyfill":43,"object-assign":309}],25:[function(require,module,exports){
 /*!
  * @pixi/prepare - v5.3.3
  * Compiled Tue, 04 Aug 2020 16:23:09 UTC
@@ -30612,7 +30612,7 @@ exports.isMobile = isMobile;
 exports.settings = settings;
 
 
-},{"ismobilejs":59}],28:[function(require,module,exports){
+},{"ismobilejs":65}],28:[function(require,module,exports){
 /*!
  * @pixi/sprite-animated - v5.3.3
  * Compiled Tue, 04 Aug 2020 16:23:09 UTC
@@ -38004,7 +38004,7 @@ exports.trimCanvas = trimCanvas;
 exports.uid = uid;
 
 
-},{"@pixi/constants":4,"@pixi/settings":27,"earcut":41,"eventemitter3":43,"url":232}],36:[function(require,module,exports){
+},{"@pixi/constants":4,"@pixi/settings":27,"earcut":42,"eventemitter3":44,"url":333}],36:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -44043,7 +44043,7 @@ function fromByteArray (uint8) {
 })));
 
 }).call(this)}).call(this,{"isBuffer":require("../../is-buffer/index.js")},typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../is-buffer/index.js":58,"buffer":38,"long":100}],38:[function(require,module,exports){
+},{"../../is-buffer/index.js":64,"buffer":38,"long":190}],38:[function(require,module,exports){
 (function (Buffer){(function (){
 /*!
  * The buffer module from node.js, for the browser.
@@ -45824,7 +45824,184 @@ function numberIsNaN (obj) {
 }
 
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"base64-js":36,"buffer":38,"ieee754":57}],39:[function(require,module,exports){
+},{"base64-js":36,"buffer":38,"ieee754":63}],39:[function(require,module,exports){
+
+/**
+ * Expose `Emitter`.
+ */
+
+if (typeof module !== 'undefined') {
+  module.exports = Emitter;
+}
+
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
+
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
+
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
+}
+
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks['$' + event] = this._callbacks['$' + event] || [])
+    .push(fn);
+  return this;
+};
+
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.once = function(event, fn){
+  function on() {
+    this.off(event, on);
+    fn.apply(this, arguments);
+  }
+
+  on.fn = fn;
+  this.on(event, on);
+  return this;
+};
+
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
+  var callbacks = this._callbacks['$' + event];
+  if (!callbacks) return this;
+
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks['$' + event];
+    return this;
+  }
+
+  // remove specific handler
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
+
+  // Remove event specific arrays for event types that no
+  // one is subscribed for to avoid memory leak.
+  if (callbacks.length === 0) {
+    delete this._callbacks['$' + event];
+  }
+
+  return this;
+};
+
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+
+  var args = new Array(arguments.length - 1)
+    , callbacks = this._callbacks['$' + event];
+
+  for (var i = 1; i < arguments.length; i++) {
+    args[i - 1] = arguments[i];
+  }
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks['$' + event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
+
+},{}],40:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -48364,7 +48541,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 })));
 
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 (function (process){(function (){
 function detect() {
   if (typeof navigator !== 'undefined') {
@@ -48499,7 +48676,7 @@ module.exports = {
 };
 
 }).call(this)}).call(this,require('_process'))
-},{"_process":224}],41:[function(require,module,exports){
+},{"_process":314}],42:[function(require,module,exports){
 'use strict';
 
 module.exports = earcut;
@@ -49180,7 +49357,7 @@ earcut.flatten = function (data) {
     return result;
 };
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 (function (global,setImmediate){(function (){
 (function(global){
 
@@ -49530,7 +49707,7 @@ Promise.reject = function(reason){
 })(typeof window != 'undefined' ? window : typeof global != 'undefined' ? global : typeof self != 'undefined' ? self : this);
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
-},{"timers":230}],43:[function(require,module,exports){
+},{"timers":331}],44:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty
@@ -49868,7 +50045,170 @@ if ('undefined' !== typeof module) {
   module.exports = EventEmitter;
 }
 
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
+module.exports = stringify
+stringify.default = stringify
+stringify.stable = deterministicStringify
+stringify.stableStringify = deterministicStringify
+
+var arr = []
+var replacerStack = []
+
+// Regular stringify
+function stringify (obj, replacer, spacer) {
+  decirc(obj, '', [], undefined)
+  var res
+  if (replacerStack.length === 0) {
+    res = JSON.stringify(obj, replacer, spacer)
+  } else {
+    res = JSON.stringify(obj, replaceGetterValues(replacer), spacer)
+  }
+  while (arr.length !== 0) {
+    var part = arr.pop()
+    if (part.length === 4) {
+      Object.defineProperty(part[0], part[1], part[3])
+    } else {
+      part[0][part[1]] = part[2]
+    }
+  }
+  return res
+}
+function decirc (val, k, stack, parent) {
+  var i
+  if (typeof val === 'object' && val !== null) {
+    for (i = 0; i < stack.length; i++) {
+      if (stack[i] === val) {
+        var propertyDescriptor = Object.getOwnPropertyDescriptor(parent, k)
+        if (propertyDescriptor.get !== undefined) {
+          if (propertyDescriptor.configurable) {
+            Object.defineProperty(parent, k, { value: '[Circular]' })
+            arr.push([parent, k, val, propertyDescriptor])
+          } else {
+            replacerStack.push([val, k])
+          }
+        } else {
+          parent[k] = '[Circular]'
+          arr.push([parent, k, val])
+        }
+        return
+      }
+    }
+    stack.push(val)
+    // Optimize for Arrays. Big arrays could kill the performance otherwise!
+    if (Array.isArray(val)) {
+      for (i = 0; i < val.length; i++) {
+        decirc(val[i], i, stack, val)
+      }
+    } else {
+      var keys = Object.keys(val)
+      for (i = 0; i < keys.length; i++) {
+        var key = keys[i]
+        decirc(val[key], key, stack, val)
+      }
+    }
+    stack.pop()
+  }
+}
+
+// Stable-stringify
+function compareFunction (a, b) {
+  if (a < b) {
+    return -1
+  }
+  if (a > b) {
+    return 1
+  }
+  return 0
+}
+
+function deterministicStringify (obj, replacer, spacer) {
+  var tmp = deterministicDecirc(obj, '', [], undefined) || obj
+  var res
+  if (replacerStack.length === 0) {
+    res = JSON.stringify(tmp, replacer, spacer)
+  } else {
+    res = JSON.stringify(tmp, replaceGetterValues(replacer), spacer)
+  }
+  while (arr.length !== 0) {
+    var part = arr.pop()
+    if (part.length === 4) {
+      Object.defineProperty(part[0], part[1], part[3])
+    } else {
+      part[0][part[1]] = part[2]
+    }
+  }
+  return res
+}
+
+function deterministicDecirc (val, k, stack, parent) {
+  var i
+  if (typeof val === 'object' && val !== null) {
+    for (i = 0; i < stack.length; i++) {
+      if (stack[i] === val) {
+        var propertyDescriptor = Object.getOwnPropertyDescriptor(parent, k)
+        if (propertyDescriptor.get !== undefined) {
+          if (propertyDescriptor.configurable) {
+            Object.defineProperty(parent, k, { value: '[Circular]' })
+            arr.push([parent, k, val, propertyDescriptor])
+          } else {
+            replacerStack.push([val, k])
+          }
+        } else {
+          parent[k] = '[Circular]'
+          arr.push([parent, k, val])
+        }
+        return
+      }
+    }
+    if (typeof val.toJSON === 'function') {
+      return
+    }
+    stack.push(val)
+    // Optimize for Arrays. Big arrays could kill the performance otherwise!
+    if (Array.isArray(val)) {
+      for (i = 0; i < val.length; i++) {
+        deterministicDecirc(val[i], i, stack, val)
+      }
+    } else {
+      // Create a temporary object in the required way
+      var tmp = {}
+      var keys = Object.keys(val).sort(compareFunction)
+      for (i = 0; i < keys.length; i++) {
+        var key = keys[i]
+        deterministicDecirc(val[key], key, stack, val)
+        tmp[key] = val[key]
+      }
+      if (parent !== undefined) {
+        arr.push([parent, k, val])
+        parent[k] = tmp
+      } else {
+        return tmp
+      }
+    }
+    stack.pop()
+  }
+}
+
+// wraps replacer function to handle values we couldn't replace
+// and mark them as [Circular]
+function replaceGetterValues (replacer) {
+  replacer = replacer !== undefined ? replacer : function (k, v) { return v }
+  return function (key, val) {
+    if (replacerStack.length > 0) {
+      for (var i = 0; i < replacerStack.length; i++) {
+        var part = replacerStack[i]
+        if (part[1] === key && part[0] === val) {
+          val = '[Circular]'
+          replacerStack.splice(i, 1)
+          break
+        }
+      }
+    }
+    return replacer.call(this, key, val)
+  }
+}
+
+},{}],46:[function(require,module,exports){
 /* flatpickr v4.6.6, @license MIT */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -52528,7 +52868,7 @@ if ('undefined' !== typeof module) {
 
 })));
 
-},{}],45:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 /**
  * Graphology Random Clusters Graph Generator
  * ===========================================
@@ -52651,7 +52991,7 @@ module.exports = function(GraphClass, options) {
   return graph;
 };
 
-},{"graphology-utils/is-graph-constructor":54}],46:[function(require,module,exports){
+},{"graphology-utils/is-graph-constructor":60}],48:[function(require,module,exports){
 /**
  * Graphology Erdos-Renyi Graph Generator
  * =======================================
@@ -52833,7 +53173,7 @@ function erdosRenyiSparse(GraphClass, options) {
 erdosRenyi.sparse = erdosRenyiSparse;
 module.exports = erdosRenyi;
 
-},{"graphology-metrics/density":53,"graphology-utils/is-graph-constructor":54,"lodash/range":97,"obliterator/combinations":220}],47:[function(require,module,exports){
+},{"graphology-metrics/density":59,"graphology-utils/is-graph-constructor":60,"lodash/range":185,"obliterator/combinations":310}],49:[function(require,module,exports){
 /**
  * Graphology Girvan-Newman Graph Generator
  * =========================================
@@ -52900,7 +53240,7 @@ module.exports = function girvanNewman(GraphClass, options) {
   return graph;
 };
 
-},{"graphology-utils/is-graph-constructor":54}],48:[function(require,module,exports){
+},{"graphology-utils/is-graph-constructor":60}],50:[function(require,module,exports){
 /**
  * Graphology Random Graph Generators
  * ===================================
@@ -52911,7 +53251,7 @@ exports.clusters = require('./clusters.js');
 exports.erdosRenyi = require('./erdos-renyi.js');
 exports.girvanNewman = require('./girvan-newman.js');
 
-},{"./clusters.js":45,"./erdos-renyi.js":46,"./girvan-newman.js":47}],49:[function(require,module,exports){
+},{"./clusters.js":47,"./erdos-renyi.js":48,"./girvan-newman.js":49}],51:[function(require,module,exports){
 /**
  * Graphology ForceAtlas2 Layout Default Settings
  * ===============================================
@@ -52929,7 +53269,7 @@ module.exports = {
   barnesHutTheta: 0.5
 };
 
-},{}],50:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 /**
  * Graphology ForceAtlas2 Helpers
  * ===============================
@@ -53118,7 +53458,7 @@ exports.collectLayoutChanges = function(graph, NodeMatrix) {
   return positions;
 };
 
-},{}],51:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 /**
  * Graphology ForceAtlas2 Layout
  * ==============================
@@ -53207,7 +53547,7 @@ synchronousLayout.inferSettings = inferSettings;
 
 module.exports = synchronousLayout;
 
-},{"./defaults.js":49,"./helpers.js":50,"./iterate.js":52,"graphology-utils/is-graph":55}],52:[function(require,module,exports){
+},{"./defaults.js":51,"./helpers.js":52,"./iterate.js":54,"graphology-utils/is-graph":61}],54:[function(require,module,exports){
 /* eslint no-constant-condition: 0 */
 /**
  * Graphology ForceAtlas2 Iteration
@@ -54040,7 +54380,322 @@ module.exports = function iterate(options, NodeMatrix, EdgeMatrix) {
   return {};
 };
 
-},{}],53:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
+/**
+ * Graphology Circular Layout
+ * ===========================
+ *
+ * Layout arranging the nodes in a circle.
+ */
+var defaults = require('lodash/defaultsDeep'),
+    isGraph = require('graphology-utils/is-graph');
+
+/**
+ * Default options.
+ */
+var DEFAULTS = {
+  attributes: {
+    x: 'x',
+    y: 'y'
+  },
+  center: 0.5,
+  scale: 1
+};
+
+/**
+ * Abstract function running the layout.
+ *
+ * @param  {Graph}    graph          - Target  graph.
+ * @param  {object}   [options]      - Options:
+ * @param  {object}     [attributes] - Attributes names to map.
+ * @param  {number}     [center]     - Center of the layout.
+ * @param  {number}     [scale]      - Scale of the layout.
+ * @return {object}                  - The positions by node.
+ */
+function genericCircularLayout(assign, graph, options) {
+  if (!isGraph(graph))
+    throw new Error('graphology-layout/random: the given graph is not a valid graphology instance.');
+
+  options = defaults(options, DEFAULTS);
+
+  var positions = {},
+      nodes = graph.nodes(),
+      center = options.center,
+      scale = options.scale,
+      tau = Math.PI * 2;
+
+  var l = nodes.length,
+      node,
+      x,
+      y,
+      i;
+
+  for (i = 0; i < l; i++) {
+    node = nodes[i];
+
+    x = scale * Math.cos(i * tau / l);
+    y = scale * Math.sin(i * tau / l);
+
+    if (center !== 0.5) {
+      x += center - 0.5 * scale;
+      y += center - 0.5 * scale;
+    }
+
+    positions[node] = {
+      x: x,
+      y: y
+    };
+
+    if (assign) {
+      graph.setNodeAttribute(node, options.attributes.x, x);
+      graph.setNodeAttribute(node, options.attributes.y, y);
+    }
+  }
+
+  return positions;
+}
+
+var circularLayout = genericCircularLayout.bind(null, false);
+circularLayout.assign = genericCircularLayout.bind(null, true);
+
+module.exports = circularLayout;
+
+},{"graphology-utils/is-graph":61,"lodash/defaultsDeep":168}],56:[function(require,module,exports){
+/**
+ * Graphology Layout
+ * ==================
+ *
+ * Library endpoint.
+ */
+var circular = require('./circular.js'),
+    random = require('./random.js');
+
+exports.circular = circular;
+exports.random = random;
+
+},{"./circular.js":55,"./random.js":57}],57:[function(require,module,exports){
+/**
+ * Graphology Random Layout
+ * =========================
+ *
+ * Simple layout giving uniform random positions to the nodes.
+ */
+var defaults = require('lodash/defaultsDeep'),
+    isGraph = require('graphology-utils/is-graph');
+
+/**
+ * Default options.
+ */
+var DEFAULTS = {
+  attributes: {
+    x: 'x',
+    y: 'y'
+  },
+  center: 0.5,
+  rng: Math.random,
+  scale: 1
+};
+
+/**
+ * Abstract function running the layout.
+ *
+ * @param  {Graph}    graph          - Target  graph.
+ * @param  {object}   [options]      - Options:
+ * @param  {object}     [attributes] - Attributes names to map.
+ * @param  {number}     [center]     - Center of the layout.
+ * @param  {function}   [rng]        - Custom RNG function to be used.
+ * @param  {number}     [scale]      - Scale of the layout.
+ * @return {object}                  - The positions by node.
+ */
+function genericRandomLayout(assign, graph, options) {
+  if (!isGraph(graph))
+    throw new Error('graphology-layout/random: the given graph is not a valid graphology instance.');
+
+  options = defaults(options, DEFAULTS);
+
+  var positions = {},
+      nodes = graph.nodes(),
+      center = options.center,
+      rng = options.rng,
+      scale = options.scale;
+
+  var l = nodes.length,
+      node,
+      x,
+      y,
+      i;
+
+  for (i = 0; i < l; i++) {
+    node = nodes[i];
+
+    x = rng() * scale;
+    y = rng() * scale;
+
+    if (center !== 0.5) {
+      x += center - 0.5 * scale;
+      y += center - 0.5 * scale;
+    }
+
+    positions[node] = {
+      x: x,
+      y: y
+    };
+
+    if (assign) {
+      graph.setNodeAttribute(node, options.attributes.x, x);
+      graph.setNodeAttribute(node, options.attributes.y, y);
+    }
+  }
+
+  return positions;
+}
+
+var randomLayout = genericRandomLayout.bind(null, false);
+randomLayout.assign = genericRandomLayout.bind(null, true);
+
+module.exports = randomLayout;
+
+},{"graphology-utils/is-graph":61,"lodash/defaultsDeep":168}],58:[function(require,module,exports){
+/**
+ * Graphology Degree
+ * ==================
+ *
+ * Functions used to compute the degree of each node of a given graph.
+ */
+var isGraph = require('graphology-utils/is-graph');
+var DEFAULT_ATTRIBUTES = {
+  degree: 'degree',
+  inDegree: 'inDegree',
+  outDegree: 'outDegree',
+  undirectedDegree: 'undirectedDegree',
+  directedDegree: 'directedDegree'
+};
+
+function abstractDegree(graph, callee, assign, type, options) {
+  if (!isGraph(graph))
+    throw new Error('graphology-metrics/' + callee + ': given graph is not a valid graphology instance.');
+  if (graph.type === type) {
+    throw new Error('graphology-metrics/' + callee + ': can not be calculated for ' + type + '  graphs.');
+  }
+  var nodes = graph.nodes();
+  var i = 0;
+  if (assign) {
+    var attributes = Object.assign({}, DEFAULT_ATTRIBUTES, options && options.attributes);
+    for (i = 0; i < nodes.length; i++) {
+      graph.setNodeAttribute(
+        nodes[i],
+        attributes[callee],
+        graph[callee](nodes[i])
+      );
+    }
+    return;
+  }
+  var hashmap = {};
+  for (i = 0; i < nodes.length; i++) {
+    hashmap[nodes[i]] = graph[callee](nodes[i]);
+  }
+  return hashmap;
+}
+
+function allDegree(graph, options, assign) {
+  if (!isGraph(graph))
+    throw new Error('graphology-metrics/degree: given graph is not a valid graphology instance.');
+  var attributes = Object.assign({}, DEFAULT_ATTRIBUTES, options && options.attributes);
+  var nodes = graph.nodes();
+  var types;
+  var defaultTypes;
+  if (graph.type === 'undirected') {
+    defaultTypes = ['undirectedDegree'];
+  }
+  if (graph.type === 'mixed') {
+    defaultTypes = ['inDegree', 'outDegree', 'undirectedDegree'];
+  }
+  if (graph.type === 'directed') {
+    defaultTypes = ['inDegree', 'outDegree'];
+  }
+
+  if (options && options.types && options.types.length) {
+    types = defaultTypes.filter(function(type) {
+      return options.types.indexOf(type) > -1;
+    });
+  }
+  else {
+    types = defaultTypes;
+  }
+  var i = 0;
+  var j = 0;
+  if (assign) {
+    for (i = 0; i < nodes.length; i++) {
+      for (j = 0; j < types.length; j++) {
+        graph.setNodeAttribute(
+          nodes[i],
+          attributes[types[j]],
+          graph[types[j]](nodes[i])
+        );
+      }
+    }
+  }
+  else {
+    var hashmap = {};
+    for (i = 0; i < nodes.length; i++) {
+      var response = {};
+      for (j = 0; j < types.length; j++) {
+        response[attributes[types[j]]] = graph[types[j]](nodes[i]);
+      }
+      hashmap[nodes[i]] = response;
+    }
+    return hashmap;
+  }
+}
+allDegree.assign = function assignAllDegree(graph, options) {
+  allDegree(graph, options, true);
+};
+
+function degree(graph) {
+  return abstractDegree(graph, 'degree');
+}
+degree.assign = function assignDegree(graph, options) {
+  abstractDegree(graph, 'degree', true, 'none', options);
+};
+
+function inDegree(graph) {
+  return abstractDegree(graph, 'inDegree', false, 'undirected');
+}
+inDegree.assign = function assignInDegree(graph, options) {
+  abstractDegree(graph, 'inDegree', true, 'undirected', options);
+};
+
+function outDegree(graph) {
+  return abstractDegree(graph, 'outDegree', false, 'undirected');
+}
+outDegree.assign = function assignOutDegree(graph, option) {
+  abstractDegree(graph, 'outDegree', true, 'undirected', option);
+};
+
+function undirectedDegree(graph) {
+  return abstractDegree(graph, 'undirectedDegree', false, 'directed');
+}
+undirectedDegree.assign = function assignUndirectedDegree(graph, option) {
+  abstractDegree(graph, 'undirectedDegree', true, 'directed', option);
+};
+
+function directedDegree(graph) {
+  return abstractDegree(graph, 'directedDegree', false, 'undirected');
+}
+directedDegree.assign = function assignUndirectedDegree(graph, option) {
+  abstractDegree(graph, 'directedDegree', true, 'undirected', option);
+};
+
+degree.inDegree = inDegree;
+degree.outDegree = outDegree;
+degree.undirectedDegree = undirectedDegree;
+degree.directedDegree = directedDegree;
+degree.allDegree = allDegree;
+degree.abstractDegree = abstractDegree;
+
+module.exports = degree;
+
+},{"graphology-utils/is-graph":61}],59:[function(require,module,exports){
 /**
  * Graphology Density
  * ===================
@@ -54190,7 +54845,7 @@ density.multiMixedDensity = abstractDensity.bind(null, 'mixed', true);
  */
 module.exports = density;
 
-},{"graphology-utils/is-graph":55}],54:[function(require,module,exports){
+},{"graphology-utils/is-graph":61}],60:[function(require,module,exports){
 /**
  * Graphology isGraphConstructor
  * ==============================
@@ -54215,7 +54870,7 @@ module.exports = function isGraphConstructor(value) {
   );
 };
 
-},{}],55:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 /**
  * Graphology isGraph
  * ===================
@@ -54240,11 +54895,11 @@ module.exports = function isGraph(value) {
   );
 };
 
-},{}],56:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e=e||self).graphology=t()}(this,(function(){"use strict";function e(t){return(e="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e})(t)}function t(e,t){e.prototype=Object.create(t.prototype),e.prototype.constructor=e,e.__proto__=t}function n(e){return(n=Object.setPrototypeOf?Object.getPrototypeOf:function(e){return e.__proto__||Object.getPrototypeOf(e)})(e)}function r(e,t){return(r=Object.setPrototypeOf||function(e,t){return e.__proto__=t,e})(e,t)}function i(){if("undefined"==typeof Reflect||!Reflect.construct)return!1;if(Reflect.construct.sham)return!1;if("function"==typeof Proxy)return!0;try{return Date.prototype.toString.call(Reflect.construct(Date,[],(function(){}))),!0}catch(e){return!1}}function o(e,t,n){return(o=i()?Reflect.construct:function(e,t,n){var i=[null];i.push.apply(i,t);var o=new(Function.bind.apply(e,i));return n&&r(o,n.prototype),o}).apply(null,arguments)}function a(e){var t="function"==typeof Map?new Map:void 0;return(a=function(e){if(null===e||(i=e,-1===Function.toString.call(i).indexOf("[native code]")))return e;var i;if("function"!=typeof e)throw new TypeError("Super expression must either be null or a function");if(void 0!==t){if(t.has(e))return t.get(e);t.set(e,a)}function a(){return o(e,arguments,n(this).constructor)}return a.prototype=Object.create(e.prototype,{constructor:{value:a,enumerable:!1,writable:!0,configurable:!0}}),r(a,e)})(e)}function c(e){if(void 0===e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return e}function d(){for(var e=arguments[0]||{},t=1,n=arguments.length;t<n;t++)if(arguments[t])for(var r in arguments[t])e[r]=arguments[t][r];return e}function u(e,t,n,r){var i=e._nodes.get(t),o=null;return i?o="mixed"===r?i.out&&i.out[n]||i.undirected&&i.undirected[n]:"directed"===r?i.out&&i.out[n]:i.undirected&&i.undirected[n]:o}function s(t){return null!==t&&"object"===e(t)&&"function"==typeof t.addUndirectedEdgeWithKey&&"function"==typeof t.dropNode}function h(t){return"object"===e(t)&&null!==t&&t.constructor===Object}function f(e){for(var t=""+e,n="",r=0,i=t.length;r<i;r++){n=t[i-r-1]+n,(r-2)%3||r===i-1||(n=","+n)}return n}function p(e,t,n){Object.defineProperty(e,t,{enumerable:!1,configurable:!1,writable:!0,value:n})}function g(e,t,n){var r={enumerable:!0,configurable:!0};"function"==typeof n?r.get=n:(r.value=n,r.writable=!1),Object.defineProperty(e,t,r)}function l(){}function y(){y.init.call(this)}function v(e){return void 0===e._maxListeners?y.defaultMaxListeners:e._maxListeners}function w(e,t,n){if(t)e.call(n);else for(var r=e.length,i=S(e,r),o=0;o<r;++o)i[o].call(n)}function b(e,t,n,r){if(t)e.call(n,r);else for(var i=e.length,o=S(e,i),a=0;a<i;++a)o[a].call(n,r)}function m(e,t,n,r,i){if(t)e.call(n,r,i);else for(var o=e.length,a=S(e,o),c=0;c<o;++c)a[c].call(n,r,i)}function _(e,t,n,r,i,o){if(t)e.call(n,r,i,o);else for(var a=e.length,c=S(e,a),d=0;d<a;++d)c[d].call(n,r,i,o)}function G(e,t,n,r){if(t)e.apply(n,r);else for(var i=e.length,o=S(e,i),a=0;a<i;++a)o[a].apply(n,r)}function E(e,t,n,r){var i,o,a,c;if("function"!=typeof n)throw new TypeError('"listener" argument must be a function');if((o=e._events)?(o.newListener&&(e.emit("newListener",t,n.listener?n.listener:n),o=e._events),a=o[t]):(o=e._events=new l,e._eventsCount=0),a){if("function"==typeof a?a=o[t]=r?[n,a]:[a,n]:r?a.unshift(n):a.push(n),!a.warned&&(i=v(e))&&i>0&&a.length>i){a.warned=!0;var d=new Error("Possible EventEmitter memory leak detected. "+a.length+" "+t+" listeners added. Use emitter.setMaxListeners() to increase limit");d.name="MaxListenersExceededWarning",d.emitter=e,d.type=t,d.count=a.length,c=d,"function"==typeof console.warn?console.warn(c):console.log(c)}}else a=o[t]=n,++e._eventsCount;return e}function k(e,t,n){var r=!1;function i(){e.removeListener(t,i),r||(r=!0,n.apply(e,arguments))}return i.listener=n,i}function x(e){var t=this._events;if(t){var n=t[e];if("function"==typeof n)return 1;if(n)return n.length}return 0}function S(e,t){for(var n=new Array(t);t--;)n[t]=e[t];return n}function A(e){Object.defineProperty(this,"_next",{writable:!1,enumerable:!1,value:e}),this.done=!1}l.prototype=Object.create(null),y.EventEmitter=y,y.usingDomains=!1,y.prototype.domain=void 0,y.prototype._events=void 0,y.prototype._maxListeners=void 0,y.defaultMaxListeners=10,y.init=function(){this.domain=null,y.usingDomains&&(void 0).active,this._events&&this._events!==Object.getPrototypeOf(this)._events||(this._events=new l,this._eventsCount=0),this._maxListeners=this._maxListeners||void 0},y.prototype.setMaxListeners=function(e){if("number"!=typeof e||e<0||isNaN(e))throw new TypeError('"n" argument must be a positive number');return this._maxListeners=e,this},y.prototype.getMaxListeners=function(){return v(this)},y.prototype.emit=function(e){var t,n,r,i,o,a,c,d="error"===e;if(a=this._events)d=d&&null==a.error;else if(!d)return!1;if(c=this.domain,d){if(t=arguments[1],!c){if(t instanceof Error)throw t;var u=new Error('Uncaught, unspecified "error" event. ('+t+")");throw u.context=t,u}return t||(t=new Error('Uncaught, unspecified "error" event')),t.domainEmitter=this,t.domain=c,t.domainThrown=!1,c.emit("error",t),!1}if(!(n=a[e]))return!1;var s="function"==typeof n;switch(r=arguments.length){case 1:w(n,s,this);break;case 2:b(n,s,this,arguments[1]);break;case 3:m(n,s,this,arguments[1],arguments[2]);break;case 4:_(n,s,this,arguments[1],arguments[2],arguments[3]);break;default:for(i=new Array(r-1),o=1;o<r;o++)i[o-1]=arguments[o];G(n,s,this,i)}return!0},y.prototype.addListener=function(e,t){return E(this,e,t,!1)},y.prototype.on=y.prototype.addListener,y.prototype.prependListener=function(e,t){return E(this,e,t,!0)},y.prototype.once=function(e,t){if("function"!=typeof t)throw new TypeError('"listener" argument must be a function');return this.on(e,k(this,e,t)),this},y.prototype.prependOnceListener=function(e,t){if("function"!=typeof t)throw new TypeError('"listener" argument must be a function');return this.prependListener(e,k(this,e,t)),this},y.prototype.removeListener=function(e,t){var n,r,i,o,a;if("function"!=typeof t)throw new TypeError('"listener" argument must be a function');if(!(r=this._events))return this;if(!(n=r[e]))return this;if(n===t||n.listener&&n.listener===t)0==--this._eventsCount?this._events=new l:(delete r[e],r.removeListener&&this.emit("removeListener",e,n.listener||t));else if("function"!=typeof n){for(i=-1,o=n.length;o-- >0;)if(n[o]===t||n[o].listener&&n[o].listener===t){a=n[o].listener,i=o;break}if(i<0)return this;if(1===n.length){if(n[0]=void 0,0==--this._eventsCount)return this._events=new l,this;delete r[e]}else!function(e,t){for(var n=t,r=n+1,i=e.length;r<i;n+=1,r+=1)e[n]=e[r];e.pop()}(n,i);r.removeListener&&this.emit("removeListener",e,a||t)}return this},y.prototype.removeAllListeners=function(e){var t,n;if(!(n=this._events))return this;if(!n.removeListener)return 0===arguments.length?(this._events=new l,this._eventsCount=0):n[e]&&(0==--this._eventsCount?this._events=new l:delete n[e]),this;if(0===arguments.length){for(var r,i=Object.keys(n),o=0;o<i.length;++o)"removeListener"!==(r=i[o])&&this.removeAllListeners(r);return this.removeAllListeners("removeListener"),this._events=new l,this._eventsCount=0,this}if("function"==typeof(t=n[e]))this.removeListener(e,t);else if(t)do{this.removeListener(e,t[t.length-1])}while(t[0]);return this},y.prototype.listeners=function(e){var t,n=this._events;return n&&(t=n[e])?"function"==typeof t?[t.listener||t]:function(e){for(var t=new Array(e.length),n=0;n<t.length;++n)t[n]=e[n].listener||e[n];return t}(t):[]},y.listenerCount=function(e,t){return"function"==typeof e.listenerCount?e.listenerCount(t):x.call(e,t)},y.prototype.listenerCount=x,y.prototype.eventNames=function(){return this._eventsCount>0?Reflect.ownKeys(this._events):[]},A.prototype.next=function(){if(this.done)return{done:!0};var e=this._next();return e.done&&(this.done=!0),e},"undefined"!=typeof Symbol&&(A.prototype[Symbol.iterator]=function(){return this}),A.of=function(){var e=arguments,t=e.length,n=0;return new A((function(){return n>=t?{done:!0}:{done:!1,value:e[n++]}}))},A.empty=function(){var e=new A(null);return e.done=!0,e},A.is=function(e){return e instanceof A||"object"==typeof e&&null!==e&&"function"==typeof e.next};var N=A,D=function(e,t){for(var n,r=arguments.length>1?t:1/0,i=r!==1/0?new Array(r):[],o=0;;){if(o===r)return i;if((n=e.next()).done)return o!==t?i.slice(0,o):i;i[o++]=n.value}},L=function(e){function n(t,n){var r;return(r=e.call(this)||this).name="GraphError",r.message=t||"",r.data=n||{},r}return t(n,e),n}(a(Error)),j=function(e){function n(t,r){var i;return(i=e.call(this,t,r)||this).name="InvalidArgumentsGraphError","function"==typeof Error.captureStackTrace&&Error.captureStackTrace(c(i),n.prototype.constructor),i}return t(n,e),n}(L),U=function(e){function n(t,r){var i;return(i=e.call(this,t,r)||this).name="NotFoundGraphError","function"==typeof Error.captureStackTrace&&Error.captureStackTrace(c(i),n.prototype.constructor),i}return t(n,e),n}(L),z=function(e){function n(t,r){var i;return(i=e.call(this,t,r)||this).name="UsageGraphError","function"==typeof Error.captureStackTrace&&Error.captureStackTrace(c(i),n.prototype.constructor),i}return t(n,e),n}(L);function O(e,t){this.key=e,this.attributes=t,this.inDegree=0,this.outDegree=0,this.undirectedDegree=0,this.directedSelfLoops=0,this.undirectedSelfLoops=0,this.in={},this.out={},this.undirected={}}function K(e,t){this.key=e,this.attributes=t||{},this.inDegree=0,this.outDegree=0,this.directedSelfLoops=0,this.in={},this.out={}}function M(e,t){this.key=e,this.attributes=t||{},this.undirectedDegree=0,this.undirectedSelfLoops=0,this.undirected={}}function C(e,t,n,r,i){this.key=e,this.attributes=i,this.source=n,this.target=r,this.generatedKey=t}function T(e,t,n,r,i){this.key=e,this.attributes=i,this.source=n,this.target=r,this.generatedKey=t}function P(e,t,n,r,i,o,a){var c=e.multi,d=t?"undirected":"out",u=t?"undirected":"in",s=o[d][i];void 0===s&&(s=c?new Set:n,o[d][i]=s),c&&s.add(n),r!==i&&void 0===a[u][r]&&(a[u][r]=s)}function W(e,t,n){var r=e.multi,i=n.source,o=n.target,a=i.key,c=o.key,d=i[t?"undirected":"out"],u=t?"undirected":"in";if(c in d)if(r){var s=d[c];1===s.size?(delete d[c],delete o[u][a]):s.delete(n)}else delete d[c];r||delete o[u][a]}K.prototype.upgradeToMixed=function(){this.undirectedDegree=0,this.undirectedSelfLoops=0,this.undirected={}},M.prototype.upgradeToMixed=function(){this.inDegree=0,this.outDegree=0,this.directedSelfLoops=0,this.in={},this.out={}};var R=[{name:function(e){return"get".concat(e,"Attribute")},attacher:function(e,t,n,r){e.prototype[t]=function(e,i){var o;if("mixed"!==this.type&&"mixed"!==n&&n!==this.type)throw new z("Graph.".concat(t,": cannot find this type of edges in your ").concat(this.type," graph."));if(arguments.length>2){if(this.multi)throw new z("Graph.".concat(t,": cannot use a {source,target} combo when asking about an edge's attributes in a MultiGraph since we cannot infer the one you want information about."));var a=""+e,c=""+i;if(i=arguments[2],!(o=u(this,a,c,n)))throw new U("Graph.".concat(t,': could not find an edge for the given path ("').concat(a,'" - "').concat(c,'").'))}else if(e=""+e,!(o=this._edges.get(e)))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" edge in the graph.'));if("mixed"!==n&&!(o instanceof r))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" ').concat(n," edge in the graph."));return o.attributes[i]}}},{name:function(e){return"get".concat(e,"Attributes")},attacher:function(e,t,n,r){e.prototype[t]=function(e){var i;if("mixed"!==this.type&&"mixed"!==n&&n!==this.type)throw new z("Graph.".concat(t,": cannot find this type of edges in your ").concat(this.type," graph."));if(arguments.length>1){if(this.multi)throw new z("Graph.".concat(t,": cannot use a {source,target} combo when asking about an edge's attributes in a MultiGraph since we cannot infer the one you want information about."));var o=""+e,a=""+arguments[1];if(!(i=u(this,o,a,n)))throw new U("Graph.".concat(t,': could not find an edge for the given path ("').concat(o,'" - "').concat(a,'").'))}else if(e=""+e,!(i=this._edges.get(e)))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" edge in the graph.'));if("mixed"!==n&&!(i instanceof r))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" ').concat(n," edge in the graph."));return i.attributes}}},{name:function(e){return"has".concat(e,"Attribute")},attacher:function(e,t,n,r){e.prototype[t]=function(e,i){var o;if("mixed"!==this.type&&"mixed"!==n&&n!==this.type)throw new z("Graph.".concat(t,": cannot find this type of edges in your ").concat(this.type," graph."));if(arguments.length>2){if(this.multi)throw new z("Graph.".concat(t,": cannot use a {source,target} combo when asking about an edge's attributes in a MultiGraph since we cannot infer the one you want information about."));var a=""+e,c=""+i;if(i=arguments[2],!(o=u(this,a,c,n)))throw new U("Graph.".concat(t,': could not find an edge for the given path ("').concat(a,'" - "').concat(c,'").'))}else if(e=""+e,!(o=this._edges.get(e)))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" edge in the graph.'));if("mixed"!==n&&!(o instanceof r))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" ').concat(n," edge in the graph."));return o.attributes.hasOwnProperty(i)}}},{name:function(e){return"set".concat(e,"Attribute")},attacher:function(e,t,n,r){e.prototype[t]=function(e,i,o){var a;if("mixed"!==this.type&&"mixed"!==n&&n!==this.type)throw new z("Graph.".concat(t,": cannot find this type of edges in your ").concat(this.type," graph."));if(arguments.length>3){if(this.multi)throw new z("Graph.".concat(t,": cannot use a {source,target} combo when asking about an edge's attributes in a MultiGraph since we cannot infer the one you want information about."));var c=""+e,d=""+i;if(i=arguments[2],o=arguments[3],!(a=u(this,c,d,n)))throw new U("Graph.".concat(t,': could not find an edge for the given path ("').concat(c,'" - "').concat(d,'").'))}else if(e=""+e,!(a=this._edges.get(e)))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" edge in the graph.'));if("mixed"!==n&&!(a instanceof r))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" ').concat(n," edge in the graph."));return a.attributes[i]=o,this.emit("edgeAttributesUpdated",{key:a.key,type:"set",meta:{name:i,value:o}}),this}}},{name:function(e){return"update".concat(e,"Attribute")},attacher:function(e,t,n,r){e.prototype[t]=function(e,i,o){var a;if("mixed"!==this.type&&"mixed"!==n&&n!==this.type)throw new z("Graph.".concat(t,": cannot find this type of edges in your ").concat(this.type," graph."));if(arguments.length>3){if(this.multi)throw new z("Graph.".concat(t,": cannot use a {source,target} combo when asking about an edge's attributes in a MultiGraph since we cannot infer the one you want information about."));var c=""+e,d=""+i;if(i=arguments[2],o=arguments[3],!(a=u(this,c,d,n)))throw new U("Graph.".concat(t,': could not find an edge for the given path ("').concat(c,'" - "').concat(d,'").'))}else if(e=""+e,!(a=this._edges.get(e)))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" edge in the graph.'));if("function"!=typeof o)throw new j("Graph.".concat(t,": updater should be a function."));if("mixed"!==n&&!(a instanceof r))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" ').concat(n," edge in the graph."));return a.attributes[i]=o(a.attributes[i]),this.emit("edgeAttributesUpdated",{key:a.key,type:"set",meta:{name:i,value:a.attributes[i]}}),this}}},{name:function(e){return"remove".concat(e,"Attribute")},attacher:function(e,t,n,r){e.prototype[t]=function(e,i){var o;if("mixed"!==this.type&&"mixed"!==n&&n!==this.type)throw new z("Graph.".concat(t,": cannot find this type of edges in your ").concat(this.type," graph."));if(arguments.length>2){if(this.multi)throw new z("Graph.".concat(t,": cannot use a {source,target} combo when asking about an edge's attributes in a MultiGraph since we cannot infer the one you want information about."));var a=""+e,c=""+i;if(i=arguments[2],!(o=u(this,a,c,n)))throw new U("Graph.".concat(t,': could not find an edge for the given path ("').concat(a,'" - "').concat(c,'").'))}else if(e=""+e,!(o=this._edges.get(e)))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" edge in the graph.'));if("mixed"!==n&&!(o instanceof r))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" ').concat(n," edge in the graph."));return delete o.attributes[i],this.emit("edgeAttributesUpdated",{key:o.key,type:"remove",meta:{name:i}}),this}}},{name:function(e){return"replace".concat(e,"Attributes")},attacher:function(e,t,n,r){e.prototype[t]=function(e,i){var o;if("mixed"!==this.type&&"mixed"!==n&&n!==this.type)throw new z("Graph.".concat(t,": cannot find this type of edges in your ").concat(this.type," graph."));if(arguments.length>2){if(this.multi)throw new z("Graph.".concat(t,": cannot use a {source,target} combo when asking about an edge's attributes in a MultiGraph since we cannot infer the one you want information about."));var a=""+e,c=""+i;if(i=arguments[2],!(o=u(this,a,c,n)))throw new U("Graph.".concat(t,': could not find an edge for the given path ("').concat(a,'" - "').concat(c,'").'))}else if(e=""+e,!(o=this._edges.get(e)))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" edge in the graph.'));if(!h(i))throw new j("Graph.".concat(t,": provided attributes are not a plain object."));if("mixed"!==n&&!(o instanceof r))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" ').concat(n," edge in the graph."));var d=o.attributes;return o.attributes=i,this.emit("edgeAttributesUpdated",{key:o.key,type:"replace",meta:{before:d,after:i}}),this}}},{name:function(e){return"merge".concat(e,"Attributes")},attacher:function(e,t,n,r){e.prototype[t]=function(e,i){var o;if("mixed"!==this.type&&"mixed"!==n&&n!==this.type)throw new z("Graph.".concat(t,": cannot find this type of edges in your ").concat(this.type," graph."));if(arguments.length>2){if(this.multi)throw new z("Graph.".concat(t,": cannot use a {source,target} combo when asking about an edge's attributes in a MultiGraph since we cannot infer the one you want information about."));var a=""+e,c=""+i;if(i=arguments[2],!(o=u(this,a,c,n)))throw new U("Graph.".concat(t,': could not find an edge for the given path ("').concat(a,'" - "').concat(c,'").'))}else if(e=""+e,!(o=this._edges.get(e)))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" edge in the graph.'));if(!h(i))throw new j("Graph.".concat(t,": provided attributes are not a plain object."));if("mixed"!==n&&!(o instanceof r))throw new U("Graph.".concat(t,': could not find the "').concat(e,'" ').concat(n," edge in the graph."));return d(o.attributes,i),this.emit("edgeAttributesUpdated",{key:o.key,type:"merge",meta:{data:i}}),this}}}];var I=function(){var e,t=arguments,n=-1;return new N((function r(){if(!e){if(++n>=t.length)return{done:!0};e=t[n]}var i=e.next();return i.done?(e=null,r()):i}))},F=[{name:"edges",type:"mixed"},{name:"inEdges",type:"directed",direction:"in"},{name:"outEdges",type:"directed",direction:"out"},{name:"inboundEdges",type:"mixed",direction:"in"},{name:"outboundEdges",type:"mixed",direction:"out"},{name:"directedEdges",type:"directed"},{name:"undirectedEdges",type:"undirected"}];function Y(e,t){for(var n in t)t[n]instanceof Set?t[n].forEach((function(t){return e.push(t.key)})):e.push(t[n].key)}function J(e,t){for(var n in e){var r=e[n];t(r.key,r.attributes,r.source.key,r.target.key,r.source.attributes,r.target.attributes)}}function q(e,t){for(var n in e)e[n].forEach((function(e){return t(e.key,e.attributes,e.source.key,e.target.key,e.source.attributes,e.target.attributes)}))}function B(e){var t=Object.keys(e),n=t.length,r=null,i=0;return new N((function o(){var a;if(r){var c=r.next();if(c.done)return r=null,i++,o();a=c.value}else{if(i>=n)return{done:!0};var d=t[i];if((a=e[d])instanceof Set)return r=a.values(),o();i++}return{done:!1,value:[a.key,a.attributes,a.source.key,a.target.key,a.source.attributes,a.target.attributes]}}))}function H(e,t,n){n in t&&(t[n]instanceof Set?t[n].forEach((function(t){return e.push(t.key)})):e.push(t[n].key))}function Q(e,t,n){if(t in e)if(e[t]instanceof Set)e[t].forEach((function(e){return n(e.key,e.attributes,e.source.key,e.target.key,e.source.attributes,e.target.attributes)}));else{var r=e[t];n(r.key,r.attributes,r.source.key,r.target.key,r.source.attributes,r.target.attributes)}}function V(e,t){var n=e[t];if(n instanceof Set){var r=n.values();return new N((function(){var e=r.next();if(e.done)return e;var t=e.value;return{done:!1,value:[t.key,t.attributes,t.source.key,t.target.key,t.source.attributes,t.target.attributes]}}))}return N.of([n.key,n.attributes,n.source.key,n.target.key,n.source.attributes,n.target.attributes])}function X(e,t){if(0===e.size)return[];if("mixed"===t||t===e.type)return D(e._edges.keys(),e._edges.size);var n="undirected"===t?e.undirectedSize:e.directedSize,r=new Array(n),i="undirected"===t,o=0;return e._edges.forEach((function(e,t){e instanceof T===i&&(r[o++]=t)})),r}function Z(e,t,n){if(0!==e.size)if("mixed"===t||t===e.type)e._edges.forEach((function(e,t){var r=e.attributes,i=e.source,o=e.target;n(t,r,i.key,o.key,i.attributes,o.attributes)}));else{var r="undirected"===t;e._edges.forEach((function(e,t){if(e instanceof T===r){var i=e.attributes,o=e.source,a=e.target;n(t,i,o.key,a.key,o.attributes,a.attributes)}}))}}function $(e,t){return 0===e.size?N.empty():"mixed"===t?(n=e._edges.values(),new N((function(){var e=n.next();if(e.done)return e;var t=e.value;return{value:[t.key,t.attributes,t.source.key,t.target.key,t.source.attributes,t.target.attributes],done:!1}}))):(n=e._edges.values(),new N((function e(){var r=n.next();if(r.done)return r;var i=r.value;return i instanceof T==("undirected"===t)?{value:[i.key,i.attributes,i.source.key,i.target.key,i.source.attributes,i.target.attributes],done:!1}:e()})));var n}function ee(e,t,n){var r=[];return"undirected"!==e&&("out"!==t&&Y(r,n.in),"in"!==t&&Y(r,n.out)),"directed"!==e&&Y(r,n.undirected),r}function te(e,t,n,r,i){var o=e?q:J;"undirected"!==t&&("out"!==n&&o(r.in,i),"in"!==n&&o(r.out,i)),"directed"!==t&&o(r.undirected,i)}function ne(e,t,n){var r=N.empty();return"undirected"!==e&&("out"!==t&&void 0!==n.in&&(r=I(r,B(n.in))),"in"!==t&&void 0!==n.out&&(r=I(r,B(n.out)))),"directed"!==e&&void 0!==n.undirected&&(r=I(r,B(n.undirected))),r}function re(e,t,n,r){var i=[];return"undirected"!==e&&(void 0!==n.in&&"out"!==t&&H(i,n.in,r),void 0!==n.out&&"in"!==t&&H(i,n.out,r)),"directed"!==e&&void 0!==n.undirected&&H(i,n.undirected,r),i}function ie(e,t,n,r,i){"undirected"!==e&&(void 0!==n.in&&"out"!==t&&Q(n.in,r,i),void 0!==n.out&&"in"!==t&&Q(n.out,r,i)),"directed"!==e&&void 0!==n.undirected&&Q(n.undirected,r,i)}function oe(e,t,n,r){var i=N.empty();return"undirected"!==e&&(void 0!==n.in&&"out"!==t&&r in n.in&&(i=I(i,V(n.in,r))),void 0!==n.out&&"in"!==t&&r in n.out&&(i=I(i,V(n.out,r)))),"directed"!==e&&void 0!==n.undirected&&r in n.undirected&&(i=I(i,V(n.undirected,r))),i}var ae=[{name:"neighbors",type:"mixed"},{name:"inNeighbors",type:"directed",direction:"in"},{name:"outNeighbors",type:"directed",direction:"out"},{name:"inboundNeighbors",type:"mixed",direction:"in"},{name:"outboundNeighbors",type:"mixed",direction:"out"},{name:"directedNeighbors",type:"directed"},{name:"undirectedNeighbors",type:"undirected"}];function ce(e,t){if(void 0!==t)for(var n in t)e.add(n)}function de(e,t,n){if("mixed"!==e){if("undirected"===e)return Object.keys(n.undirected);if("string"==typeof t)return Object.keys(n[t])}var r=new Set;return"undirected"!==e&&("out"!==t&&ce(r,n.in),"in"!==t&&ce(r,n.out)),"directed"!==e&&ce(r,n.undirected),D(r.values(),r.size)}function ue(e,t,n){for(var r in t){var i=t[r];i instanceof Set&&(i=i.values().next().value);var o=i.source,a=i.target,c=o===e?a:o;n(c.key,c.attributes)}}function se(e,t,n,r){for(var i in n){var o=n[i];o instanceof Set&&(o=o.values().next().value);var a=o.source,c=o.target,d=a===t?c:a;e.has(d.key)||(e.add(d.key),r(d.key,d.attributes))}}function he(e,t){var n=Object.keys(t),r=n.length,i=0;return new N((function(){if(i>=r)return{done:!0};var o=t[n[i++]];o instanceof Set&&(o=o.values().next().value);var a=o.source,c=o.target,d=a===e?c:a;return{done:!1,value:[d.key,d.attributes]}}))}function fe(e,t,n){var r=Object.keys(n),i=r.length,o=0;return new N((function a(){if(o>=i)return{done:!0};var c=n[r[o++]];c instanceof Set&&(c=c.values().next().value);var d=c.source,u=c.target,s=d===t?u:d;return e.has(s.key)?a():(e.add(s.key),{done:!1,value:[s.key,s.attributes]})}))}function pe(e,t,n,r,i){var o=e._nodes.get(r);if("undirected"!==t){if("out"!==n&&void 0!==o.in)for(var a in o.in)if(a===i)return!0;if("in"!==n&&void 0!==o.out)for(var c in o.out)if(c===i)return!0}if("directed"!==t&&void 0!==o.undirected)for(var d in o.undirected)if(d===i)return!0;return!1}function ge(e,t){var n=t.name,r=t.type,i=t.direction,o="forEach"+n[0].toUpperCase()+n.slice(1,-1);e.prototype[o]=function(e,t){if("mixed"===r||"mixed"===this.type||r===this.type){e=""+e;var n=this._nodes.get(e);if(void 0===n)throw new U("Graph.".concat(o,': could not find the "').concat(e,'" node in the graph.'));!function(e,t,n,r){if("mixed"!==e){if("undirected"===e)return ue(n,n.undirected,r);if("string"==typeof t)return ue(n,n[t],r)}var i=new Set;"undirected"!==e&&("out"!==t&&se(i,n,n.in,r),"in"!==t&&se(i,n,n.out,r)),"directed"!==e&&se(i,n,n.undirected,r)}("mixed"===r?this.type:r,i,n,t)}}}function le(e,t){var n=t.name,r=t.type,i=t.direction,o=n.slice(0,-1)+"Entries";e.prototype[o]=function(e){if("mixed"!==r&&"mixed"!==this.type&&r!==this.type)return N.empty();e=""+e;var t=this._nodes.get(e);if(void 0===t)throw new U("Graph.".concat(o,': could not find the "').concat(e,'" node in the graph.'));return function(e,t,n){if("mixed"!==e){if("undirected"===e)return he(n,n.undirected);if("string"==typeof t)return he(n,n[t])}var r=N.empty(),i=new Set;return"undirected"!==e&&("out"!==t&&(r=I(r,fe(i,n,n.in))),"in"!==t&&(r=I(r,fe(i,n,n.out)))),"directed"!==e&&(r=I(r,fe(i,n,n.undirected))),r}("mixed"===r?this.type:r,i,t)}}function ye(e,t){var n={key:e};return Object.keys(t.attributes).length&&(n.attributes=d({},t.attributes)),n}function ve(e,t){var n={source:t.source.key,target:t.target.key};return t.generatedKey||(n.key=e),Object.keys(t.attributes).length&&(n.attributes=d({},t.attributes)),t instanceof T&&(n.undirected=!0),n}function we(e){return h(e)?"key"in e?!("attributes"in e)||h(e.attributes)&&null!==e.attributes?null:"invalid-attributes":"no-key":"not-object"}function be(e){return h(e)?"source"in e?"target"in e?!("attributes"in e)||h(e.attributes)&&null!==e.attributes?"undirected"in e&&"boolean"!=typeof e.undirected?"invalid-undirected":null:"invalid-attributes":"no-target":"no-source":"not-object"}var me=new Set(["directed","undirected","mixed"]),_e=new Set(["domain","_events","_eventsCount","_maxListeners"]),Ge={allowSelfLoops:!0,edgeKeyGenerator:null,multi:!1,type:"mixed"};function Ee(e,t,n,r,i,o,a,c){if(!r&&"undirected"===e.type)throw new z("Graph.".concat(t,": you cannot add a directed edge to an undirected graph. Use the #.addEdge or #.addUndirectedEdge instead."));if(r&&"directed"===e.type)throw new z("Graph.".concat(t,": you cannot add an undirected edge to a directed graph. Use the #.addEdge or #.addDirectedEdge instead."));if(c&&!h(c))throw new j("Graph.".concat(t,': invalid attributes. Expecting an object but got "').concat(c,'"'));if(o=""+o,a=""+a,c=c||{},!e.allowSelfLoops&&o===a)throw new z("Graph.".concat(t,': source & target are the same ("').concat(o,"\"), thus creating a loop explicitly forbidden by this graph 'allowSelfLoops' option set to false."));var d=e._nodes.get(o),u=e._nodes.get(a);if(!d)throw new U("Graph.".concat(t,': source node "').concat(o,'" not found.'));if(!u)throw new U("Graph.".concat(t,': target node "').concat(a,'" not found.'));var s={key:null,undirected:r,source:o,target:a,attributes:c};if(n&&(i=e._edgeKeyGenerator(s)),i=""+i,e._edges.has(i))throw new z("Graph.".concat(t,': the "').concat(i,'" edge already exists in the graph.'));if(!e.multi&&(r?void 0!==d.undirected[a]:void 0!==d.out[a]))throw new z("Graph.".concat(t,': an edge linking "').concat(o,'" to "').concat(a,"\" already exists. If you really want to add multiple edges linking those nodes, you should create a multi graph by using the 'multi' option."));var f=new(r?T:C)(i,n,d,u,c);return e._edges.set(i,f),o===a?r?d.undirectedSelfLoops++:d.directedSelfLoops++:r?(d.undirectedDegree++,u.undirectedDegree++):(d.outDegree++,u.inDegree++),P(e,r,f,o,a,d,u),r?e._undirectedSize++:e._directedSize++,s.key=i,e.emit("edgeAdded",s),i}function ke(e,t,n,r,i,o,a,c){if(!r&&"undirected"===e.type)throw new z("Graph.".concat(t,": you cannot add a directed edge to an undirected graph. Use the #.addEdge or #.addUndirectedEdge instead."));if(r&&"directed"===e.type)throw new z("Graph.".concat(t,": you cannot add an undirected edge to a directed graph. Use the #.addEdge or #.addDirectedEdge instead."));if(c&&!h(c))throw new j("Graph.".concat(t,': invalid attributes. Expecting an object but got "').concat(c,'"'));if(o=""+o,a=""+a,c=c||{},!e.allowSelfLoops&&o===a)throw new z("Graph.".concat(t,': source & target are the same ("').concat(o,"\"), thus creating a loop explicitly forbidden by this graph 'allowSelfLoops' option set to false."));var s,f,p=e._nodes.get(o),g=e._nodes.get(a),l=null;if(!n&&(s=e._edges.get(i))){if(s.source!==o||s.target!==a||r&&(s.source!==a||s.target!==o))throw new z("Graph.".concat(t,': inconsistency detected when attempting to merge the "').concat(i,'" edge with "').concat(o,'" source & "').concat(a,'" target vs. (').concat(s.source,", ").concat(s.target,")."));l=i}if(l||e.multi||!p||(r?void 0===p.undirected[a]:void 0===p.out[a])||(f=u(e,o,a,r?"undirected":"directed")),f)return c?(d(f.attributes,c),l):l;var y={key:null,undirected:r,source:o,target:a,attributes:c};if(n&&(i=e._edgeKeyGenerator(y)),i=""+i,e._edges.has(i))throw new z("Graph.".concat(t,': the "').concat(i,'" edge already exists in the graph.'));return p||(e.addNode(o),p=e._nodes.get(o),o===a&&(g=p)),g||(e.addNode(a),g=e._nodes.get(a)),s=new(r?T:C)(i,n,p,g,c),e._edges.set(i,s),o===a?r?p.undirectedSelfLoops++:p.directedSelfLoops++:r?(p.undirectedDegree++,g.undirectedDegree++):(p.outDegree++,g.inDegree++),P(e,r,s,o,a,p,g),r?e._undirectedSize++:e._directedSize++,y.key=i,e.emit("edgeAdded",y),i}var xe=function(e){function n(t){var n;if(n=e.call(this)||this,(t=d({},Ge,t)).edgeKeyGenerator&&"function"!=typeof t.edgeKeyGenerator)throw new j("Graph.constructor: invalid 'edgeKeyGenerator' option. Expecting a function but got \"".concat(t.edgeKeyGenerator,'".'));if("boolean"!=typeof t.multi)throw new j("Graph.constructor: invalid 'multi' option. Expecting a boolean but got \"".concat(t.multi,'".'));if(!me.has(t.type))throw new j('Graph.constructor: invalid \'type\' option. Should be one of "mixed", "directed" or "undirected" but got "'.concat(t.type,'".'));if("boolean"!=typeof t.allowSelfLoops)throw new j("Graph.constructor: invalid 'allowSelfLoops' option. Expecting a boolean but got \"".concat(t.allowSelfLoops,'".'));var r,i="mixed"===t.type?O:"directed"===t.type?K:M;return p(c(n),"NodeDataClass",i),p(c(n),"_attributes",{}),p(c(n),"_nodes",new Map),p(c(n),"_edges",new Map),p(c(n),"_directedSize",0),p(c(n),"_undirectedSize",0),p(c(n),"_edgeKeyGenerator",t.edgeKeyGenerator||(r=0,function(){return"_geid".concat(r++,"_")})),p(c(n),"_options",t),_e.forEach((function(e){return p(c(n),e,n[e])})),g(c(n),"order",(function(){return n._nodes.size})),g(c(n),"size",(function(){return n._edges.size})),g(c(n),"directedSize",(function(){return n._directedSize})),g(c(n),"undirectedSize",(function(){return n._undirectedSize})),g(c(n),"multi",n._options.multi),g(c(n),"type",n._options.type),g(c(n),"allowSelfLoops",n._options.allowSelfLoops),n}t(n,e);var r=n.prototype;return r.hasNode=function(e){return this._nodes.has(""+e)},r.hasDirectedEdge=function(e,t){if("undirected"===this.type)return!1;if(1===arguments.length){var n=""+e,r=this._edges.get(n);return!!r&&r instanceof C}if(2===arguments.length){e=""+e,t=""+t;var i=this._nodes.get(e);if(!i)return!1;var o=i.out[t];return!!o&&(!this.multi||!!o.size)}throw new j("Graph.hasDirectedEdge: invalid arity (".concat(arguments.length,", instead of 1 or 2). You can either ask for an edge id or for the existence of an edge between a source & a target."))},r.hasUndirectedEdge=function(e,t){if("directed"===this.type)return!1;if(1===arguments.length){var n=""+e,r=this._edges.get(n);return!!r&&r instanceof T}if(2===arguments.length){e=""+e,t=""+t;var i=this._nodes.get(e);if(!i)return!1;var o=i.undirected[t];return!!o&&(!this.multi||!!o.size)}throw new j("Graph.hasDirectedEdge: invalid arity (".concat(arguments.length,", instead of 1 or 2). You can either ask for an edge id or for the existence of an edge between a source & a target."))},r.hasEdge=function(e,t){if(1===arguments.length){var n=""+e;return this._edges.has(n)}if(2===arguments.length){e=""+e,t=""+t;var r=this._nodes.get(e);if(!r)return!1;var i=void 0!==r.out&&r.out[t];return i||(i=void 0!==r.undirected&&r.undirected[t]),!!i&&(!this.multi||!!i.size)}throw new j("Graph.hasEdge: invalid arity (".concat(arguments.length,", instead of 1 or 2). You can either ask for an edge id or for the existence of an edge between a source & a target."))},r.directedEdge=function(e,t){if("undirected"!==this.type){if(e=""+e,t=""+t,this.multi)throw new z("Graph.directedEdge: this method is irrelevant with multigraphs since there might be multiple edges between source & target. See #.directedEdges instead.");var n=this._nodes.get(e);if(!n)throw new U('Graph.directedEdge: could not find the "'.concat(e,'" source node in the graph.'));if(!this._nodes.has(t))throw new U('Graph.directedEdge: could not find the "'.concat(t,'" target node in the graph.'));var r=n.out&&n.out[t]||void 0;return r?r.key:void 0}},r.undirectedEdge=function(e,t){if("directed"!==this.type){if(e=""+e,t=""+t,this.multi)throw new z("Graph.undirectedEdge: this method is irrelevant with multigraphs since there might be multiple edges between source & target. See #.undirectedEdges instead.");var n=this._nodes.get(e);if(!n)throw new U('Graph.undirectedEdge: could not find the "'.concat(e,'" source node in the graph.'));if(!this._nodes.has(t))throw new U('Graph.undirectedEdge: could not find the "'.concat(t,'" target node in the graph.'));var r=n.undirected&&n.undirected[t]||void 0;return r?r.key:void 0}},r.edge=function(e,t){if(this.multi)throw new z("Graph.edge: this method is irrelevant with multigraphs since there might be multiple edges between source & target. See #.edges instead.");e=""+e,t=""+t;var n=this._nodes.get(e);if(!n)throw new U('Graph.edge: could not find the "'.concat(e,'" source node in the graph.'));if(!this._nodes.has(t))throw new U('Graph.edge: could not find the "'.concat(t,'" target node in the graph.'));var r=n.out&&n.out[t]||n.undirected&&n.undirected[t]||void 0;if(r)return r.key},r.inDegree=function(e){var t=!(arguments.length>1&&void 0!==arguments[1])||arguments[1];if("boolean"!=typeof t)throw new j('Graph.inDegree: Expecting a boolean but got "'.concat(t,'" for the second parameter (allowing self-loops to be counted).'));e=""+e;var n=this._nodes.get(e);if(!n)throw new U('Graph.inDegree: could not find the "'.concat(e,'" node in the graph.'));if("undirected"===this.type)return 0;var r=t?n.directedSelfLoops:0;return n.inDegree+r},r.outDegree=function(e){var t=!(arguments.length>1&&void 0!==arguments[1])||arguments[1];if("boolean"!=typeof t)throw new j('Graph.outDegree: Expecting a boolean but got "'.concat(t,'" for the second parameter (allowing self-loops to be counted).'));e=""+e;var n=this._nodes.get(e);if(!n)throw new U('Graph.outDegree: could not find the "'.concat(e,'" node in the graph.'));if("undirected"===this.type)return 0;var r=t?n.directedSelfLoops:0;return n.outDegree+r},r.directedDegree=function(e){var t=!(arguments.length>1&&void 0!==arguments[1])||arguments[1];if("boolean"!=typeof t)throw new j('Graph.directedDegree: Expecting a boolean but got "'.concat(t,'" for the second parameter (allowing self-loops to be counted).'));if(e=""+e,!this.hasNode(e))throw new U('Graph.directedDegree: could not find the "'.concat(e,'" node in the graph.'));return"undirected"===this.type?0:this.inDegree(e,t)+this.outDegree(e,t)},r.undirectedDegree=function(e){var t=!(arguments.length>1&&void 0!==arguments[1])||arguments[1];if("boolean"!=typeof t)throw new j('Graph.undirectedDegree: Expecting a boolean but got "'.concat(t,'" for the second parameter (allowing self-loops to be counted).'));if(e=""+e,!this.hasNode(e))throw new U('Graph.undirectedDegree: could not find the "'.concat(e,'" node in the graph.'));if("directed"===this.type)return 0;var n=this._nodes.get(e),r=t?2*n.undirectedSelfLoops:0;return n.undirectedDegree+r},r.degree=function(e){var t=!(arguments.length>1&&void 0!==arguments[1])||arguments[1];if("boolean"!=typeof t)throw new j('Graph.degree: Expecting a boolean but got "'.concat(t,'" for the second parameter (allowing self-loops to be counted).'));if(e=""+e,!this.hasNode(e))throw new U('Graph.degree: could not find the "'.concat(e,'" node in the graph.'));var n=0;return"undirected"!==this.type&&(n+=this.directedDegree(e,t)),"directed"!==this.type&&(n+=this.undirectedDegree(e,t)),n},r.source=function(e){e=""+e;var t=this._edges.get(e);if(!t)throw new U('Graph.source: could not find the "'.concat(e,'" edge in the graph.'));return t.source.key},r.target=function(e){e=""+e;var t=this._edges.get(e);if(!t)throw new U('Graph.target: could not find the "'.concat(e,'" edge in the graph.'));return t.target.key},r.extremities=function(e){e=""+e;var t=this._edges.get(e);if(!t)throw new U('Graph.extremities: could not find the "'.concat(e,'" edge in the graph.'));return[t.source.key,t.target.key]},r.opposite=function(e,t){if(e=""+e,t=""+t,!this._nodes.has(e))throw new U('Graph.opposite: could not find the "'.concat(e,'" node in the graph.'));var n=this._edges.get(t);if(!n)throw new U('Graph.opposite: could not find the "'.concat(t,'" edge in the graph.'));var r=n.source,i=n.target,o=r.key,a=i.key;if(e!==o&&e!==a)throw new U('Graph.opposite: the "'.concat(e,'" node is not attached to the "').concat(t,'" edge (').concat(o,", ").concat(a,")."));return e===o?a:o},r.undirected=function(e){e=""+e;var t=this._edges.get(e);if(!t)throw new U('Graph.undirected: could not find the "'.concat(e,'" edge in the graph.'));return t instanceof T},r.directed=function(e){e=""+e;var t=this._edges.get(e);if(!t)throw new U('Graph.directed: could not find the "'.concat(e,'" edge in the graph.'));return t instanceof C},r.selfLoop=function(e){e=""+e;var t=this._edges.get(e);if(!t)throw new U('Graph.selfLoop: could not find the "'.concat(e,'" edge in the graph.'));return t.source===t.target},r.addNode=function(e,t){if(t&&!h(t))throw new j('Graph.addNode: invalid attributes. Expecting an object but got "'.concat(t,'"'));if(e=""+e,t=t||{},this._nodes.has(e))throw new z('Graph.addNode: the "'.concat(e,'" node already exist in the graph.'));var n=new this.NodeDataClass(e,t);return this._nodes.set(e,n),this.emit("nodeAdded",{key:e,attributes:t}),e},r.mergeNode=function(e,t){if(t&&!h(t))throw new j('Graph.mergeNode: invalid attributes. Expecting an object but got "'.concat(t,'"'));e=""+e,t=t||{};var n=this._nodes.get(e);return n?(t&&d(n.attributes,t),e):(n=new this.NodeDataClass(e,t),this._nodes.set(e,n),this.emit("nodeAdded",{key:e,attributes:t}),e)},r.dropNode=function(e){if(e=""+e,!this.hasNode(e))throw new U('Graph.dropNode: could not find the "'.concat(e,'" node in the graph.'));for(var t=this.edges(e),n=0,r=t.length;n<r;n++)this.dropEdge(t[n]);var i=this._nodes.get(e);this._nodes.delete(e),this.emit("nodeDropped",{key:e,attributes:i.attributes})},r.dropEdge=function(e){var t;if(arguments.length>1){var n=""+arguments[0],r=""+arguments[1];if(!(t=u(this,n,r,this.type)))throw new U('Graph.dropEdge: could not find the "'.concat(n,'" -> "').concat(r,'" edge in the graph.'))}else if(e=""+e,!(t=this._edges.get(e)))throw new U('Graph.dropEdge: could not find the "'.concat(e,'" edge in the graph.'));this._edges.delete(t.key);var i=t,o=i.source,a=i.target,c=i.attributes,d=t instanceof T;return o===a?o.selfLoops--:d?(o.undirectedDegree--,a.undirectedDegree--):(o.outDegree--,a.inDegree--),W(this,d,t),d?this._undirectedSize--:this._directedSize--,this.emit("edgeDropped",{key:e,attributes:c,source:o.key,target:a.key,undirected:d}),this},r.clear=function(){this._edges.clear(),this._nodes.clear(),this.emit("cleared")},r.clearEdges=function(){this._edges.clear(),this.clearIndex(),this.emit("edgesCleared")},r.getAttribute=function(e){return this._attributes[e]},r.getAttributes=function(){return this._attributes},r.hasAttribute=function(e){return this._attributes.hasOwnProperty(e)},r.setAttribute=function(e,t){return this._attributes[e]=t,this.emit("attributesUpdated",{type:"set",meta:{name:e,value:t}}),this},r.updateAttribute=function(e,t){if("function"!=typeof t)throw new j("Graph.updateAttribute: updater should be a function.");return this._attributes[e]=t(this._attributes[e]),this.emit("attributesUpdated",{type:"set",meta:{name:e,value:this._attributes[e]}}),this},r.removeAttribute=function(e){return delete this._attributes[e],this.emit("attributesUpdated",{type:"remove",meta:{name:e}}),this},r.replaceAttributes=function(e){if(!h(e))throw new j("Graph.replaceAttributes: provided attributes are not a plain object.");var t=this._attributes;return this._attributes=e,this.emit("attributesUpdated",{type:"replace",meta:{before:t,after:e}}),this},r.mergeAttributes=function(e){if(!h(e))throw new j("Graph.mergeAttributes: provided attributes are not a plain object.");return this._attributes=d(this._attributes,e),this.emit("attributesUpdated",{type:"merge",meta:{data:this._attributes}}),this},r.getNodeAttribute=function(e,t){e=""+e;var n=this._nodes.get(e);if(!n)throw new U('Graph.getNodeAttribute: could not find the "'.concat(e,'" node in the graph.'));return n.attributes[t]},r.getNodeAttributes=function(e){e=""+e;var t=this._nodes.get(e);if(!t)throw new U('Graph.getNodeAttributes: could not find the "'.concat(e,'" node in the graph.'));return t.attributes},r.hasNodeAttribute=function(e,t){e=""+e;var n=this._nodes.get(e);if(!n)throw new U('Graph.hasNodeAttribute: could not find the "'.concat(e,'" node in the graph.'));return n.attributes.hasOwnProperty(t)},r.setNodeAttribute=function(e,t,n){e=""+e;var r=this._nodes.get(e);if(!r)throw new U('Graph.setNodeAttribute: could not find the "'.concat(e,'" node in the graph.'));if(arguments.length<3)throw new j("Graph.setNodeAttribute: not enough arguments. Either you forgot to pass the attribute's name or value, or you meant to use #.replaceNodeAttributes / #.mergeNodeAttributes instead.");return r.attributes[t]=n,this.emit("nodeAttributesUpdated",{key:e,type:"set",meta:{name:t,value:n}}),this},r.updateNodeAttribute=function(e,t,n){e=""+e;var r=this._nodes.get(e);if(!r)throw new U('Graph.updateNodeAttribute: could not find the "'.concat(e,'" node in the graph.'));if(arguments.length<3)throw new j("Graph.updateNodeAttribute: not enough arguments. Either you forgot to pass the attribute's name or updater, or you meant to use #.replaceNodeAttributes / #.mergeNodeAttributes instead.");if("function"!=typeof n)throw new j("Graph.updateAttribute: updater should be a function.");var i=r.attributes;return i[t]=n(i[t]),this.emit("nodeAttributesUpdated",{key:e,type:"set",meta:{name:t,value:i[t]}}),this},r.removeNodeAttribute=function(e,t){e=""+e;var n=this._nodes.get(e);if(!n)throw new U('Graph.hasNodeAttribute: could not find the "'.concat(e,'" node in the graph.'));return delete n.attributes[t],this.emit("nodeAttributesUpdated",{key:e,type:"remove",meta:{name:t}}),this},r.replaceNodeAttributes=function(e,t){e=""+e;var n=this._nodes.get(e);if(!n)throw new U('Graph.replaceNodeAttributes: could not find the "'.concat(e,'" node in the graph.'));if(!h(t))throw new j("Graph.replaceNodeAttributes: provided attributes are not a plain object.");var r=n.attributes;return n.attributes=t,this.emit("nodeAttributesUpdated",{key:e,type:"replace",meta:{before:r,after:t}}),this},r.mergeNodeAttributes=function(e,t){e=""+e;var n=this._nodes.get(e);if(!n)throw new U('Graph.mergeNodeAttributes: could not find the "'.concat(e,'" node in the graph.'));if(!h(t))throw new j("Graph.mergeNodeAttributes: provided attributes are not a plain object.");return d(n.attributes,t),this.emit("nodeAttributesUpdated",{key:e,type:"merge",meta:{data:t}}),this},r.forEach=function(e){if("function"!=typeof e)throw new j("Graph.forEach: expecting a callback.");this._edges.forEach((function(t,n){var r=t.source,i=t.target;e(r.key,i.key,r.attributes,i.attributes,n,t.attributes)}))},r.adjacency=function(){var e=this._edges.values();return new N((function(){var t=e.next();if(t.done)return t;var n=t.value,r=n.source,i=n.target;return{done:!1,value:[r.key,i.key,r.attributes,i.attributes,n.key,n.attributes]}}))},r.nodes=function(){return D(this._nodes.keys(),this._nodes.size)},r.forEachNode=function(e){if("function"!=typeof e)throw new j("Graph.forEachNode: expecting a callback.");this._nodes.forEach((function(t,n){e(n,t.attributes)}))},r.nodeEntries=function(){var e=this._nodes.values();return new N((function(){var t=e.next();if(t.done)return t;var n=t.value;return{value:[n.key,n.attributes],done:!1}}))},r.exportNode=function(e){e=""+e;var t=this._nodes.get(e);if(!t)throw new U('Graph.exportNode: could not find the "'.concat(e,'" node in the graph.'));return ye(e,t)},r.exportEdge=function(e){e=""+e;var t=this._edges.get(e);if(!t)throw new U('Graph.exportEdge: could not find the "'.concat(e,'" edge in the graph.'));return ve(e,t)},r.export=function(){var e=new Array(this._nodes.size),t=0;this._nodes.forEach((function(n,r){e[t++]=ye(r,n)}));var n=new Array(this._edges.size);return t=0,this._edges.forEach((function(e,r){n[t++]=ve(r,e)})),{attributes:this.getAttributes(),nodes:e,edges:n}},r.importNode=function(e){var t=arguments.length>1&&void 0!==arguments[1]&&arguments[1],n=we(e);if(n){if("not-object"===n)throw new j('Graph.importNode: invalid serialized node. A serialized node should be a plain object with at least a "key" property.');if("no-key"===n)throw new j("Graph.importNode: no key provided.");if("invalid-attributes"===n)throw new j("Graph.importNode: invalid attributes. Attributes should be a plain object, null or omitted.")}var r=e.key,i=e.attributes,o=void 0===i?{}:i;return t?this.mergeNode(r,o):this.addNode(r,o),this},r.importEdge=function(e){var t=arguments.length>1&&void 0!==arguments[1]&&arguments[1],n=be(e);if(n){if("not-object"===n)throw new j('Graph.importEdge: invalid serialized edge. A serialized edge should be a plain object with at least a "source" & "target" property.');if("no-source"===n)throw new j("Graph.importEdge: missing souce.");if("no-target"===n)throw new j("Graph.importEdge: missing target.");if("invalid-attributes"===n)throw new j("Graph.importEdge: invalid attributes. Attributes should be a plain object, null or omitted.");if("invalid-undirected"===n)throw new j("Graph.importEdge: invalid undirected. Undirected should be boolean or omitted.")}var r=e.source,i=e.target,o=e.attributes,a=void 0===o?{}:o,c=e.undirected,d=void 0!==c&&c;return"key"in e?(t?d?this.mergeUndirectedEdgeWithKey:this.mergeDirectedEdgeWithKey:d?this.addUndirectedEdgeWithKey:this.addDirectedEdgeWithKey).call(this,e.key,r,i,a):(t?d?this.mergeUndirectedEdge:this.mergeDirectedEdge:d?this.addUndirectedEdge:this.addDirectedEdge).call(this,r,i,a),this},r.import=function(e){var t=this,n=arguments.length>1&&void 0!==arguments[1]&&arguments[1];if(s(e))return this.import(e.export(),n),this;if(!h(e))throw new j("Graph.import: invalid argument. Expecting a serialized graph or, alternatively, a Graph instance.");if(e.attributes){if(!h(e.attributes))throw new j("Graph.import: invalid attributes. Expecting a plain object.");n?this.mergeAttributes(e.attributes):this.replaceAttributes(e.attributes)}return e.nodes&&e.nodes.forEach((function(e){return t.importNode(e,n)})),e.edges&&e.edges.forEach((function(e){return t.importEdge(e,n)})),this},r.nullCopy=function(e){return new n(d({},this._options,e))},r.emptyCopy=function(e){var t=new n(d({},this._options,e));return this._nodes.forEach((function(e,n){e=new t.NodeDataClass(n,d({},e.attributes)),t._nodes.set(n,e)})),t},r.copy=function(){var e=new n(this._options);return e.import(this),e},r.upgradeToMixed=function(){return"mixed"===this.type||(this._nodes.forEach((function(e){return e.upgradeToMixed()})),this._options.type="mixed",g(this,"type",this._options.type),p(this,"NodeDataClass",O)),this},r.upgradeToMulti=function(){return this.multi||(this._options.multi=!0,g(this,"multi",!0),(e=this)._nodes.forEach((function(t,n){if(t.out)for(var r in t.out){var i=new Set;i.add(t.out[r]),t.out[r]=i,e._nodes.get(r).in[n]=i}if(t.undirected)for(var o in t.undirected)if(!(o>n)){var a=new Set;a.add(t.undirected[o]),t.undirected[o]=a,e._nodes.get(o).undirected[n]=a}}))),this;var e},r.clearIndex=function(){return this._nodes.forEach((function(e){void 0!==e.in&&(e.in={},e.out={}),void 0!==e.undirected&&(e.undirected={})})),this},r.toJSON=function(){return this.export()},r.toString=function(){var e=this.order>1||0===this.order,t=this.size>1||0===this.size;return"Graph<".concat(f(this.order)," node").concat(e?"s":"",", ").concat(f(this.size)," edge").concat(t?"s":"",">")},r.inspect=function(){var e=this,t={};this._nodes.forEach((function(e,n){t[n]=e.attributes}));var n={},r={};this._edges.forEach((function(t,i){var o=t instanceof T?"--":"->",a="",c="(".concat(t.source.key,")").concat(o,"(").concat(t.target.key,")");t.generatedKey?e.multi&&(void 0===r[c]?r[c]=0:r[c]++,a+="".concat(r[c],". ")):a+="[".concat(i,"]: "),n[a+=c]=t.attributes}));var i={};for(var o in this)this.hasOwnProperty(o)&&!_e.has(o)&&"function"!=typeof this[o]&&(i[o]=this[o]);return i.attributes=this._attributes,i.nodes=t,i.edges=n,p(i,"constructor",this.constructor),i},n}(y);"undefined"!=typeof Symbol&&(xe.prototype[Symbol.for("nodejs.util.inspect.custom")]=xe.prototype.inspect),[{name:function(e){return"".concat(e,"Edge")},generateKey:!0},{name:function(e){return"".concat(e,"DirectedEdge")},generateKey:!0,type:"directed"},{name:function(e){return"".concat(e,"UndirectedEdge")},generateKey:!0,type:"undirected"},{name:function(e){return"".concat(e,"EdgeWithKey")}},{name:function(e){return"".concat(e,"DirectedEdgeWithKey")},type:"directed"},{name:function(e){return"".concat(e,"UndirectedEdgeWithKey")},type:"undirected"}].forEach((function(e){["add","merge"].forEach((function(t){var n=e.name(t),r="add"===t?Ee:ke;e.generateKey?xe.prototype[n]=function(t,i,o){return r(this,n,!0,"undirected"===(e.type||this.type),null,t,i,o)}:xe.prototype[n]=function(t,i,o,a){return r(this,n,!1,"undirected"===(e.type||this.type),t,i,o,a)}}))})),"undefined"!=typeof Symbol&&(xe.prototype[Symbol.iterator]=xe.prototype.adjacency),function(e){R.forEach((function(t){var n=t.name,r=t.attacher;r(e,n("Edge"),"mixed",C),r(e,n("DirectedEdge"),"directed",C),r(e,n("UndirectedEdge"),"undirected",T)}))}(xe),function(e){F.forEach((function(t){!function(e,t){var n=t.name,r=t.type,i=t.direction;e.prototype[n]=function(e,t){if("mixed"!==r&&"mixed"!==this.type&&r!==this.type)return[];if(!arguments.length)return X(this,r);if(1===arguments.length){e=""+e;var o=this._nodes.get(e);if(void 0===o)throw new U("Graph.".concat(n,': could not find the "').concat(e,'" node in the graph.'));return ee("mixed"===r?this.type:r,i,o)}if(2===arguments.length){e=""+e,t=""+t;var a=this._nodes.get(e);if(!a)throw new U("Graph.".concat(n,':  could not find the "').concat(e,'" source node in the graph.'));if(!this._nodes.has(t))throw new U("Graph.".concat(n,':  could not find the "').concat(t,'" target node in the graph.'));return re(r,i,a,t)}throw new j("Graph.".concat(n,": too many arguments (expecting 0, 1 or 2 and got ").concat(arguments.length,")."))}}(e,t),function(e,t){var n=t.name,r=t.type,i=t.direction,o="forEach"+n[0].toUpperCase()+n.slice(1,-1);e.prototype[o]=function(e,t,n){if("mixed"===r||"mixed"===this.type||r===this.type){if(1===arguments.length)return Z(this,r,n=e);if(2===arguments.length){e=""+e,n=t;var a=this._nodes.get(e);if(void 0===a)throw new U("Graph.".concat(o,': could not find the "').concat(e,'" node in the graph.'));return te(this.multi,"mixed"===r?this.type:r,i,a,n)}if(3===arguments.length){e=""+e,t=""+t;var c=this._nodes.get(e);if(!c)throw new U("Graph.".concat(o,':  could not find the "').concat(e,'" source node in the graph.'));if(!this._nodes.has(t))throw new U("Graph.".concat(o,':  could not find the "').concat(t,'" target node in the graph.'));return ie(r,i,c,t,n)}throw new j("Graph.".concat(o,": too many arguments (expecting 1, 2 or 3 and got ").concat(arguments.length,")."))}}}(e,t),function(e,t){var n=t.name,r=t.type,i=t.direction,o=n.slice(0,-1)+"Entries";e.prototype[o]=function(e,t){if("mixed"!==r&&"mixed"!==this.type&&r!==this.type)return N.empty();if(!arguments.length)return $(this,r);if(1===arguments.length){e=""+e;var n=this._nodes.get(e);if(!n)throw new U("Graph.".concat(o,': could not find the "').concat(e,'" node in the graph.'));return ne(r,i,n)}if(2===arguments.length){e=""+e,t=""+t;var a=this._nodes.get(e);if(!a)throw new U("Graph.".concat(o,':  could not find the "').concat(e,'" source node in the graph.'));if(!this._nodes.has(t))throw new U("Graph.".concat(o,':  could not find the "').concat(t,'" target node in the graph.'));return oe(r,i,a,t)}throw new j("Graph.".concat(o,": too many arguments (expecting 0, 1 or 2 and got ").concat(arguments.length,")."))}}(e,t)}))}(xe),function(e){ae.forEach((function(t){!function(e,t){var n=t.name,r=t.type,i=t.direction;e.prototype[n]=function(e){if("mixed"!==r&&"mixed"!==this.type&&r!==this.type)return[];if(2===arguments.length){var t=""+arguments[0],o=""+arguments[1];if(!this._nodes.has(t))throw new U("Graph.".concat(n,': could not find the "').concat(t,'" node in the graph.'));if(!this._nodes.has(o))throw new U("Graph.".concat(n,': could not find the "').concat(o,'" node in the graph.'));return pe(this,r,i,t,o)}if(1===arguments.length){e=""+e;var a=this._nodes.get(e);if(void 0===a)throw new U("Graph.".concat(n,': could not find the "').concat(e,'" node in the graph.'));var c=de("mixed"===r?this.type:r,i,a);return c}throw new j("Graph.".concat(n,": invalid number of arguments (expecting 1 or 2 and got ").concat(arguments.length,")."))}}(e,t),ge(e,t),le(e,t)}))}(xe);var Se=function(e){function n(t){return e.call(this,d({type:"directed"},t))||this}return t(n,e),n}(xe),Ae=function(e){function n(t){return e.call(this,d({type:"undirected"},t))||this}return t(n,e),n}(xe),Ne=function(e){function n(t){return e.call(this,d({multi:!0},t))||this}return t(n,e),n}(xe),De=function(e){function n(t){return e.call(this,d({multi:!0,type:"directed"},t))||this}return t(n,e),n}(xe),Le=function(e){function n(t){return e.call(this,d({multi:!0,type:"undirected"},t))||this}return t(n,e),n}(xe);function je(e){e.from=function(t,n){var r=new e(n);return r.import(t),r}}return je(xe),je(Se),je(Ae),je(Ne),je(De),je(Le),xe.Graph=xe,xe.DirectedGraph=Se,xe.UndirectedGraph=Ae,xe.MultiGraph=Ne,xe.MultiDirectedGraph=De,xe.MultiUndirectedGraph=Le,xe.InvalidArgumentsGraphError=j,xe.NotFoundGraphError=U,xe.UsageGraphError=z,xe}));
 
 
-},{}],57:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
@@ -54331,7 +54986,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],58:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -54354,7 +55009,7 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],59:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -54364,7 +55019,7 @@ __export(require("./isMobile"));
 var isMobile_1 = require("./isMobile");
 exports["default"] = isMobile_1["default"];
 
-},{"./isMobile":60}],60:[function(require,module,exports){
+},{"./isMobile":66}],66:[function(require,module,exports){
 "use strict";
 exports.__esModule = true;
 var appleIphone = /iPhone/i;
@@ -54493,7 +55148,7 @@ function isMobile(param) {
 }
 exports["default"] = isMobile;
 
-},{}],61:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.5.1
  * https://jquery.com/
@@ -65367,10 +66022,10 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],62:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 module.exports = require('./lib/linkify-html').default;
 
-},{"./lib/linkify-html":63}],63:[function(require,module,exports){
+},{"./lib/linkify-html":69}],69:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -65591,7 +66246,7 @@ function attrsToStrings(attrs) {
 	}
 	return attrStrs;
 }
-},{"./linkify":64,"./simple-html-tokenizer":73}],64:[function(require,module,exports){
+},{"./linkify":70,"./simple-html-tokenizer":79}],70:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -65677,7 +66332,7 @@ exports.parser = parser;
 exports.scanner = scanner;
 exports.test = test;
 exports.tokenize = tokenize;
-},{"./linkify/core/parser":65,"./linkify/core/scanner":66,"./linkify/utils/class":71,"./linkify/utils/options":72}],65:[function(require,module,exports){
+},{"./linkify/core/parser":71,"./linkify/core/scanner":72,"./linkify/utils/class":77,"./linkify/utils/options":78}],71:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -65965,7 +66620,7 @@ exports.State = _state.TokenState;
 exports.TOKENS = MULTI_TOKENS;
 exports.run = run;
 exports.start = S_START;
-},{"./state":67,"./tokens/multi":69,"./tokens/text":70}],66:[function(require,module,exports){
+},{"./state":73,"./tokens/multi":75,"./tokens/text":76}],72:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66146,7 +66801,7 @@ exports.State = _state.CharacterState;
 exports.TOKENS = TOKENS;
 exports.run = run;
 exports.start = start;
-},{"./state":67,"./tokens/text":70}],67:[function(require,module,exports){
+},{"./state":73,"./tokens/text":76}],73:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66388,7 +67043,7 @@ function stateify(str, start, endToken, defaultToken) {
 exports.CharacterState = CharacterState;
 exports.TokenState = TokenState;
 exports.stateify = stateify;
-},{"../utils/class":71}],68:[function(require,module,exports){
+},{"../utils/class":77}],74:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -66401,7 +67056,7 @@ function createTokenClass() {
 }
 
 exports.createTokenClass = createTokenClass;
-},{}],69:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66606,7 +67261,7 @@ exports.EMAIL = EMAIL;
 exports.NL = NL;
 exports.TEXT = TEXT;
 exports.URL = URL;
-},{"../../utils/class":71,"./create-token-class":68,"./text":70}],70:[function(require,module,exports){
+},{"../../utils/class":77,"./create-token-class":74,"./text":76}],76:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66811,7 +67466,7 @@ exports.CLOSEBRACKET = CLOSEBRACKET;
 exports.CLOSEANGLEBRACKET = CLOSEANGLEBRACKET;
 exports.CLOSEPAREN = CLOSEPAREN;
 exports.AMPERSAND = AMPERSAND;
-},{"../../utils/class":71,"./create-token-class":68}],71:[function(require,module,exports){
+},{"../../utils/class":77,"./create-token-class":74}],77:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -66827,7 +67482,7 @@ function inherits(parent, child) {
 	child.prototype = extended;
 	return child;
 }
-},{}],72:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66955,7 +67610,7 @@ function noop(val) {
 function typeToTarget(href, type) {
 	return type === 'url' ? '_blank' : null;
 }
-},{}],73:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66991,7 +67646,7 @@ var HTML5Tokenizer = {
 };
 
 exports.default = HTML5Tokenizer;
-},{"./simple-html-tokenizer/entity-parser":74,"./simple-html-tokenizer/evented-tokenizer":75,"./simple-html-tokenizer/html5-named-char-refs":76,"./simple-html-tokenizer/tokenize":77,"./simple-html-tokenizer/tokenizer":78}],74:[function(require,module,exports){
+},{"./simple-html-tokenizer/entity-parser":80,"./simple-html-tokenizer/evented-tokenizer":81,"./simple-html-tokenizer/html5-named-char-refs":82,"./simple-html-tokenizer/tokenize":83,"./simple-html-tokenizer/tokenizer":84}],80:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -67022,7 +67677,7 @@ EntityParser.prototype.parse = function (entity) {
 };
 
 exports.default = EntityParser;
-},{}],75:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -67461,7 +68116,7 @@ EventedTokenizer.prototype = {
 };
 
 exports.default = EventedTokenizer;
-},{"./utils":79}],76:[function(require,module,exports){
+},{"./utils":85}],82:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -67473,7 +68128,7 @@ var HTML5NamedCharRefs = {
     nbsp: "\xA0"
 };
 exports.default = HTML5NamedCharRefs;
-},{}],77:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -67497,7 +68152,7 @@ function tokenize(input, options) {
   var tokenizer = new _tokenizer2.default(new _entityParser2.default(_html5NamedCharRefs2.default), options);
   return tokenizer.tokenize(input);
 }
-},{"./entity-parser":74,"./html5-named-char-refs":76,"./tokenizer":78}],78:[function(require,module,exports){
+},{"./entity-parser":80,"./html5-named-char-refs":82,"./tokenizer":84}],84:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -67652,7 +68307,7 @@ Tokenizer.prototype = {
 };
 
 exports.default = Tokenizer;
-},{"./evented-tokenizer":75}],79:[function(require,module,exports){
+},{"./evented-tokenizer":81}],85:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -67674,7 +68329,147 @@ function isAlpha(char) {
 function preprocessInput(input) {
   return input.replace(CRLF, "\n");
 }
-},{}],80:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
+var hashClear = require('./_hashClear'),
+    hashDelete = require('./_hashDelete'),
+    hashGet = require('./_hashGet'),
+    hashHas = require('./_hashHas'),
+    hashSet = require('./_hashSet');
+
+/**
+ * Creates a hash object.
+ *
+ * @private
+ * @constructor
+ * @param {Array} [entries] The key-value pairs to cache.
+ */
+function Hash(entries) {
+  var index = -1,
+      length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+// Add methods to `Hash`.
+Hash.prototype.clear = hashClear;
+Hash.prototype['delete'] = hashDelete;
+Hash.prototype.get = hashGet;
+Hash.prototype.has = hashHas;
+Hash.prototype.set = hashSet;
+
+module.exports = Hash;
+
+},{"./_hashClear":130,"./_hashDelete":131,"./_hashGet":132,"./_hashHas":133,"./_hashSet":134}],87:[function(require,module,exports){
+var listCacheClear = require('./_listCacheClear'),
+    listCacheDelete = require('./_listCacheDelete'),
+    listCacheGet = require('./_listCacheGet'),
+    listCacheHas = require('./_listCacheHas'),
+    listCacheSet = require('./_listCacheSet');
+
+/**
+ * Creates an list cache object.
+ *
+ * @private
+ * @constructor
+ * @param {Array} [entries] The key-value pairs to cache.
+ */
+function ListCache(entries) {
+  var index = -1,
+      length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+// Add methods to `ListCache`.
+ListCache.prototype.clear = listCacheClear;
+ListCache.prototype['delete'] = listCacheDelete;
+ListCache.prototype.get = listCacheGet;
+ListCache.prototype.has = listCacheHas;
+ListCache.prototype.set = listCacheSet;
+
+module.exports = ListCache;
+
+},{"./_listCacheClear":141,"./_listCacheDelete":142,"./_listCacheGet":143,"./_listCacheHas":144,"./_listCacheSet":145}],88:[function(require,module,exports){
+var getNative = require('./_getNative'),
+    root = require('./_root');
+
+/* Built-in method references that are verified to be native. */
+var Map = getNative(root, 'Map');
+
+module.exports = Map;
+
+},{"./_getNative":126,"./_root":157}],89:[function(require,module,exports){
+var mapCacheClear = require('./_mapCacheClear'),
+    mapCacheDelete = require('./_mapCacheDelete'),
+    mapCacheGet = require('./_mapCacheGet'),
+    mapCacheHas = require('./_mapCacheHas'),
+    mapCacheSet = require('./_mapCacheSet');
+
+/**
+ * Creates a map cache object to store key-value pairs.
+ *
+ * @private
+ * @constructor
+ * @param {Array} [entries] The key-value pairs to cache.
+ */
+function MapCache(entries) {
+  var index = -1,
+      length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+// Add methods to `MapCache`.
+MapCache.prototype.clear = mapCacheClear;
+MapCache.prototype['delete'] = mapCacheDelete;
+MapCache.prototype.get = mapCacheGet;
+MapCache.prototype.has = mapCacheHas;
+MapCache.prototype.set = mapCacheSet;
+
+module.exports = MapCache;
+
+},{"./_mapCacheClear":146,"./_mapCacheDelete":147,"./_mapCacheGet":148,"./_mapCacheHas":149,"./_mapCacheSet":150}],90:[function(require,module,exports){
+var ListCache = require('./_ListCache'),
+    stackClear = require('./_stackClear'),
+    stackDelete = require('./_stackDelete'),
+    stackGet = require('./_stackGet'),
+    stackHas = require('./_stackHas'),
+    stackSet = require('./_stackSet');
+
+/**
+ * Creates a stack cache object to store key-value pairs.
+ *
+ * @private
+ * @constructor
+ * @param {Array} [entries] The key-value pairs to cache.
+ */
+function Stack(entries) {
+  var data = this.__data__ = new ListCache(entries);
+  this.size = data.size;
+}
+
+// Add methods to `Stack`.
+Stack.prototype.clear = stackClear;
+Stack.prototype['delete'] = stackDelete;
+Stack.prototype.get = stackGet;
+Stack.prototype.has = stackHas;
+Stack.prototype.set = stackSet;
+
+module.exports = Stack;
+
+},{"./_ListCache":87,"./_stackClear":161,"./_stackDelete":162,"./_stackGet":163,"./_stackHas":164,"./_stackSet":165}],91:[function(require,module,exports){
 var root = require('./_root');
 
 /** Built-in value references. */
@@ -67682,7 +68477,241 @@ var Symbol = root.Symbol;
 
 module.exports = Symbol;
 
-},{"./_root":89}],81:[function(require,module,exports){
+},{"./_root":157}],92:[function(require,module,exports){
+var root = require('./_root');
+
+/** Built-in value references. */
+var Uint8Array = root.Uint8Array;
+
+module.exports = Uint8Array;
+
+},{"./_root":157}],93:[function(require,module,exports){
+/**
+ * A faster alternative to `Function#apply`, this function invokes `func`
+ * with the `this` binding of `thisArg` and the arguments of `args`.
+ *
+ * @private
+ * @param {Function} func The function to invoke.
+ * @param {*} thisArg The `this` binding of `func`.
+ * @param {Array} args The arguments to invoke `func` with.
+ * @returns {*} Returns the result of `func`.
+ */
+function apply(func, thisArg, args) {
+  switch (args.length) {
+    case 0: return func.call(thisArg);
+    case 1: return func.call(thisArg, args[0]);
+    case 2: return func.call(thisArg, args[0], args[1]);
+    case 3: return func.call(thisArg, args[0], args[1], args[2]);
+  }
+  return func.apply(thisArg, args);
+}
+
+module.exports = apply;
+
+},{}],94:[function(require,module,exports){
+var baseTimes = require('./_baseTimes'),
+    isArguments = require('./isArguments'),
+    isArray = require('./isArray'),
+    isBuffer = require('./isBuffer'),
+    isIndex = require('./_isIndex'),
+    isTypedArray = require('./isTypedArray');
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Creates an array of the enumerable property names of the array-like `value`.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @param {boolean} inherited Specify returning inherited property names.
+ * @returns {Array} Returns the array of property names.
+ */
+function arrayLikeKeys(value, inherited) {
+  var isArr = isArray(value),
+      isArg = !isArr && isArguments(value),
+      isBuff = !isArr && !isArg && isBuffer(value),
+      isType = !isArr && !isArg && !isBuff && isTypedArray(value),
+      skipIndexes = isArr || isArg || isBuff || isType,
+      result = skipIndexes ? baseTimes(value.length, String) : [],
+      length = result.length;
+
+  for (var key in value) {
+    if ((inherited || hasOwnProperty.call(value, key)) &&
+        !(skipIndexes && (
+           // Safari 9 has enumerable `arguments.length` in strict mode.
+           key == 'length' ||
+           // Node.js 0.10 has enumerable non-index properties on buffers.
+           (isBuff && (key == 'offset' || key == 'parent')) ||
+           // PhantomJS 2 has enumerable non-index properties on typed arrays.
+           (isType && (key == 'buffer' || key == 'byteLength' || key == 'byteOffset')) ||
+           // Skip index properties.
+           isIndex(key, length)
+        ))) {
+      result.push(key);
+    }
+  }
+  return result;
+}
+
+module.exports = arrayLikeKeys;
+
+},{"./_baseTimes":111,"./_isIndex":136,"./isArguments":171,"./isArray":172,"./isBuffer":175,"./isTypedArray":182}],95:[function(require,module,exports){
+var baseAssignValue = require('./_baseAssignValue'),
+    eq = require('./eq');
+
+/**
+ * This function is like `assignValue` except that it doesn't assign
+ * `undefined` values.
+ *
+ * @private
+ * @param {Object} object The object to modify.
+ * @param {string} key The key of the property to assign.
+ * @param {*} value The value to assign.
+ */
+function assignMergeValue(object, key, value) {
+  if ((value !== undefined && !eq(object[key], value)) ||
+      (value === undefined && !(key in object))) {
+    baseAssignValue(object, key, value);
+  }
+}
+
+module.exports = assignMergeValue;
+
+},{"./_baseAssignValue":98,"./eq":169}],96:[function(require,module,exports){
+var baseAssignValue = require('./_baseAssignValue'),
+    eq = require('./eq');
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Assigns `value` to `key` of `object` if the existing value is not equivalent
+ * using [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
+ * for equality comparisons.
+ *
+ * @private
+ * @param {Object} object The object to modify.
+ * @param {string} key The key of the property to assign.
+ * @param {*} value The value to assign.
+ */
+function assignValue(object, key, value) {
+  var objValue = object[key];
+  if (!(hasOwnProperty.call(object, key) && eq(objValue, value)) ||
+      (value === undefined && !(key in object))) {
+    baseAssignValue(object, key, value);
+  }
+}
+
+module.exports = assignValue;
+
+},{"./_baseAssignValue":98,"./eq":169}],97:[function(require,module,exports){
+var eq = require('./eq');
+
+/**
+ * Gets the index at which the `key` is found in `array` of key-value pairs.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {*} key The key to search for.
+ * @returns {number} Returns the index of the matched value, else `-1`.
+ */
+function assocIndexOf(array, key) {
+  var length = array.length;
+  while (length--) {
+    if (eq(array[length][0], key)) {
+      return length;
+    }
+  }
+  return -1;
+}
+
+module.exports = assocIndexOf;
+
+},{"./eq":169}],98:[function(require,module,exports){
+var defineProperty = require('./_defineProperty');
+
+/**
+ * The base implementation of `assignValue` and `assignMergeValue` without
+ * value checks.
+ *
+ * @private
+ * @param {Object} object The object to modify.
+ * @param {string} key The key of the property to assign.
+ * @param {*} value The value to assign.
+ */
+function baseAssignValue(object, key, value) {
+  if (key == '__proto__' && defineProperty) {
+    defineProperty(object, key, {
+      'configurable': true,
+      'enumerable': true,
+      'value': value,
+      'writable': true
+    });
+  } else {
+    object[key] = value;
+  }
+}
+
+module.exports = baseAssignValue;
+
+},{"./_defineProperty":123}],99:[function(require,module,exports){
+var isObject = require('./isObject');
+
+/** Built-in value references. */
+var objectCreate = Object.create;
+
+/**
+ * The base implementation of `_.create` without support for assigning
+ * properties to the created object.
+ *
+ * @private
+ * @param {Object} proto The object to inherit from.
+ * @returns {Object} Returns the new object.
+ */
+var baseCreate = (function() {
+  function object() {}
+  return function(proto) {
+    if (!isObject(proto)) {
+      return {};
+    }
+    if (objectCreate) {
+      return objectCreate(proto);
+    }
+    object.prototype = proto;
+    var result = new object;
+    object.prototype = undefined;
+    return result;
+  };
+}());
+
+module.exports = baseCreate;
+
+},{"./isObject":178}],100:[function(require,module,exports){
+var createBaseFor = require('./_createBaseFor');
+
+/**
+ * The base implementation of `baseForOwn` which iterates over `object`
+ * properties returned by `keysFunc` and invokes `iteratee` for each property.
+ * Iteratee functions may exit iteration early by explicitly returning `false`.
+ *
+ * @private
+ * @param {Object} object The object to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @param {Function} keysFunc The function to get the keys of `object`.
+ * @returns {Object} Returns `object`.
+ */
+var baseFor = createBaseFor();
+
+module.exports = baseFor;
+
+},{"./_createBaseFor":120}],101:[function(require,module,exports){
 var Symbol = require('./_Symbol'),
     getRawTag = require('./_getRawTag'),
     objectToString = require('./_objectToString');
@@ -67712,7 +68741,313 @@ function baseGetTag(value) {
 
 module.exports = baseGetTag;
 
-},{"./_Symbol":80,"./_getRawTag":85,"./_objectToString":88}],82:[function(require,module,exports){
+},{"./_Symbol":91,"./_getRawTag":128,"./_objectToString":154}],102:[function(require,module,exports){
+var baseGetTag = require('./_baseGetTag'),
+    isObjectLike = require('./isObjectLike');
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]';
+
+/**
+ * The base implementation of `_.isArguments`.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an `arguments` object,
+ */
+function baseIsArguments(value) {
+  return isObjectLike(value) && baseGetTag(value) == argsTag;
+}
+
+module.exports = baseIsArguments;
+
+},{"./_baseGetTag":101,"./isObjectLike":179}],103:[function(require,module,exports){
+var isFunction = require('./isFunction'),
+    isMasked = require('./_isMasked'),
+    isObject = require('./isObject'),
+    toSource = require('./_toSource');
+
+/**
+ * Used to match `RegExp`
+ * [syntax characters](http://ecma-international.org/ecma-262/7.0/#sec-patterns).
+ */
+var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
+
+/** Used to detect host constructors (Safari). */
+var reIsHostCtor = /^\[object .+?Constructor\]$/;
+
+/** Used for built-in method references. */
+var funcProto = Function.prototype,
+    objectProto = Object.prototype;
+
+/** Used to resolve the decompiled source of functions. */
+var funcToString = funcProto.toString;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/** Used to detect if a method is native. */
+var reIsNative = RegExp('^' +
+  funcToString.call(hasOwnProperty).replace(reRegExpChar, '\\$&')
+  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
+);
+
+/**
+ * The base implementation of `_.isNative` without bad shim checks.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a native function,
+ *  else `false`.
+ */
+function baseIsNative(value) {
+  if (!isObject(value) || isMasked(value)) {
+    return false;
+  }
+  var pattern = isFunction(value) ? reIsNative : reIsHostCtor;
+  return pattern.test(toSource(value));
+}
+
+module.exports = baseIsNative;
+
+},{"./_isMasked":139,"./_toSource":166,"./isFunction":176,"./isObject":178}],104:[function(require,module,exports){
+var baseGetTag = require('./_baseGetTag'),
+    isLength = require('./isLength'),
+    isObjectLike = require('./isObjectLike');
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]',
+    arrayTag = '[object Array]',
+    boolTag = '[object Boolean]',
+    dateTag = '[object Date]',
+    errorTag = '[object Error]',
+    funcTag = '[object Function]',
+    mapTag = '[object Map]',
+    numberTag = '[object Number]',
+    objectTag = '[object Object]',
+    regexpTag = '[object RegExp]',
+    setTag = '[object Set]',
+    stringTag = '[object String]',
+    weakMapTag = '[object WeakMap]';
+
+var arrayBufferTag = '[object ArrayBuffer]',
+    dataViewTag = '[object DataView]',
+    float32Tag = '[object Float32Array]',
+    float64Tag = '[object Float64Array]',
+    int8Tag = '[object Int8Array]',
+    int16Tag = '[object Int16Array]',
+    int32Tag = '[object Int32Array]',
+    uint8Tag = '[object Uint8Array]',
+    uint8ClampedTag = '[object Uint8ClampedArray]',
+    uint16Tag = '[object Uint16Array]',
+    uint32Tag = '[object Uint32Array]';
+
+/** Used to identify `toStringTag` values of typed arrays. */
+var typedArrayTags = {};
+typedArrayTags[float32Tag] = typedArrayTags[float64Tag] =
+typedArrayTags[int8Tag] = typedArrayTags[int16Tag] =
+typedArrayTags[int32Tag] = typedArrayTags[uint8Tag] =
+typedArrayTags[uint8ClampedTag] = typedArrayTags[uint16Tag] =
+typedArrayTags[uint32Tag] = true;
+typedArrayTags[argsTag] = typedArrayTags[arrayTag] =
+typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] =
+typedArrayTags[dataViewTag] = typedArrayTags[dateTag] =
+typedArrayTags[errorTag] = typedArrayTags[funcTag] =
+typedArrayTags[mapTag] = typedArrayTags[numberTag] =
+typedArrayTags[objectTag] = typedArrayTags[regexpTag] =
+typedArrayTags[setTag] = typedArrayTags[stringTag] =
+typedArrayTags[weakMapTag] = false;
+
+/**
+ * The base implementation of `_.isTypedArray` without Node.js optimizations.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a typed array, else `false`.
+ */
+function baseIsTypedArray(value) {
+  return isObjectLike(value) &&
+    isLength(value.length) && !!typedArrayTags[baseGetTag(value)];
+}
+
+module.exports = baseIsTypedArray;
+
+},{"./_baseGetTag":101,"./isLength":177,"./isObjectLike":179}],105:[function(require,module,exports){
+var isObject = require('./isObject'),
+    isPrototype = require('./_isPrototype'),
+    nativeKeysIn = require('./_nativeKeysIn');
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * The base implementation of `_.keysIn` which doesn't treat sparse arrays as dense.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @returns {Array} Returns the array of property names.
+ */
+function baseKeysIn(object) {
+  if (!isObject(object)) {
+    return nativeKeysIn(object);
+  }
+  var isProto = isPrototype(object),
+      result = [];
+
+  for (var key in object) {
+    if (!(key == 'constructor' && (isProto || !hasOwnProperty.call(object, key)))) {
+      result.push(key);
+    }
+  }
+  return result;
+}
+
+module.exports = baseKeysIn;
+
+},{"./_isPrototype":140,"./_nativeKeysIn":152,"./isObject":178}],106:[function(require,module,exports){
+var Stack = require('./_Stack'),
+    assignMergeValue = require('./_assignMergeValue'),
+    baseFor = require('./_baseFor'),
+    baseMergeDeep = require('./_baseMergeDeep'),
+    isObject = require('./isObject'),
+    keysIn = require('./keysIn'),
+    safeGet = require('./_safeGet');
+
+/**
+ * The base implementation of `_.merge` without support for multiple sources.
+ *
+ * @private
+ * @param {Object} object The destination object.
+ * @param {Object} source The source object.
+ * @param {number} srcIndex The index of `source`.
+ * @param {Function} [customizer] The function to customize merged values.
+ * @param {Object} [stack] Tracks traversed source values and their merged
+ *  counterparts.
+ */
+function baseMerge(object, source, srcIndex, customizer, stack) {
+  if (object === source) {
+    return;
+  }
+  baseFor(source, function(srcValue, key) {
+    stack || (stack = new Stack);
+    if (isObject(srcValue)) {
+      baseMergeDeep(object, source, key, srcIndex, baseMerge, customizer, stack);
+    }
+    else {
+      var newValue = customizer
+        ? customizer(safeGet(object, key), srcValue, (key + ''), object, source, stack)
+        : undefined;
+
+      if (newValue === undefined) {
+        newValue = srcValue;
+      }
+      assignMergeValue(object, key, newValue);
+    }
+  }, keysIn);
+}
+
+module.exports = baseMerge;
+
+},{"./_Stack":90,"./_assignMergeValue":95,"./_baseFor":100,"./_baseMergeDeep":107,"./_safeGet":158,"./isObject":178,"./keysIn":183}],107:[function(require,module,exports){
+var assignMergeValue = require('./_assignMergeValue'),
+    cloneBuffer = require('./_cloneBuffer'),
+    cloneTypedArray = require('./_cloneTypedArray'),
+    copyArray = require('./_copyArray'),
+    initCloneObject = require('./_initCloneObject'),
+    isArguments = require('./isArguments'),
+    isArray = require('./isArray'),
+    isArrayLikeObject = require('./isArrayLikeObject'),
+    isBuffer = require('./isBuffer'),
+    isFunction = require('./isFunction'),
+    isObject = require('./isObject'),
+    isPlainObject = require('./isPlainObject'),
+    isTypedArray = require('./isTypedArray'),
+    safeGet = require('./_safeGet'),
+    toPlainObject = require('./toPlainObject');
+
+/**
+ * A specialized version of `baseMerge` for arrays and objects which performs
+ * deep merges and tracks traversed objects enabling objects with circular
+ * references to be merged.
+ *
+ * @private
+ * @param {Object} object The destination object.
+ * @param {Object} source The source object.
+ * @param {string} key The key of the value to merge.
+ * @param {number} srcIndex The index of `source`.
+ * @param {Function} mergeFunc The function to merge values.
+ * @param {Function} [customizer] The function to customize assigned values.
+ * @param {Object} [stack] Tracks traversed source values and their merged
+ *  counterparts.
+ */
+function baseMergeDeep(object, source, key, srcIndex, mergeFunc, customizer, stack) {
+  var objValue = safeGet(object, key),
+      srcValue = safeGet(source, key),
+      stacked = stack.get(srcValue);
+
+  if (stacked) {
+    assignMergeValue(object, key, stacked);
+    return;
+  }
+  var newValue = customizer
+    ? customizer(objValue, srcValue, (key + ''), object, source, stack)
+    : undefined;
+
+  var isCommon = newValue === undefined;
+
+  if (isCommon) {
+    var isArr = isArray(srcValue),
+        isBuff = !isArr && isBuffer(srcValue),
+        isTyped = !isArr && !isBuff && isTypedArray(srcValue);
+
+    newValue = srcValue;
+    if (isArr || isBuff || isTyped) {
+      if (isArray(objValue)) {
+        newValue = objValue;
+      }
+      else if (isArrayLikeObject(objValue)) {
+        newValue = copyArray(objValue);
+      }
+      else if (isBuff) {
+        isCommon = false;
+        newValue = cloneBuffer(srcValue, true);
+      }
+      else if (isTyped) {
+        isCommon = false;
+        newValue = cloneTypedArray(srcValue, true);
+      }
+      else {
+        newValue = [];
+      }
+    }
+    else if (isPlainObject(srcValue) || isArguments(srcValue)) {
+      newValue = objValue;
+      if (isArguments(objValue)) {
+        newValue = toPlainObject(objValue);
+      }
+      else if (!isObject(objValue) || isFunction(objValue)) {
+        newValue = initCloneObject(srcValue);
+      }
+    }
+    else {
+      isCommon = false;
+    }
+  }
+  if (isCommon) {
+    // Recursively merge objects and arrays (susceptible to call stack limits).
+    stack.set(srcValue, newValue);
+    mergeFunc(newValue, srcValue, srcIndex, customizer, stack);
+    stack['delete'](srcValue);
+  }
+  assignMergeValue(object, key, newValue);
+}
+
+module.exports = baseMergeDeep;
+
+},{"./_assignMergeValue":95,"./_cloneBuffer":114,"./_cloneTypedArray":115,"./_copyArray":116,"./_initCloneObject":135,"./_safeGet":158,"./isArguments":171,"./isArray":172,"./isArrayLikeObject":174,"./isBuffer":175,"./isFunction":176,"./isObject":178,"./isPlainObject":180,"./isTypedArray":182,"./toPlainObject":189}],108:[function(require,module,exports){
 /* Built-in method references for those with the same name as other `lodash` methods. */
 var nativeCeil = Math.ceil,
     nativeMax = Math.max;
@@ -67742,7 +69077,299 @@ function baseRange(start, end, step, fromRight) {
 
 module.exports = baseRange;
 
-},{}],83:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
+var identity = require('./identity'),
+    overRest = require('./_overRest'),
+    setToString = require('./_setToString');
+
+/**
+ * The base implementation of `_.rest` which doesn't validate or coerce arguments.
+ *
+ * @private
+ * @param {Function} func The function to apply a rest parameter to.
+ * @param {number} [start=func.length-1] The start position of the rest parameter.
+ * @returns {Function} Returns the new function.
+ */
+function baseRest(func, start) {
+  return setToString(overRest(func, start, identity), func + '');
+}
+
+module.exports = baseRest;
+
+},{"./_overRest":156,"./_setToString":159,"./identity":170}],110:[function(require,module,exports){
+var constant = require('./constant'),
+    defineProperty = require('./_defineProperty'),
+    identity = require('./identity');
+
+/**
+ * The base implementation of `setToString` without support for hot loop shorting.
+ *
+ * @private
+ * @param {Function} func The function to modify.
+ * @param {Function} string The `toString` result.
+ * @returns {Function} Returns `func`.
+ */
+var baseSetToString = !defineProperty ? identity : function(func, string) {
+  return defineProperty(func, 'toString', {
+    'configurable': true,
+    'enumerable': false,
+    'value': constant(string),
+    'writable': true
+  });
+};
+
+module.exports = baseSetToString;
+
+},{"./_defineProperty":123,"./constant":167,"./identity":170}],111:[function(require,module,exports){
+/**
+ * The base implementation of `_.times` without support for iteratee shorthands
+ * or max array length checks.
+ *
+ * @private
+ * @param {number} n The number of times to invoke `iteratee`.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Array} Returns the array of results.
+ */
+function baseTimes(n, iteratee) {
+  var index = -1,
+      result = Array(n);
+
+  while (++index < n) {
+    result[index] = iteratee(index);
+  }
+  return result;
+}
+
+module.exports = baseTimes;
+
+},{}],112:[function(require,module,exports){
+/**
+ * The base implementation of `_.unary` without support for storing metadata.
+ *
+ * @private
+ * @param {Function} func The function to cap arguments for.
+ * @returns {Function} Returns the new capped function.
+ */
+function baseUnary(func) {
+  return function(value) {
+    return func(value);
+  };
+}
+
+module.exports = baseUnary;
+
+},{}],113:[function(require,module,exports){
+var Uint8Array = require('./_Uint8Array');
+
+/**
+ * Creates a clone of `arrayBuffer`.
+ *
+ * @private
+ * @param {ArrayBuffer} arrayBuffer The array buffer to clone.
+ * @returns {ArrayBuffer} Returns the cloned array buffer.
+ */
+function cloneArrayBuffer(arrayBuffer) {
+  var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
+  new Uint8Array(result).set(new Uint8Array(arrayBuffer));
+  return result;
+}
+
+module.exports = cloneArrayBuffer;
+
+},{"./_Uint8Array":92}],114:[function(require,module,exports){
+var root = require('./_root');
+
+/** Detect free variable `exports`. */
+var freeExports = typeof exports == 'object' && exports && !exports.nodeType && exports;
+
+/** Detect free variable `module`. */
+var freeModule = freeExports && typeof module == 'object' && module && !module.nodeType && module;
+
+/** Detect the popular CommonJS extension `module.exports`. */
+var moduleExports = freeModule && freeModule.exports === freeExports;
+
+/** Built-in value references. */
+var Buffer = moduleExports ? root.Buffer : undefined,
+    allocUnsafe = Buffer ? Buffer.allocUnsafe : undefined;
+
+/**
+ * Creates a clone of  `buffer`.
+ *
+ * @private
+ * @param {Buffer} buffer The buffer to clone.
+ * @param {boolean} [isDeep] Specify a deep clone.
+ * @returns {Buffer} Returns the cloned buffer.
+ */
+function cloneBuffer(buffer, isDeep) {
+  if (isDeep) {
+    return buffer.slice();
+  }
+  var length = buffer.length,
+      result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
+
+  buffer.copy(result);
+  return result;
+}
+
+module.exports = cloneBuffer;
+
+},{"./_root":157}],115:[function(require,module,exports){
+var cloneArrayBuffer = require('./_cloneArrayBuffer');
+
+/**
+ * Creates a clone of `typedArray`.
+ *
+ * @private
+ * @param {Object} typedArray The typed array to clone.
+ * @param {boolean} [isDeep] Specify a deep clone.
+ * @returns {Object} Returns the cloned typed array.
+ */
+function cloneTypedArray(typedArray, isDeep) {
+  var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
+  return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
+}
+
+module.exports = cloneTypedArray;
+
+},{"./_cloneArrayBuffer":113}],116:[function(require,module,exports){
+/**
+ * Copies the values of `source` to `array`.
+ *
+ * @private
+ * @param {Array} source The array to copy values from.
+ * @param {Array} [array=[]] The array to copy values to.
+ * @returns {Array} Returns `array`.
+ */
+function copyArray(source, array) {
+  var index = -1,
+      length = source.length;
+
+  array || (array = Array(length));
+  while (++index < length) {
+    array[index] = source[index];
+  }
+  return array;
+}
+
+module.exports = copyArray;
+
+},{}],117:[function(require,module,exports){
+var assignValue = require('./_assignValue'),
+    baseAssignValue = require('./_baseAssignValue');
+
+/**
+ * Copies properties of `source` to `object`.
+ *
+ * @private
+ * @param {Object} source The object to copy properties from.
+ * @param {Array} props The property identifiers to copy.
+ * @param {Object} [object={}] The object to copy properties to.
+ * @param {Function} [customizer] The function to customize copied values.
+ * @returns {Object} Returns `object`.
+ */
+function copyObject(source, props, object, customizer) {
+  var isNew = !object;
+  object || (object = {});
+
+  var index = -1,
+      length = props.length;
+
+  while (++index < length) {
+    var key = props[index];
+
+    var newValue = customizer
+      ? customizer(object[key], source[key], key, object, source)
+      : undefined;
+
+    if (newValue === undefined) {
+      newValue = source[key];
+    }
+    if (isNew) {
+      baseAssignValue(object, key, newValue);
+    } else {
+      assignValue(object, key, newValue);
+    }
+  }
+  return object;
+}
+
+module.exports = copyObject;
+
+},{"./_assignValue":96,"./_baseAssignValue":98}],118:[function(require,module,exports){
+var root = require('./_root');
+
+/** Used to detect overreaching core-js shims. */
+var coreJsData = root['__core-js_shared__'];
+
+module.exports = coreJsData;
+
+},{"./_root":157}],119:[function(require,module,exports){
+var baseRest = require('./_baseRest'),
+    isIterateeCall = require('./_isIterateeCall');
+
+/**
+ * Creates a function like `_.assign`.
+ *
+ * @private
+ * @param {Function} assigner The function to assign values.
+ * @returns {Function} Returns the new assigner function.
+ */
+function createAssigner(assigner) {
+  return baseRest(function(object, sources) {
+    var index = -1,
+        length = sources.length,
+        customizer = length > 1 ? sources[length - 1] : undefined,
+        guard = length > 2 ? sources[2] : undefined;
+
+    customizer = (assigner.length > 3 && typeof customizer == 'function')
+      ? (length--, customizer)
+      : undefined;
+
+    if (guard && isIterateeCall(sources[0], sources[1], guard)) {
+      customizer = length < 3 ? undefined : customizer;
+      length = 1;
+    }
+    object = Object(object);
+    while (++index < length) {
+      var source = sources[index];
+      if (source) {
+        assigner(object, source, index, customizer);
+      }
+    }
+    return object;
+  });
+}
+
+module.exports = createAssigner;
+
+},{"./_baseRest":109,"./_isIterateeCall":137}],120:[function(require,module,exports){
+/**
+ * Creates a base function for methods like `_.forIn` and `_.forOwn`.
+ *
+ * @private
+ * @param {boolean} [fromRight] Specify iterating from right to left.
+ * @returns {Function} Returns the new base function.
+ */
+function createBaseFor(fromRight) {
+  return function(object, iteratee, keysFunc) {
+    var index = -1,
+        iterable = Object(object),
+        props = keysFunc(object),
+        length = props.length;
+
+    while (length--) {
+      var key = props[fromRight ? length : ++index];
+      if (iteratee(iterable[key], key, iterable) === false) {
+        break;
+      }
+    }
+    return object;
+  };
+}
+
+module.exports = createBaseFor;
+
+},{}],121:[function(require,module,exports){
 var baseRange = require('./_baseRange'),
     isIterateeCall = require('./_isIterateeCall'),
     toFinite = require('./toFinite');
@@ -67774,7 +69401,50 @@ function createRange(fromRight) {
 
 module.exports = createRange;
 
-},{"./_baseRange":82,"./_isIterateeCall":87,"./toFinite":98}],84:[function(require,module,exports){
+},{"./_baseRange":108,"./_isIterateeCall":137,"./toFinite":187}],122:[function(require,module,exports){
+var baseMerge = require('./_baseMerge'),
+    isObject = require('./isObject');
+
+/**
+ * Used by `_.defaultsDeep` to customize its `_.merge` use to merge source
+ * objects into destination objects that are passed thru.
+ *
+ * @private
+ * @param {*} objValue The destination value.
+ * @param {*} srcValue The source value.
+ * @param {string} key The key of the property to merge.
+ * @param {Object} object The parent object of `objValue`.
+ * @param {Object} source The parent object of `srcValue`.
+ * @param {Object} [stack] Tracks traversed source values and their merged
+ *  counterparts.
+ * @returns {*} Returns the value to assign.
+ */
+function customDefaultsMerge(objValue, srcValue, key, object, source, stack) {
+  if (isObject(objValue) && isObject(srcValue)) {
+    // Recursively merge objects and arrays (susceptible to call stack limits).
+    stack.set(srcValue, objValue);
+    baseMerge(objValue, srcValue, undefined, customDefaultsMerge, stack);
+    stack['delete'](srcValue);
+  }
+  return objValue;
+}
+
+module.exports = customDefaultsMerge;
+
+},{"./_baseMerge":106,"./isObject":178}],123:[function(require,module,exports){
+var getNative = require('./_getNative');
+
+var defineProperty = (function() {
+  try {
+    var func = getNative(Object, 'defineProperty');
+    func({}, '', {});
+    return func;
+  } catch (e) {}
+}());
+
+module.exports = defineProperty;
+
+},{"./_getNative":126}],124:[function(require,module,exports){
 (function (global){(function (){
 /** Detect free variable `global` from Node.js. */
 var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
@@ -67782,7 +69452,54 @@ var freeGlobal = typeof global == 'object' && global && global.Object === Object
 module.exports = freeGlobal;
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],85:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
+var isKeyable = require('./_isKeyable');
+
+/**
+ * Gets the data for `map`.
+ *
+ * @private
+ * @param {Object} map The map to query.
+ * @param {string} key The reference key.
+ * @returns {*} Returns the map data.
+ */
+function getMapData(map, key) {
+  var data = map.__data__;
+  return isKeyable(key)
+    ? data[typeof key == 'string' ? 'string' : 'hash']
+    : data.map;
+}
+
+module.exports = getMapData;
+
+},{"./_isKeyable":138}],126:[function(require,module,exports){
+var baseIsNative = require('./_baseIsNative'),
+    getValue = require('./_getValue');
+
+/**
+ * Gets the native function at `key` of `object`.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @param {string} key The key of the method to get.
+ * @returns {*} Returns the function if it's native, else `undefined`.
+ */
+function getNative(object, key) {
+  var value = getValue(object, key);
+  return baseIsNative(value) ? value : undefined;
+}
+
+module.exports = getNative;
+
+},{"./_baseIsNative":103,"./_getValue":129}],127:[function(require,module,exports){
+var overArg = require('./_overArg');
+
+/** Built-in value references. */
+var getPrototype = overArg(Object.getPrototypeOf, Object);
+
+module.exports = getPrototype;
+
+},{"./_overArg":155}],128:[function(require,module,exports){
 var Symbol = require('./_Symbol');
 
 /** Used for built-in method references. */
@@ -67830,7 +69547,160 @@ function getRawTag(value) {
 
 module.exports = getRawTag;
 
-},{"./_Symbol":80}],86:[function(require,module,exports){
+},{"./_Symbol":91}],129:[function(require,module,exports){
+/**
+ * Gets the value at `key` of `object`.
+ *
+ * @private
+ * @param {Object} [object] The object to query.
+ * @param {string} key The key of the property to get.
+ * @returns {*} Returns the property value.
+ */
+function getValue(object, key) {
+  return object == null ? undefined : object[key];
+}
+
+module.exports = getValue;
+
+},{}],130:[function(require,module,exports){
+var nativeCreate = require('./_nativeCreate');
+
+/**
+ * Removes all key-value entries from the hash.
+ *
+ * @private
+ * @name clear
+ * @memberOf Hash
+ */
+function hashClear() {
+  this.__data__ = nativeCreate ? nativeCreate(null) : {};
+  this.size = 0;
+}
+
+module.exports = hashClear;
+
+},{"./_nativeCreate":151}],131:[function(require,module,exports){
+/**
+ * Removes `key` and its value from the hash.
+ *
+ * @private
+ * @name delete
+ * @memberOf Hash
+ * @param {Object} hash The hash to modify.
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function hashDelete(key) {
+  var result = this.has(key) && delete this.__data__[key];
+  this.size -= result ? 1 : 0;
+  return result;
+}
+
+module.exports = hashDelete;
+
+},{}],132:[function(require,module,exports){
+var nativeCreate = require('./_nativeCreate');
+
+/** Used to stand-in for `undefined` hash values. */
+var HASH_UNDEFINED = '__lodash_hash_undefined__';
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Gets the hash value for `key`.
+ *
+ * @private
+ * @name get
+ * @memberOf Hash
+ * @param {string} key The key of the value to get.
+ * @returns {*} Returns the entry value.
+ */
+function hashGet(key) {
+  var data = this.__data__;
+  if (nativeCreate) {
+    var result = data[key];
+    return result === HASH_UNDEFINED ? undefined : result;
+  }
+  return hasOwnProperty.call(data, key) ? data[key] : undefined;
+}
+
+module.exports = hashGet;
+
+},{"./_nativeCreate":151}],133:[function(require,module,exports){
+var nativeCreate = require('./_nativeCreate');
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Checks if a hash value for `key` exists.
+ *
+ * @private
+ * @name has
+ * @memberOf Hash
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function hashHas(key) {
+  var data = this.__data__;
+  return nativeCreate ? (data[key] !== undefined) : hasOwnProperty.call(data, key);
+}
+
+module.exports = hashHas;
+
+},{"./_nativeCreate":151}],134:[function(require,module,exports){
+var nativeCreate = require('./_nativeCreate');
+
+/** Used to stand-in for `undefined` hash values. */
+var HASH_UNDEFINED = '__lodash_hash_undefined__';
+
+/**
+ * Sets the hash `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf Hash
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the hash instance.
+ */
+function hashSet(key, value) {
+  var data = this.__data__;
+  this.size += this.has(key) ? 0 : 1;
+  data[key] = (nativeCreate && value === undefined) ? HASH_UNDEFINED : value;
+  return this;
+}
+
+module.exports = hashSet;
+
+},{"./_nativeCreate":151}],135:[function(require,module,exports){
+var baseCreate = require('./_baseCreate'),
+    getPrototype = require('./_getPrototype'),
+    isPrototype = require('./_isPrototype');
+
+/**
+ * Initializes an object clone.
+ *
+ * @private
+ * @param {Object} object The object to clone.
+ * @returns {Object} Returns the initialized clone.
+ */
+function initCloneObject(object) {
+  return (typeof object.constructor == 'function' && !isPrototype(object))
+    ? baseCreate(getPrototype(object))
+    : {};
+}
+
+module.exports = initCloneObject;
+
+},{"./_baseCreate":99,"./_getPrototype":127,"./_isPrototype":140}],136:[function(require,module,exports){
 /** Used as references for various `Number` constants. */
 var MAX_SAFE_INTEGER = 9007199254740991;
 
@@ -67857,7 +69727,7 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],87:[function(require,module,exports){
+},{}],137:[function(require,module,exports){
 var eq = require('./eq'),
     isArrayLike = require('./isArrayLike'),
     isIndex = require('./_isIndex'),
@@ -67889,7 +69759,350 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"./_isIndex":86,"./eq":90,"./isArrayLike":91,"./isObject":94}],88:[function(require,module,exports){
+},{"./_isIndex":136,"./eq":169,"./isArrayLike":173,"./isObject":178}],138:[function(require,module,exports){
+/**
+ * Checks if `value` is suitable for use as unique object key.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is suitable, else `false`.
+ */
+function isKeyable(value) {
+  var type = typeof value;
+  return (type == 'string' || type == 'number' || type == 'symbol' || type == 'boolean')
+    ? (value !== '__proto__')
+    : (value === null);
+}
+
+module.exports = isKeyable;
+
+},{}],139:[function(require,module,exports){
+var coreJsData = require('./_coreJsData');
+
+/** Used to detect methods masquerading as native. */
+var maskSrcKey = (function() {
+  var uid = /[^.]+$/.exec(coreJsData && coreJsData.keys && coreJsData.keys.IE_PROTO || '');
+  return uid ? ('Symbol(src)_1.' + uid) : '';
+}());
+
+/**
+ * Checks if `func` has its source masked.
+ *
+ * @private
+ * @param {Function} func The function to check.
+ * @returns {boolean} Returns `true` if `func` is masked, else `false`.
+ */
+function isMasked(func) {
+  return !!maskSrcKey && (maskSrcKey in func);
+}
+
+module.exports = isMasked;
+
+},{"./_coreJsData":118}],140:[function(require,module,exports){
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Checks if `value` is likely a prototype object.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a prototype, else `false`.
+ */
+function isPrototype(value) {
+  var Ctor = value && value.constructor,
+      proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto;
+
+  return value === proto;
+}
+
+module.exports = isPrototype;
+
+},{}],141:[function(require,module,exports){
+/**
+ * Removes all key-value entries from the list cache.
+ *
+ * @private
+ * @name clear
+ * @memberOf ListCache
+ */
+function listCacheClear() {
+  this.__data__ = [];
+  this.size = 0;
+}
+
+module.exports = listCacheClear;
+
+},{}],142:[function(require,module,exports){
+var assocIndexOf = require('./_assocIndexOf');
+
+/** Used for built-in method references. */
+var arrayProto = Array.prototype;
+
+/** Built-in value references. */
+var splice = arrayProto.splice;
+
+/**
+ * Removes `key` and its value from the list cache.
+ *
+ * @private
+ * @name delete
+ * @memberOf ListCache
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function listCacheDelete(key) {
+  var data = this.__data__,
+      index = assocIndexOf(data, key);
+
+  if (index < 0) {
+    return false;
+  }
+  var lastIndex = data.length - 1;
+  if (index == lastIndex) {
+    data.pop();
+  } else {
+    splice.call(data, index, 1);
+  }
+  --this.size;
+  return true;
+}
+
+module.exports = listCacheDelete;
+
+},{"./_assocIndexOf":97}],143:[function(require,module,exports){
+var assocIndexOf = require('./_assocIndexOf');
+
+/**
+ * Gets the list cache value for `key`.
+ *
+ * @private
+ * @name get
+ * @memberOf ListCache
+ * @param {string} key The key of the value to get.
+ * @returns {*} Returns the entry value.
+ */
+function listCacheGet(key) {
+  var data = this.__data__,
+      index = assocIndexOf(data, key);
+
+  return index < 0 ? undefined : data[index][1];
+}
+
+module.exports = listCacheGet;
+
+},{"./_assocIndexOf":97}],144:[function(require,module,exports){
+var assocIndexOf = require('./_assocIndexOf');
+
+/**
+ * Checks if a list cache value for `key` exists.
+ *
+ * @private
+ * @name has
+ * @memberOf ListCache
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function listCacheHas(key) {
+  return assocIndexOf(this.__data__, key) > -1;
+}
+
+module.exports = listCacheHas;
+
+},{"./_assocIndexOf":97}],145:[function(require,module,exports){
+var assocIndexOf = require('./_assocIndexOf');
+
+/**
+ * Sets the list cache `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf ListCache
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the list cache instance.
+ */
+function listCacheSet(key, value) {
+  var data = this.__data__,
+      index = assocIndexOf(data, key);
+
+  if (index < 0) {
+    ++this.size;
+    data.push([key, value]);
+  } else {
+    data[index][1] = value;
+  }
+  return this;
+}
+
+module.exports = listCacheSet;
+
+},{"./_assocIndexOf":97}],146:[function(require,module,exports){
+var Hash = require('./_Hash'),
+    ListCache = require('./_ListCache'),
+    Map = require('./_Map');
+
+/**
+ * Removes all key-value entries from the map.
+ *
+ * @private
+ * @name clear
+ * @memberOf MapCache
+ */
+function mapCacheClear() {
+  this.size = 0;
+  this.__data__ = {
+    'hash': new Hash,
+    'map': new (Map || ListCache),
+    'string': new Hash
+  };
+}
+
+module.exports = mapCacheClear;
+
+},{"./_Hash":86,"./_ListCache":87,"./_Map":88}],147:[function(require,module,exports){
+var getMapData = require('./_getMapData');
+
+/**
+ * Removes `key` and its value from the map.
+ *
+ * @private
+ * @name delete
+ * @memberOf MapCache
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function mapCacheDelete(key) {
+  var result = getMapData(this, key)['delete'](key);
+  this.size -= result ? 1 : 0;
+  return result;
+}
+
+module.exports = mapCacheDelete;
+
+},{"./_getMapData":125}],148:[function(require,module,exports){
+var getMapData = require('./_getMapData');
+
+/**
+ * Gets the map value for `key`.
+ *
+ * @private
+ * @name get
+ * @memberOf MapCache
+ * @param {string} key The key of the value to get.
+ * @returns {*} Returns the entry value.
+ */
+function mapCacheGet(key) {
+  return getMapData(this, key).get(key);
+}
+
+module.exports = mapCacheGet;
+
+},{"./_getMapData":125}],149:[function(require,module,exports){
+var getMapData = require('./_getMapData');
+
+/**
+ * Checks if a map value for `key` exists.
+ *
+ * @private
+ * @name has
+ * @memberOf MapCache
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function mapCacheHas(key) {
+  return getMapData(this, key).has(key);
+}
+
+module.exports = mapCacheHas;
+
+},{"./_getMapData":125}],150:[function(require,module,exports){
+var getMapData = require('./_getMapData');
+
+/**
+ * Sets the map `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf MapCache
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the map cache instance.
+ */
+function mapCacheSet(key, value) {
+  var data = getMapData(this, key),
+      size = data.size;
+
+  data.set(key, value);
+  this.size += data.size == size ? 0 : 1;
+  return this;
+}
+
+module.exports = mapCacheSet;
+
+},{"./_getMapData":125}],151:[function(require,module,exports){
+var getNative = require('./_getNative');
+
+/* Built-in method references that are verified to be native. */
+var nativeCreate = getNative(Object, 'create');
+
+module.exports = nativeCreate;
+
+},{"./_getNative":126}],152:[function(require,module,exports){
+/**
+ * This function is like
+ * [`Object.keys`](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)
+ * except that it includes inherited enumerable properties.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @returns {Array} Returns the array of property names.
+ */
+function nativeKeysIn(object) {
+  var result = [];
+  if (object != null) {
+    for (var key in Object(object)) {
+      result.push(key);
+    }
+  }
+  return result;
+}
+
+module.exports = nativeKeysIn;
+
+},{}],153:[function(require,module,exports){
+var freeGlobal = require('./_freeGlobal');
+
+/** Detect free variable `exports`. */
+var freeExports = typeof exports == 'object' && exports && !exports.nodeType && exports;
+
+/** Detect free variable `module`. */
+var freeModule = freeExports && typeof module == 'object' && module && !module.nodeType && module;
+
+/** Detect the popular CommonJS extension `module.exports`. */
+var moduleExports = freeModule && freeModule.exports === freeExports;
+
+/** Detect free variable `process` from Node.js. */
+var freeProcess = moduleExports && freeGlobal.process;
+
+/** Used to access faster Node.js helpers. */
+var nodeUtil = (function() {
+  try {
+    // Use `util.types` for Node.js 10+.
+    var types = freeModule && freeModule.require && freeModule.require('util').types;
+
+    if (types) {
+      return types;
+    }
+
+    // Legacy `process.binding('util')` for Node.js < 10.
+    return freeProcess && freeProcess.binding && freeProcess.binding('util');
+  } catch (e) {}
+}());
+
+module.exports = nodeUtil;
+
+},{"./_freeGlobal":124}],154:[function(require,module,exports){
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
 
@@ -67913,7 +70126,62 @@ function objectToString(value) {
 
 module.exports = objectToString;
 
-},{}],89:[function(require,module,exports){
+},{}],155:[function(require,module,exports){
+/**
+ * Creates a unary function that invokes `func` with its argument transformed.
+ *
+ * @private
+ * @param {Function} func The function to wrap.
+ * @param {Function} transform The argument transform.
+ * @returns {Function} Returns the new function.
+ */
+function overArg(func, transform) {
+  return function(arg) {
+    return func(transform(arg));
+  };
+}
+
+module.exports = overArg;
+
+},{}],156:[function(require,module,exports){
+var apply = require('./_apply');
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max;
+
+/**
+ * A specialized version of `baseRest` which transforms the rest array.
+ *
+ * @private
+ * @param {Function} func The function to apply a rest parameter to.
+ * @param {number} [start=func.length-1] The start position of the rest parameter.
+ * @param {Function} transform The rest array transform.
+ * @returns {Function} Returns the new function.
+ */
+function overRest(func, start, transform) {
+  start = nativeMax(start === undefined ? (func.length - 1) : start, 0);
+  return function() {
+    var args = arguments,
+        index = -1,
+        length = nativeMax(args.length - start, 0),
+        array = Array(length);
+
+    while (++index < length) {
+      array[index] = args[start + index];
+    }
+    index = -1;
+    var otherArgs = Array(start + 1);
+    while (++index < start) {
+      otherArgs[index] = args[index];
+    }
+    otherArgs[start] = transform(array);
+    return apply(func, this, otherArgs);
+  };
+}
+
+module.exports = overRest;
+
+},{"./_apply":93}],157:[function(require,module,exports){
 var freeGlobal = require('./_freeGlobal');
 
 /** Detect free variable `self`. */
@@ -67924,7 +70192,278 @@ var root = freeGlobal || freeSelf || Function('return this')();
 
 module.exports = root;
 
-},{"./_freeGlobal":84}],90:[function(require,module,exports){
+},{"./_freeGlobal":124}],158:[function(require,module,exports){
+/**
+ * Gets the value at `key`, unless `key` is "__proto__" or "constructor".
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @param {string} key The key of the property to get.
+ * @returns {*} Returns the property value.
+ */
+function safeGet(object, key) {
+  if (key === 'constructor' && typeof object[key] === 'function') {
+    return;
+  }
+
+  if (key == '__proto__') {
+    return;
+  }
+
+  return object[key];
+}
+
+module.exports = safeGet;
+
+},{}],159:[function(require,module,exports){
+var baseSetToString = require('./_baseSetToString'),
+    shortOut = require('./_shortOut');
+
+/**
+ * Sets the `toString` method of `func` to return `string`.
+ *
+ * @private
+ * @param {Function} func The function to modify.
+ * @param {Function} string The `toString` result.
+ * @returns {Function} Returns `func`.
+ */
+var setToString = shortOut(baseSetToString);
+
+module.exports = setToString;
+
+},{"./_baseSetToString":110,"./_shortOut":160}],160:[function(require,module,exports){
+/** Used to detect hot functions by number of calls within a span of milliseconds. */
+var HOT_COUNT = 800,
+    HOT_SPAN = 16;
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeNow = Date.now;
+
+/**
+ * Creates a function that'll short out and invoke `identity` instead
+ * of `func` when it's called `HOT_COUNT` or more times in `HOT_SPAN`
+ * milliseconds.
+ *
+ * @private
+ * @param {Function} func The function to restrict.
+ * @returns {Function} Returns the new shortable function.
+ */
+function shortOut(func) {
+  var count = 0,
+      lastCalled = 0;
+
+  return function() {
+    var stamp = nativeNow(),
+        remaining = HOT_SPAN - (stamp - lastCalled);
+
+    lastCalled = stamp;
+    if (remaining > 0) {
+      if (++count >= HOT_COUNT) {
+        return arguments[0];
+      }
+    } else {
+      count = 0;
+    }
+    return func.apply(undefined, arguments);
+  };
+}
+
+module.exports = shortOut;
+
+},{}],161:[function(require,module,exports){
+var ListCache = require('./_ListCache');
+
+/**
+ * Removes all key-value entries from the stack.
+ *
+ * @private
+ * @name clear
+ * @memberOf Stack
+ */
+function stackClear() {
+  this.__data__ = new ListCache;
+  this.size = 0;
+}
+
+module.exports = stackClear;
+
+},{"./_ListCache":87}],162:[function(require,module,exports){
+/**
+ * Removes `key` and its value from the stack.
+ *
+ * @private
+ * @name delete
+ * @memberOf Stack
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function stackDelete(key) {
+  var data = this.__data__,
+      result = data['delete'](key);
+
+  this.size = data.size;
+  return result;
+}
+
+module.exports = stackDelete;
+
+},{}],163:[function(require,module,exports){
+/**
+ * Gets the stack value for `key`.
+ *
+ * @private
+ * @name get
+ * @memberOf Stack
+ * @param {string} key The key of the value to get.
+ * @returns {*} Returns the entry value.
+ */
+function stackGet(key) {
+  return this.__data__.get(key);
+}
+
+module.exports = stackGet;
+
+},{}],164:[function(require,module,exports){
+/**
+ * Checks if a stack value for `key` exists.
+ *
+ * @private
+ * @name has
+ * @memberOf Stack
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function stackHas(key) {
+  return this.__data__.has(key);
+}
+
+module.exports = stackHas;
+
+},{}],165:[function(require,module,exports){
+var ListCache = require('./_ListCache'),
+    Map = require('./_Map'),
+    MapCache = require('./_MapCache');
+
+/** Used as the size to enable large array optimizations. */
+var LARGE_ARRAY_SIZE = 200;
+
+/**
+ * Sets the stack `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf Stack
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the stack cache instance.
+ */
+function stackSet(key, value) {
+  var data = this.__data__;
+  if (data instanceof ListCache) {
+    var pairs = data.__data__;
+    if (!Map || (pairs.length < LARGE_ARRAY_SIZE - 1)) {
+      pairs.push([key, value]);
+      this.size = ++data.size;
+      return this;
+    }
+    data = this.__data__ = new MapCache(pairs);
+  }
+  data.set(key, value);
+  this.size = data.size;
+  return this;
+}
+
+module.exports = stackSet;
+
+},{"./_ListCache":87,"./_Map":88,"./_MapCache":89}],166:[function(require,module,exports){
+/** Used for built-in method references. */
+var funcProto = Function.prototype;
+
+/** Used to resolve the decompiled source of functions. */
+var funcToString = funcProto.toString;
+
+/**
+ * Converts `func` to its source code.
+ *
+ * @private
+ * @param {Function} func The function to convert.
+ * @returns {string} Returns the source code.
+ */
+function toSource(func) {
+  if (func != null) {
+    try {
+      return funcToString.call(func);
+    } catch (e) {}
+    try {
+      return (func + '');
+    } catch (e) {}
+  }
+  return '';
+}
+
+module.exports = toSource;
+
+},{}],167:[function(require,module,exports){
+/**
+ * Creates a function that returns `value`.
+ *
+ * @static
+ * @memberOf _
+ * @since 2.4.0
+ * @category Util
+ * @param {*} value The value to return from the new function.
+ * @returns {Function} Returns the new constant function.
+ * @example
+ *
+ * var objects = _.times(2, _.constant({ 'a': 1 }));
+ *
+ * console.log(objects);
+ * // => [{ 'a': 1 }, { 'a': 1 }]
+ *
+ * console.log(objects[0] === objects[1]);
+ * // => true
+ */
+function constant(value) {
+  return function() {
+    return value;
+  };
+}
+
+module.exports = constant;
+
+},{}],168:[function(require,module,exports){
+var apply = require('./_apply'),
+    baseRest = require('./_baseRest'),
+    customDefaultsMerge = require('./_customDefaultsMerge'),
+    mergeWith = require('./mergeWith');
+
+/**
+ * This method is like `_.defaults` except that it recursively assigns
+ * default properties.
+ *
+ * **Note:** This method mutates `object`.
+ *
+ * @static
+ * @memberOf _
+ * @since 3.10.0
+ * @category Object
+ * @param {Object} object The destination object.
+ * @param {...Object} [sources] The source objects.
+ * @returns {Object} Returns `object`.
+ * @see _.defaults
+ * @example
+ *
+ * _.defaultsDeep({ 'a': { 'b': 2 } }, { 'a': { 'b': 1, 'c': 3 } });
+ * // => { 'a': { 'b': 2, 'c': 3 } }
+ */
+var defaultsDeep = baseRest(function(args) {
+  args.push(undefined, customDefaultsMerge);
+  return apply(mergeWith, undefined, args);
+});
+
+module.exports = defaultsDeep;
+
+},{"./_apply":93,"./_baseRest":109,"./_customDefaultsMerge":122,"./mergeWith":184}],169:[function(require,module,exports){
 /**
  * Performs a
  * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
@@ -67963,7 +70502,96 @@ function eq(value, other) {
 
 module.exports = eq;
 
-},{}],91:[function(require,module,exports){
+},{}],170:[function(require,module,exports){
+/**
+ * This method returns the first argument it receives.
+ *
+ * @static
+ * @since 0.1.0
+ * @memberOf _
+ * @category Util
+ * @param {*} value Any value.
+ * @returns {*} Returns `value`.
+ * @example
+ *
+ * var object = { 'a': 1 };
+ *
+ * console.log(_.identity(object) === object);
+ * // => true
+ */
+function identity(value) {
+  return value;
+}
+
+module.exports = identity;
+
+},{}],171:[function(require,module,exports){
+var baseIsArguments = require('./_baseIsArguments'),
+    isObjectLike = require('./isObjectLike');
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/** Built-in value references. */
+var propertyIsEnumerable = objectProto.propertyIsEnumerable;
+
+/**
+ * Checks if `value` is likely an `arguments` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an `arguments` object,
+ *  else `false`.
+ * @example
+ *
+ * _.isArguments(function() { return arguments; }());
+ * // => true
+ *
+ * _.isArguments([1, 2, 3]);
+ * // => false
+ */
+var isArguments = baseIsArguments(function() { return arguments; }()) ? baseIsArguments : function(value) {
+  return isObjectLike(value) && hasOwnProperty.call(value, 'callee') &&
+    !propertyIsEnumerable.call(value, 'callee');
+};
+
+module.exports = isArguments;
+
+},{"./_baseIsArguments":102,"./isObjectLike":179}],172:[function(require,module,exports){
+/**
+ * Checks if `value` is classified as an `Array` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an array, else `false`.
+ * @example
+ *
+ * _.isArray([1, 2, 3]);
+ * // => true
+ *
+ * _.isArray(document.body.children);
+ * // => false
+ *
+ * _.isArray('abc');
+ * // => false
+ *
+ * _.isArray(_.noop);
+ * // => false
+ */
+var isArray = Array.isArray;
+
+module.exports = isArray;
+
+},{}],173:[function(require,module,exports){
 var isFunction = require('./isFunction'),
     isLength = require('./isLength');
 
@@ -67998,7 +70626,82 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"./isFunction":92,"./isLength":93}],92:[function(require,module,exports){
+},{"./isFunction":176,"./isLength":177}],174:[function(require,module,exports){
+var isArrayLike = require('./isArrayLike'),
+    isObjectLike = require('./isObjectLike');
+
+/**
+ * This method is like `_.isArrayLike` except that it also checks if `value`
+ * is an object.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an array-like object,
+ *  else `false`.
+ * @example
+ *
+ * _.isArrayLikeObject([1, 2, 3]);
+ * // => true
+ *
+ * _.isArrayLikeObject(document.body.children);
+ * // => true
+ *
+ * _.isArrayLikeObject('abc');
+ * // => false
+ *
+ * _.isArrayLikeObject(_.noop);
+ * // => false
+ */
+function isArrayLikeObject(value) {
+  return isObjectLike(value) && isArrayLike(value);
+}
+
+module.exports = isArrayLikeObject;
+
+},{"./isArrayLike":173,"./isObjectLike":179}],175:[function(require,module,exports){
+var root = require('./_root'),
+    stubFalse = require('./stubFalse');
+
+/** Detect free variable `exports`. */
+var freeExports = typeof exports == 'object' && exports && !exports.nodeType && exports;
+
+/** Detect free variable `module`. */
+var freeModule = freeExports && typeof module == 'object' && module && !module.nodeType && module;
+
+/** Detect the popular CommonJS extension `module.exports`. */
+var moduleExports = freeModule && freeModule.exports === freeExports;
+
+/** Built-in value references. */
+var Buffer = moduleExports ? root.Buffer : undefined;
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeIsBuffer = Buffer ? Buffer.isBuffer : undefined;
+
+/**
+ * Checks if `value` is a buffer.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.3.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a buffer, else `false`.
+ * @example
+ *
+ * _.isBuffer(new Buffer(2));
+ * // => true
+ *
+ * _.isBuffer(new Uint8Array(2));
+ * // => false
+ */
+var isBuffer = nativeIsBuffer || stubFalse;
+
+module.exports = isBuffer;
+
+},{"./_root":157,"./stubFalse":186}],176:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isObject = require('./isObject');
 
@@ -68037,7 +70740,7 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"./_baseGetTag":81,"./isObject":94}],93:[function(require,module,exports){
+},{"./_baseGetTag":101,"./isObject":178}],177:[function(require,module,exports){
 /** Used as references for various `Number` constants. */
 var MAX_SAFE_INTEGER = 9007199254740991;
 
@@ -68074,7 +70777,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],94:[function(require,module,exports){
+},{}],178:[function(require,module,exports){
 /**
  * Checks if `value` is the
  * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
@@ -68107,7 +70810,7 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],95:[function(require,module,exports){
+},{}],179:[function(require,module,exports){
 /**
  * Checks if `value` is object-like. A value is object-like if it's not `null`
  * and has a `typeof` result of "object".
@@ -68138,7 +70841,71 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],96:[function(require,module,exports){
+},{}],180:[function(require,module,exports){
+var baseGetTag = require('./_baseGetTag'),
+    getPrototype = require('./_getPrototype'),
+    isObjectLike = require('./isObjectLike');
+
+/** `Object#toString` result references. */
+var objectTag = '[object Object]';
+
+/** Used for built-in method references. */
+var funcProto = Function.prototype,
+    objectProto = Object.prototype;
+
+/** Used to resolve the decompiled source of functions. */
+var funcToString = funcProto.toString;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/** Used to infer the `Object` constructor. */
+var objectCtorString = funcToString.call(Object);
+
+/**
+ * Checks if `value` is a plain object, that is, an object created by the
+ * `Object` constructor or one with a `[[Prototype]]` of `null`.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.8.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
+ * @example
+ *
+ * function Foo() {
+ *   this.a = 1;
+ * }
+ *
+ * _.isPlainObject(new Foo);
+ * // => false
+ *
+ * _.isPlainObject([1, 2, 3]);
+ * // => false
+ *
+ * _.isPlainObject({ 'x': 0, 'y': 0 });
+ * // => true
+ *
+ * _.isPlainObject(Object.create(null));
+ * // => true
+ */
+function isPlainObject(value) {
+  if (!isObjectLike(value) || baseGetTag(value) != objectTag) {
+    return false;
+  }
+  var proto = getPrototype(value);
+  if (proto === null) {
+    return true;
+  }
+  var Ctor = hasOwnProperty.call(proto, 'constructor') && proto.constructor;
+  return typeof Ctor == 'function' && Ctor instanceof Ctor &&
+    funcToString.call(Ctor) == objectCtorString;
+}
+
+module.exports = isPlainObject;
+
+},{"./_baseGetTag":101,"./_getPrototype":127,"./isObjectLike":179}],181:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isObjectLike = require('./isObjectLike');
 
@@ -68169,7 +70936,111 @@ function isSymbol(value) {
 
 module.exports = isSymbol;
 
-},{"./_baseGetTag":81,"./isObjectLike":95}],97:[function(require,module,exports){
+},{"./_baseGetTag":101,"./isObjectLike":179}],182:[function(require,module,exports){
+var baseIsTypedArray = require('./_baseIsTypedArray'),
+    baseUnary = require('./_baseUnary'),
+    nodeUtil = require('./_nodeUtil');
+
+/* Node.js helper references. */
+var nodeIsTypedArray = nodeUtil && nodeUtil.isTypedArray;
+
+/**
+ * Checks if `value` is classified as a typed array.
+ *
+ * @static
+ * @memberOf _
+ * @since 3.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a typed array, else `false`.
+ * @example
+ *
+ * _.isTypedArray(new Uint8Array);
+ * // => true
+ *
+ * _.isTypedArray([]);
+ * // => false
+ */
+var isTypedArray = nodeIsTypedArray ? baseUnary(nodeIsTypedArray) : baseIsTypedArray;
+
+module.exports = isTypedArray;
+
+},{"./_baseIsTypedArray":104,"./_baseUnary":112,"./_nodeUtil":153}],183:[function(require,module,exports){
+var arrayLikeKeys = require('./_arrayLikeKeys'),
+    baseKeysIn = require('./_baseKeysIn'),
+    isArrayLike = require('./isArrayLike');
+
+/**
+ * Creates an array of the own and inherited enumerable property names of `object`.
+ *
+ * **Note:** Non-object values are coerced to objects.
+ *
+ * @static
+ * @memberOf _
+ * @since 3.0.0
+ * @category Object
+ * @param {Object} object The object to query.
+ * @returns {Array} Returns the array of property names.
+ * @example
+ *
+ * function Foo() {
+ *   this.a = 1;
+ *   this.b = 2;
+ * }
+ *
+ * Foo.prototype.c = 3;
+ *
+ * _.keysIn(new Foo);
+ * // => ['a', 'b', 'c'] (iteration order is not guaranteed)
+ */
+function keysIn(object) {
+  return isArrayLike(object) ? arrayLikeKeys(object, true) : baseKeysIn(object);
+}
+
+module.exports = keysIn;
+
+},{"./_arrayLikeKeys":94,"./_baseKeysIn":105,"./isArrayLike":173}],184:[function(require,module,exports){
+var baseMerge = require('./_baseMerge'),
+    createAssigner = require('./_createAssigner');
+
+/**
+ * This method is like `_.merge` except that it accepts `customizer` which
+ * is invoked to produce the merged values of the destination and source
+ * properties. If `customizer` returns `undefined`, merging is handled by the
+ * method instead. The `customizer` is invoked with six arguments:
+ * (objValue, srcValue, key, object, source, stack).
+ *
+ * **Note:** This method mutates `object`.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Object
+ * @param {Object} object The destination object.
+ * @param {...Object} sources The source objects.
+ * @param {Function} customizer The function to customize assigned values.
+ * @returns {Object} Returns `object`.
+ * @example
+ *
+ * function customizer(objValue, srcValue) {
+ *   if (_.isArray(objValue)) {
+ *     return objValue.concat(srcValue);
+ *   }
+ * }
+ *
+ * var object = { 'a': [1], 'b': [2] };
+ * var other = { 'a': [3], 'b': [4] };
+ *
+ * _.mergeWith(object, other, customizer);
+ * // => { 'a': [1, 3], 'b': [2, 4] }
+ */
+var mergeWith = createAssigner(function(object, source, srcIndex, customizer) {
+  baseMerge(object, source, srcIndex, customizer);
+});
+
+module.exports = mergeWith;
+
+},{"./_baseMerge":106,"./_createAssigner":119}],185:[function(require,module,exports){
 var createRange = require('./_createRange');
 
 /**
@@ -68217,7 +71088,27 @@ var range = createRange();
 
 module.exports = range;
 
-},{"./_createRange":83}],98:[function(require,module,exports){
+},{"./_createRange":121}],186:[function(require,module,exports){
+/**
+ * This method returns `false`.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.13.0
+ * @category Util
+ * @returns {boolean} Returns `false`.
+ * @example
+ *
+ * _.times(2, _.stubFalse);
+ * // => [false, false]
+ */
+function stubFalse() {
+  return false;
+}
+
+module.exports = stubFalse;
+
+},{}],187:[function(require,module,exports){
 var toNumber = require('./toNumber');
 
 /** Used as references for various `Number` constants. */
@@ -68261,7 +71152,7 @@ function toFinite(value) {
 
 module.exports = toFinite;
 
-},{"./toNumber":99}],99:[function(require,module,exports){
+},{"./toNumber":188}],188:[function(require,module,exports){
 var isObject = require('./isObject'),
     isSymbol = require('./isSymbol');
 
@@ -68329,7 +71220,41 @@ function toNumber(value) {
 
 module.exports = toNumber;
 
-},{"./isObject":94,"./isSymbol":96}],100:[function(require,module,exports){
+},{"./isObject":178,"./isSymbol":181}],189:[function(require,module,exports){
+var copyObject = require('./_copyObject'),
+    keysIn = require('./keysIn');
+
+/**
+ * Converts `value` to a plain object flattening inherited enumerable string
+ * keyed properties of `value` to own properties of the plain object.
+ *
+ * @static
+ * @memberOf _
+ * @since 3.0.0
+ * @category Lang
+ * @param {*} value The value to convert.
+ * @returns {Object} Returns the converted plain object.
+ * @example
+ *
+ * function Foo() {
+ *   this.b = 2;
+ * }
+ *
+ * Foo.prototype.c = 3;
+ *
+ * _.assign({ 'a': 1 }, new Foo);
+ * // => { 'a': 1, 'b': 2 }
+ *
+ * _.assign({ 'a': 1 }, _.toPlainObject(new Foo));
+ * // => { 'a': 1, 'b': 2, 'c': 3 }
+ */
+function toPlainObject(value) {
+  return copyObject(value, keysIn(value));
+}
+
+module.exports = toPlainObject;
+
+},{"./_copyObject":117,"./keysIn":183}],190:[function(require,module,exports){
 module.exports = Long;
 
 /**
@@ -69654,7 +72579,7 @@ Long.fromBytesBE = function fromBytesBE(bytes, unsigned) {
     );
 };
 
-},{}],101:[function(require,module,exports){
+},{}],191:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -69821,7 +72746,7 @@ MiniSignal.MiniSignalBinding = MiniSignalBinding;
 exports['default'] = MiniSignal;
 module.exports = exports['default'];
 
-},{}],102:[function(require,module,exports){
+},{}],192:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -69909,7 +72834,7 @@ var Stitch = (function () {
 }());
 exports.default = Stitch;
 
-},{"./internal/StitchAppClientImpl":117,"./internal/common/LocalStorage":118,"./internal/net/BrowserFetchStreamTransport":120,"./internal/net/BrowserFetchTransport":121,"mongodb-stitch-core-sdk":182}],103:[function(require,module,exports){
+},{"./internal/StitchAppClientImpl":207,"./internal/common/LocalStorage":208,"./internal/net/BrowserFetchStreamTransport":210,"./internal/net/BrowserFetchTransport":211,"mongodb-stitch-core-sdk":272}],193:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var RedirectFragmentFields;
@@ -69923,7 +72848,7 @@ var RedirectFragmentFields;
 })(RedirectFragmentFields || (RedirectFragmentFields = {}));
 exports.default = RedirectFragmentFields;
 
-},{}],104:[function(require,module,exports){
+},{}],194:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var RedirectKeys;
@@ -69934,7 +72859,7 @@ var RedirectKeys;
 })(RedirectKeys || (RedirectKeys = {}));
 exports.default = RedirectKeys;
 
-},{}],105:[function(require,module,exports){
+},{}],195:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -70347,7 +73272,7 @@ function isAuthProviderClientFactory(factory) {
     return (factory.getClient !== undefined);
 }
 
-},{"../../internal/common/Version":119,"./RedirectFragmentFields":103,"./RedirectKeys":104,"./StitchRedirectError":108,"./StitchUserFactoryImpl":109,"detect-browser":40,"mongodb-stitch-core-sdk":182}],106:[function(require,module,exports){
+},{"../../internal/common/Version":209,"./RedirectFragmentFields":193,"./RedirectKeys":194,"./StitchRedirectError":198,"./StitchUserFactoryImpl":199,"detect-browser":41,"mongodb-stitch-core-sdk":272}],196:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -70379,7 +73304,7 @@ var StitchBrowserAppAuthRoutes = (function (_super) {
 }(mongodb_stitch_core_sdk_1.StitchAppAuthRoutes));
 exports.default = StitchBrowserAppAuthRoutes;
 
-},{"mongodb-stitch-core-sdk":182}],107:[function(require,module,exports){
+},{"mongodb-stitch-core-sdk":272}],197:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -70408,7 +73333,7 @@ var StitchBrowserAppRoutes = (function (_super) {
 }(mongodb_stitch_core_sdk_1.StitchAppRoutes));
 exports.default = StitchBrowserAppRoutes;
 
-},{"./StitchBrowserAppAuthRoutes":106,"mongodb-stitch-core-sdk":182}],108:[function(require,module,exports){
+},{"./StitchBrowserAppAuthRoutes":196,"mongodb-stitch-core-sdk":272}],198:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -70431,7 +73356,7 @@ var StitchRedirectError = (function (_super) {
 }(mongodb_stitch_core_sdk_1.StitchError));
 exports.default = StitchRedirectError;
 
-},{"mongodb-stitch-core-sdk":182}],109:[function(require,module,exports){
+},{"mongodb-stitch-core-sdk":272}],199:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -70449,7 +73374,7 @@ var StitchUserFactoryImpl = (function () {
 }());
 exports.default = StitchUserFactoryImpl;
 
-},{"./StitchUserImpl":110}],110:[function(require,module,exports){
+},{"./StitchUserImpl":200}],200:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -70480,7 +73405,7 @@ var StitchUserImpl = (function (_super) {
 }(mongodb_stitch_core_sdk_1.CoreStitchUserImpl));
 exports.default = StitchUserImpl;
 
-},{"mongodb-stitch-core-sdk":182}],111:[function(require,module,exports){
+},{"mongodb-stitch-core-sdk":272}],201:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongodb_stitch_core_sdk_1 = require("mongodb-stitch-core-sdk");
@@ -70496,7 +73421,7 @@ var FacebookRedirectCredential = (function () {
 }());
 exports.default = FacebookRedirectCredential;
 
-},{"mongodb-stitch-core-sdk":182}],112:[function(require,module,exports){
+},{"mongodb-stitch-core-sdk":272}],202:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongodb_stitch_core_sdk_1 = require("mongodb-stitch-core-sdk");
@@ -70512,7 +73437,7 @@ var GoogleRedirectCredential = (function () {
 }());
 exports.default = GoogleRedirectCredential;
 
-},{"mongodb-stitch-core-sdk":182}],113:[function(require,module,exports){
+},{"mongodb-stitch-core-sdk":272}],203:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -70531,7 +73456,7 @@ var UserApiKeyAuthProviderClient;
     }())();
 })(UserApiKeyAuthProviderClient = exports.UserApiKeyAuthProviderClient || (exports.UserApiKeyAuthProviderClient = {}));
 
-},{"./internal/UserApiKeyAuthProviderClientImpl":114}],114:[function(require,module,exports){
+},{"./internal/UserApiKeyAuthProviderClientImpl":204}],204:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -70572,7 +73497,7 @@ var UserApiKeyAuthProviderClientImpl = (function (_super) {
 }(mongodb_stitch_core_sdk_1.CoreUserApiKeyAuthProviderClient));
 exports.default = UserApiKeyAuthProviderClientImpl;
 
-},{"mongodb-stitch-core-sdk":182}],115:[function(require,module,exports){
+},{"mongodb-stitch-core-sdk":272}],205:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -70591,7 +73516,7 @@ var UserPasswordAuthProviderClient;
     }())();
 })(UserPasswordAuthProviderClient = exports.UserPasswordAuthProviderClient || (exports.UserPasswordAuthProviderClient = {}));
 
-},{"./internal/UserPasswordAuthProviderClientImpl":116}],116:[function(require,module,exports){
+},{"./internal/UserPasswordAuthProviderClientImpl":206}],206:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -70632,7 +73557,7 @@ var UserPasswordAuthProviderClientImpl = (function (_super) {
 }(mongodb_stitch_core_sdk_1.CoreUserPassAuthProviderClient));
 exports.default = UserPasswordAuthProviderClientImpl;
 
-},{"mongodb-stitch-core-sdk":182}],117:[function(require,module,exports){
+},{"mongodb-stitch-core-sdk":272}],207:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -70694,7 +73619,7 @@ function isServiceClientFactory(factory) {
     return factory.getClient !== undefined;
 }
 
-},{"../../services/internal/StitchServiceClientImpl":124,"../auth/internal/StitchAuthImpl":105,"../auth/internal/StitchBrowserAppRoutes":107,"mongodb-stitch-core-sdk":182}],118:[function(require,module,exports){
+},{"../../services/internal/StitchServiceClientImpl":214,"../auth/internal/StitchAuthImpl":195,"../auth/internal/StitchBrowserAppRoutes":197,"mongodb-stitch-core-sdk":272}],208:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var stitchPrefixKey = "__stitch.client";
@@ -70718,14 +73643,14 @@ var LocalStorage = (function () {
 }());
 exports.default = LocalStorage;
 
-},{}],119:[function(require,module,exports){
+},{}],209:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var version = "4.8.0";
 exports.default = version;
 
 
-},{}],120:[function(require,module,exports){
+},{}],210:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -70788,7 +73713,7 @@ var BrowserFetchStreamTransport = (function (_super) {
 }(BrowserFetchTransport_1.default));
 exports.default = BrowserFetchStreamTransport;
 
-},{"./BrowserFetchTransport":121,"./EventSourceEventStream":122,"mongodb-stitch-core-sdk":182,"whatwg-fetch":234}],121:[function(require,module,exports){
+},{"./BrowserFetchTransport":211,"./EventSourceEventStream":212,"mongodb-stitch-core-sdk":272,"whatwg-fetch":335}],211:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongodb_stitch_core_sdk_1 = require("mongodb-stitch-core-sdk");
@@ -70824,7 +73749,7 @@ var BrowserFetchTransport = (function () {
 }());
 exports.default = BrowserFetchTransport;
 
-},{"mongodb-stitch-core-sdk":182,"whatwg-fetch":234}],122:[function(require,module,exports){
+},{"mongodb-stitch-core-sdk":272,"whatwg-fetch":335}],212:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -70892,7 +73817,7 @@ var EventSourceEventStream = (function (_super) {
 }(mongodb_stitch_core_sdk_1.BaseEventStream));
 exports.default = EventSourceEventStream;
 
-},{"mongodb-stitch-core-sdk":182}],123:[function(require,module,exports){
+},{"mongodb-stitch-core-sdk":272}],213:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -70942,7 +73867,7 @@ exports.BrowserFetchTransport = BrowserFetchTransport_1.default;
 var Stitch_1 = __importDefault(require("./core/Stitch"));
 exports.Stitch = Stitch_1.default;
 
-},{"./core/Stitch":102,"./core/auth/providers/facebook/FacebookRedirectCredential":111,"./core/auth/providers/google/GoogleRedirectCredential":112,"./core/auth/providers/userapikey/UserApiKeyAuthProviderClient":113,"./core/auth/providers/userpassword/UserPasswordAuthProviderClient":115,"./core/internal/net/BrowserFetchTransport":121,"mongodb-stitch-core-sdk":182}],124:[function(require,module,exports){
+},{"./core/Stitch":192,"./core/auth/providers/facebook/FacebookRedirectCredential":201,"./core/auth/providers/google/GoogleRedirectCredential":202,"./core/auth/providers/userapikey/UserApiKeyAuthProviderClient":203,"./core/auth/providers/userpassword/UserPasswordAuthProviderClient":205,"./core/internal/net/BrowserFetchTransport":211,"mongodb-stitch-core-sdk":272}],214:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var StitchServiceClientImpl = (function () {
@@ -70959,7 +73884,7 @@ var StitchServiceClientImpl = (function () {
 }());
 exports.default = StitchServiceClientImpl;
 
-},{}],125:[function(require,module,exports){
+},{}],215:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -70968,7 +73893,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("mongodb-stitch-browser-core"));
 __export(require("mongodb-stitch-browser-services-mongodb-remote"));
 
-},{"mongodb-stitch-browser-core":123,"mongodb-stitch-browser-services-mongodb-remote":129}],126:[function(require,module,exports){
+},{"mongodb-stitch-browser-core":213,"mongodb-stitch-browser-services-mongodb-remote":219}],216:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -70988,7 +73913,7 @@ var RemoteMongoClient;
     }())();
 })(RemoteMongoClient = exports.RemoteMongoClient || (exports.RemoteMongoClient = {}));
 
-},{"./internal/RemoteMongoClientImpl":130,"mongodb-stitch-core-services-mongodb-remote":213}],127:[function(require,module,exports){
+},{"./internal/RemoteMongoClientImpl":220,"mongodb-stitch-core-services-mongodb-remote":303}],217:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var RemoteMongoCursor = (function () {
@@ -71002,7 +73927,7 @@ var RemoteMongoCursor = (function () {
 }());
 exports.default = RemoteMongoCursor;
 
-},{}],128:[function(require,module,exports){
+},{}],218:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -71029,7 +73954,7 @@ var RemoteMongoReadOperation = (function () {
 }());
 exports.default = RemoteMongoReadOperation;
 
-},{"./RemoteMongoCursor":127}],129:[function(require,module,exports){
+},{"./RemoteMongoCursor":217}],219:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -71042,7 +73967,7 @@ exports.RemoteMongoClient = RemoteMongoClient_1.RemoteMongoClient;
 var RemoteMongoReadOperation_1 = __importDefault(require("./RemoteMongoReadOperation"));
 exports.RemoteMongoReadOperation = RemoteMongoReadOperation_1.default;
 
-},{"./RemoteMongoClient":126,"./RemoteMongoReadOperation":128,"mongodb-stitch-core-services-mongodb-remote":213}],130:[function(require,module,exports){
+},{"./RemoteMongoClient":216,"./RemoteMongoReadOperation":218,"mongodb-stitch-core-services-mongodb-remote":303}],220:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -71060,7 +73985,7 @@ var RemoteMongoClientImpl = (function () {
 }());
 exports.default = RemoteMongoClientImpl;
 
-},{"./RemoteMongoDatabaseImpl":132}],131:[function(require,module,exports){
+},{"./RemoteMongoDatabaseImpl":222}],221:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -71124,7 +74049,7 @@ var RemoteMongoCollectionImpl = (function () {
 }());
 exports.default = RemoteMongoCollectionImpl;
 
-},{"../RemoteMongoReadOperation":128}],132:[function(require,module,exports){
+},{"../RemoteMongoReadOperation":218}],222:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -71143,7 +74068,7 @@ var RemoteMongoDatabaseImpl = (function () {
 }());
 exports.default = RemoteMongoDatabaseImpl;
 
-},{"./RemoteMongoCollectionImpl":131}],133:[function(require,module,exports){
+},{"./RemoteMongoCollectionImpl":221}],223:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -71200,7 +74125,7 @@ exports.StitchAppClientConfiguration = StitchAppClientConfiguration;
 })(StitchAppClientConfiguration = exports.StitchAppClientConfiguration || (exports.StitchAppClientConfiguration = {}));
 exports.StitchAppClientConfiguration = StitchAppClientConfiguration;
 
-},{"./StitchClientConfiguration":135}],134:[function(require,module,exports){
+},{"./StitchClientConfiguration":225}],224:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var StitchAppClientInfo = (function () {
@@ -71214,7 +74139,7 @@ var StitchAppClientInfo = (function () {
 }());
 exports.default = StitchAppClientInfo;
 
-},{}],135:[function(require,module,exports){
+},{}],225:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var StitchClientConfiguration = (function () {
@@ -71265,7 +74190,7 @@ exports.StitchClientConfiguration = StitchClientConfiguration;
 })(StitchClientConfiguration = exports.StitchClientConfiguration || (exports.StitchClientConfiguration = {}));
 exports.StitchClientConfiguration = StitchClientConfiguration;
 
-},{}],136:[function(require,module,exports){
+},{}],226:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -71297,7 +74222,7 @@ var StitchClientError = (function (_super) {
 }(StitchError_1.default));
 exports.default = StitchClientError;
 
-},{"./StitchClientErrorCode":137,"./StitchError":138}],137:[function(require,module,exports){
+},{"./StitchClientErrorCode":227,"./StitchError":228}],227:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var _a;
@@ -71327,7 +74252,7 @@ exports.clientErrorCodeDescs = (_a = {},
     _a[StitchClientErrorCode.UnexpectedArguments] = "function does not accept arguments",
     _a);
 
-},{}],138:[function(require,module,exports){
+},{}],228:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -71358,7 +74283,7 @@ var StitchError = (function (_super) {
 }(_Error));
 exports.default = StitchError;
 
-},{}],139:[function(require,module,exports){
+},{}],229:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -71391,7 +74316,7 @@ var StitchRequestError = (function (_super) {
 }(StitchError_1.default));
 exports.default = StitchRequestError;
 
-},{"./StitchError":138,"./StitchRequestErrorCode":140}],140:[function(require,module,exports){
+},{"./StitchError":228,"./StitchRequestErrorCode":230}],230:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var _a;
@@ -71407,7 +74332,7 @@ exports.requestErrorCodeDescs = (_a = {},
     _a[StitchRequestErrorCode.ENCODING_ERROR] = "an error occurred while encoding a request for Stitch",
     _a);
 
-},{}],141:[function(require,module,exports){
+},{}],231:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -71439,7 +74364,7 @@ var StitchServiceError = (function (_super) {
 }(StitchError_1.default));
 exports.default = StitchServiceError;
 
-},{"./StitchError":138,"./StitchServiceErrorCode":142}],142:[function(require,module,exports){
+},{"./StitchError":228,"./StitchServiceErrorCode":232}],232:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var StitchServiceErrorCode;
@@ -71548,7 +74473,7 @@ function stitchServiceErrorCodeFromApi(code) {
 }
 exports.stitchServiceErrorCodeFromApi = stitchServiceErrorCodeFromApi;
 
-},{}],143:[function(require,module,exports){
+},{}],233:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -71646,7 +74571,7 @@ var Stream = (function () {
 }());
 exports.default = Stream;
 
-},{"./internal/net/Event":193,"./internal/net/StitchEvent":203}],144:[function(require,module,exports){
+},{"./internal/net/Event":283,"./internal/net/StitchEvent":293}],234:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var ProviderCapabilities = (function () {
@@ -71658,7 +74583,7 @@ var ProviderCapabilities = (function () {
 }());
 exports.default = ProviderCapabilities;
 
-},{}],145:[function(require,module,exports){
+},{}],235:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var StitchUserIdentity = (function () {
@@ -71670,7 +74595,7 @@ var StitchUserIdentity = (function () {
 }());
 exports.default = StitchUserIdentity;
 
-},{}],146:[function(require,module,exports){
+},{}],236:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var UserType;
@@ -71681,7 +74606,7 @@ var UserType;
 })(UserType || (UserType = {}));
 exports.default = UserType;
 
-},{}],147:[function(require,module,exports){
+},{}],237:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -71742,7 +74667,7 @@ var AccessTokenRefresher = (function () {
 }());
 exports.default = AccessTokenRefresher;
 
-},{"./JWT":153}],148:[function(require,module,exports){
+},{"./JWT":243}],238:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var AuthEventKind;
@@ -71756,7 +74681,7 @@ var AuthEventKind;
     AuthEventKind[AuthEventKind["UserRemoved"] = 6] = "UserRemoved";
 })(AuthEventKind = exports.AuthEventKind || (exports.AuthEventKind = {}));
 
-},{}],149:[function(require,module,exports){
+},{}],239:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var AuthInfo = (function () {
@@ -71825,7 +74750,7 @@ var AuthInfo = (function () {
 }());
 exports.default = AuthInfo;
 
-},{}],150:[function(require,module,exports){
+},{}],240:[function(require,module,exports){
 "use strict";
 var __values = (this && this.__values) || function (o) {
     var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
@@ -72437,7 +75362,7 @@ var CoreStitchAuth = (function () {
 }());
 exports.default = CoreStitchAuth;
 
-},{"../../StitchClientError":136,"../../StitchClientErrorCode":137,"../../StitchError":138,"../../StitchRequestError":139,"../../StitchRequestErrorCode":140,"../../StitchServiceError":141,"../../StitchServiceErrorCode":142,"../../Stream":143,"../../internal/common/StitchErrorUtils":186,"../../internal/net/Headers":194,"../../internal/net/Method":195,"../../internal/net/StitchAuthDocRequest":200,"../../internal/net/StitchAuthRequest":201,"../../internal/net/StitchDocRequest":202,"../internal/CoreStitchUserImpl":151,"../providers/anonymous/AnonymousAuthProvider":161,"../providers/internal/StitchAuthResponseCredential":172,"./AccessTokenRefresher":147,"./AuthEvent":148,"./AuthInfo":149,"./JWT":153,"./models/ApiAuthInfo":155,"./models/ApiCoreUserProfile":156,"./models/StoreAuthInfo":158,"bson":37}],151:[function(require,module,exports){
+},{"../../StitchClientError":226,"../../StitchClientErrorCode":227,"../../StitchError":228,"../../StitchRequestError":229,"../../StitchRequestErrorCode":230,"../../StitchServiceError":231,"../../StitchServiceErrorCode":232,"../../Stream":233,"../../internal/common/StitchErrorUtils":276,"../../internal/net/Headers":284,"../../internal/net/Method":285,"../../internal/net/StitchAuthDocRequest":290,"../../internal/net/StitchAuthRequest":291,"../../internal/net/StitchDocRequest":292,"../internal/CoreStitchUserImpl":241,"../providers/anonymous/AnonymousAuthProvider":251,"../providers/internal/StitchAuthResponseCredential":262,"./AccessTokenRefresher":237,"./AuthEvent":238,"./AuthInfo":239,"./JWT":243,"./models/ApiAuthInfo":245,"./models/ApiCoreUserProfile":246,"./models/StoreAuthInfo":248,"bson":37}],241:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -72481,7 +75406,7 @@ var CoreStitchUserImpl = (function () {
 }());
 exports.default = CoreStitchUserImpl;
 
-},{"./StitchUserProfileImpl":154}],152:[function(require,module,exports){
+},{"./StitchUserProfileImpl":244}],242:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var DeviceFields;
@@ -72495,7 +75420,7 @@ var DeviceFields;
 })(DeviceFields || (DeviceFields = {}));
 exports.default = DeviceFields;
 
-},{}],153:[function(require,module,exports){
+},{}],243:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Base64_1 = require("../../internal/common/Base64");
@@ -72527,7 +75452,7 @@ var JWT = (function () {
 }());
 exports.default = JWT;
 
-},{"../../internal/common/Base64":185}],154:[function(require,module,exports){
+},{"../../internal/common/Base64":275}],244:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var NAME = "name";
@@ -72625,7 +75550,7 @@ var StitchUserProfileImpl = (function () {
 }());
 exports.default = StitchUserProfileImpl;
 
-},{}],155:[function(require,module,exports){
+},{}],245:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -72670,7 +75595,7 @@ var ApiAuthInfo = (function (_super) {
 }(AuthInfo_1.default));
 exports.default = ApiAuthInfo;
 
-},{"../AuthInfo":149}],156:[function(require,module,exports){
+},{"../AuthInfo":239}],246:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -72718,7 +75643,7 @@ var ApiCoreUserProfile = (function (_super) {
 }(StitchUserProfileImpl_1.default));
 exports.default = ApiCoreUserProfile;
 
-},{"../../../internal/common/Assertions":184,"../StitchUserProfileImpl":154,"./ApiStitchUserIdentity":157}],157:[function(require,module,exports){
+},{"../../../internal/common/Assertions":274,"../StitchUserProfileImpl":244,"./ApiStitchUserIdentity":247}],247:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -72759,7 +75684,7 @@ var ApiStitchUserIdentity = (function (_super) {
 }(StitchUserIdentity_1.default));
 exports.default = ApiStitchUserIdentity;
 
-},{"../../StitchUserIdentity":145}],158:[function(require,module,exports){
+},{"../../StitchUserIdentity":235}],248:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -72882,7 +75807,7 @@ var StoreAuthInfo = (function (_super) {
 }(AuthInfo_1.default));
 exports.StoreAuthInfo = StoreAuthInfo;
 
-},{"../../../StitchClientError":136,"../../../StitchClientErrorCode":137,"../AuthInfo":149,"./StoreCoreUserProfile":159,"./StoreStitchUserIdentity":160}],159:[function(require,module,exports){
+},{"../../../StitchClientError":226,"../../../StitchClientErrorCode":227,"../AuthInfo":239,"./StoreCoreUserProfile":249,"./StoreStitchUserIdentity":250}],249:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -72934,7 +75859,7 @@ var StoreCoreUserProfile = (function (_super) {
 }(StitchUserProfileImpl_1.default));
 exports.default = StoreCoreUserProfile;
 
-},{"../StitchUserProfileImpl":154,"./StoreStitchUserIdentity":160}],160:[function(require,module,exports){
+},{"../StitchUserProfileImpl":244,"./StoreStitchUserIdentity":250}],250:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -72975,7 +75900,7 @@ var StoreStitchUserIdentity = (function (_super) {
 }(StitchUserIdentity_1.default));
 exports.default = StoreStitchUserIdentity;
 
-},{"../../StitchUserIdentity":145}],161:[function(require,module,exports){
+},{"../../StitchUserIdentity":235}],251:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var AnonymousAuthProvider = (function () {
@@ -72987,7 +75912,7 @@ var AnonymousAuthProvider = (function () {
 }());
 exports.default = AnonymousAuthProvider;
 
-},{}],162:[function(require,module,exports){
+},{}],252:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73007,7 +75932,7 @@ var AnonymousCredential = (function () {
 }());
 exports.default = AnonymousCredential;
 
-},{"../../ProviderCapabilities":144,"./AnonymousAuthProvider":161}],163:[function(require,module,exports){
+},{"../../ProviderCapabilities":234,"./AnonymousAuthProvider":251}],253:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var CustomAuthProvider = (function () {
@@ -73019,7 +75944,7 @@ var CustomAuthProvider = (function () {
 }());
 exports.default = CustomAuthProvider;
 
-},{}],164:[function(require,module,exports){
+},{}],254:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73045,7 +75970,7 @@ var CustomCredential = (function () {
 }());
 exports.default = CustomCredential;
 
-},{"../../ProviderCapabilities":144,"./CustomAuthProvider":163}],165:[function(require,module,exports){
+},{"../../ProviderCapabilities":234,"./CustomAuthProvider":253}],255:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var FacebookAuthProvider = (function () {
@@ -73057,7 +75982,7 @@ var FacebookAuthProvider = (function () {
 }());
 exports.default = FacebookAuthProvider;
 
-},{}],166:[function(require,module,exports){
+},{}],256:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73089,7 +76014,7 @@ var FacebookCredential = (function () {
 }());
 exports.default = FacebookCredential;
 
-},{"../../ProviderCapabilities":144,"./FacebookAuthProvider":165}],167:[function(require,module,exports){
+},{"../../ProviderCapabilities":234,"./FacebookAuthProvider":255}],257:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var FunctionAuthProvider = (function () {
@@ -73101,7 +76026,7 @@ var FunctionAuthProvider = (function () {
 }());
 exports.default = FunctionAuthProvider;
 
-},{}],168:[function(require,module,exports){
+},{}],258:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73127,7 +76052,7 @@ var FunctionCredential = (function () {
 }());
 exports.default = FunctionCredential;
 
-},{"../../ProviderCapabilities":144,"./FunctionAuthProvider":167}],169:[function(require,module,exports){
+},{"../../ProviderCapabilities":234,"./FunctionAuthProvider":257}],259:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var GoogleAuthProvider = (function () {
@@ -73139,7 +76064,7 @@ var GoogleAuthProvider = (function () {
 }());
 exports.default = GoogleAuthProvider;
 
-},{}],170:[function(require,module,exports){
+},{}],260:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73165,7 +76090,7 @@ var GoogleCredential = (function () {
 }());
 exports.default = GoogleCredential;
 
-},{"../../ProviderCapabilities":144,"./GoogleAuthProvider":169}],171:[function(require,module,exports){
+},{"../../ProviderCapabilities":234,"./GoogleAuthProvider":259}],261:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var CoreAuthProviderClient = (function () {
@@ -73178,7 +76103,7 @@ var CoreAuthProviderClient = (function () {
 }());
 exports.default = CoreAuthProviderClient;
 
-},{}],172:[function(require,module,exports){
+},{}],262:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var StitchAuthResponseCredential = (function () {
@@ -73192,7 +76117,7 @@ var StitchAuthResponseCredential = (function () {
 }());
 exports.default = StitchAuthResponseCredential;
 
-},{}],173:[function(require,module,exports){
+},{}],263:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var ServerApiKeyAuthProvider = (function () {
@@ -73204,7 +76129,7 @@ var ServerApiKeyAuthProvider = (function () {
 }());
 exports.default = ServerApiKeyAuthProvider;
 
-},{}],174:[function(require,module,exports){
+},{}],264:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73230,7 +76155,7 @@ var ServerApiKeyCredential = (function () {
 }());
 exports.default = ServerApiKeyCredential;
 
-},{"../../ProviderCapabilities":144,"./ServerApiKeyAuthProvider":173}],175:[function(require,module,exports){
+},{"../../ProviderCapabilities":234,"./ServerApiKeyAuthProvider":263}],265:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -73362,7 +76287,7 @@ var CoreUserApiKeyAuthProviderClient = (function (_super) {
 }(CoreAuthProviderClient_1.default));
 exports.default = CoreUserApiKeyAuthProviderClient;
 
-},{"../../../StitchRequestError":139,"../../../StitchRequestErrorCode":140,"../../../internal/common/StitchErrorUtils":186,"../../../internal/net/Method":195,"../../../internal/net/StitchAuthDocRequest":200,"../../../internal/net/StitchAuthRequest":201,"../internal/CoreAuthProviderClient":171,"./UserApiKeyAuthProvider":176,"./models/UserApiKey":178}],176:[function(require,module,exports){
+},{"../../../StitchRequestError":229,"../../../StitchRequestErrorCode":230,"../../../internal/common/StitchErrorUtils":276,"../../../internal/net/Method":285,"../../../internal/net/StitchAuthDocRequest":290,"../../../internal/net/StitchAuthRequest":291,"../internal/CoreAuthProviderClient":261,"./UserApiKeyAuthProvider":266,"./models/UserApiKey":268}],266:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var UserApiKeyAuthProvider = (function () {
@@ -73374,7 +76299,7 @@ var UserApiKeyAuthProvider = (function () {
 }());
 exports.default = UserApiKeyAuthProvider;
 
-},{}],177:[function(require,module,exports){
+},{}],267:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73402,7 +76327,7 @@ var UserApiKeyCredential = (function () {
 }());
 exports.default = UserApiKeyCredential;
 
-},{"../../ProviderCapabilities":144,"./UserApiKeyAuthProvider":176}],178:[function(require,module,exports){
+},{"../../ProviderCapabilities":234,"./UserApiKeyAuthProvider":266}],268:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73444,7 +76369,7 @@ var UserApiKey = (function () {
 }());
 exports.default = UserApiKey;
 
-},{"../../../../internal/common/Assertions":184,"bson":37}],179:[function(require,module,exports){
+},{"../../../../internal/common/Assertions":274,"bson":37}],269:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -73575,7 +76500,7 @@ var CoreUserPasswordAuthProviderClient = (function (_super) {
 }(CoreAuthProviderClient_1.default));
 exports.default = CoreUserPasswordAuthProviderClient;
 
-},{"../../../internal/net/Method":195,"../../../internal/net/StitchDocRequest":202,"../internal/CoreAuthProviderClient":171,"./UserPasswordAuthProvider":180}],180:[function(require,module,exports){
+},{"../../../internal/net/Method":285,"../../../internal/net/StitchDocRequest":292,"../internal/CoreAuthProviderClient":261,"./UserPasswordAuthProvider":270}],270:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var UserPasswordAuthProvider = (function () {
@@ -73587,7 +76512,7 @@ var UserPasswordAuthProvider = (function () {
 }());
 exports.default = UserPasswordAuthProvider;
 
-},{}],181:[function(require,module,exports){
+},{}],271:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73618,7 +76543,7 @@ var UserPasswordCredential = (function () {
 }());
 exports.default = UserPasswordCredential;
 
-},{"../../ProviderCapabilities":144,"./UserPasswordAuthProvider":180}],182:[function(require,module,exports){
+},{"../../ProviderCapabilities":234,"./UserPasswordAuthProvider":270}],272:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73751,7 +76676,7 @@ exports.StitchServiceErrorCode = StitchServiceErrorCode_1.StitchServiceErrorCode
 var Stream_1 = __importDefault(require("./Stream"));
 exports.Stream = Stream_1.default;
 
-},{"./StitchAppClientConfiguration":133,"./StitchAppClientInfo":134,"./StitchClientError":136,"./StitchClientErrorCode":137,"./StitchError":138,"./StitchRequestError":139,"./StitchRequestErrorCode":140,"./StitchServiceError":141,"./StitchServiceErrorCode":142,"./Stream":143,"./auth/StitchUserIdentity":145,"./auth/UserType":146,"./auth/internal/AuthEvent":148,"./auth/internal/AuthInfo":149,"./auth/internal/CoreStitchAuth":150,"./auth/internal/CoreStitchUserImpl":151,"./auth/internal/DeviceFields":152,"./auth/internal/StitchUserProfileImpl":154,"./auth/internal/models/ApiStitchUserIdentity":157,"./auth/providers/anonymous/AnonymousAuthProvider":161,"./auth/providers/anonymous/AnonymousCredential":162,"./auth/providers/custom/CustomAuthProvider":163,"./auth/providers/custom/CustomCredential":164,"./auth/providers/facebook/FacebookAuthProvider":165,"./auth/providers/facebook/FacebookCredential":166,"./auth/providers/function/FunctionAuthProvider":167,"./auth/providers/function/FunctionCredential":168,"./auth/providers/google/GoogleAuthProvider":169,"./auth/providers/google/GoogleCredential":170,"./auth/providers/internal/StitchAuthResponseCredential":172,"./auth/providers/serverapikey/ServerApiKeyAuthProvider":173,"./auth/providers/serverapikey/ServerApiKeyCredential":174,"./auth/providers/userapikey/CoreUserApiKeyAuthProviderClient":175,"./auth/providers/userapikey/UserApiKeyAuthProvider":176,"./auth/providers/userapikey/UserApiKeyCredential":177,"./auth/providers/userapikey/models/UserApiKey":178,"./auth/providers/userpass/CoreUserPasswordAuthProviderClient":179,"./auth/providers/userpass/UserPasswordAuthProvider":180,"./auth/providers/userpass/UserPasswordCredential":181,"./internal/CoreStitchAppClient":183,"./internal/common/Assertions":184,"./internal/common/Base64":185,"./internal/common/StitchErrorUtils":186,"./internal/common/Storage":187,"./internal/net/BaseEventStream":189,"./internal/net/BasicRequest":191,"./internal/net/ContentTypes":192,"./internal/net/Event":193,"./internal/net/Headers":194,"./internal/net/Method":195,"./internal/net/Response":196,"./internal/net/StitchAppAuthRoutes":197,"./internal/net/StitchAppRequestClient":198,"./internal/net/StitchAppRoutes":199,"./internal/net/StitchAuthRequest":201,"./internal/net/StitchEvent":203,"./internal/net/StitchRequestClient":205,"./services/internal/AuthRebindEvent":207,"./services/internal/CoreStitchServiceClientImpl":208,"./services/internal/RebindEvent":209,"./services/internal/StitchServiceRoutes":210,"bson":37}],183:[function(require,module,exports){
+},{"./StitchAppClientConfiguration":223,"./StitchAppClientInfo":224,"./StitchClientError":226,"./StitchClientErrorCode":227,"./StitchError":228,"./StitchRequestError":229,"./StitchRequestErrorCode":230,"./StitchServiceError":231,"./StitchServiceErrorCode":232,"./Stream":233,"./auth/StitchUserIdentity":235,"./auth/UserType":236,"./auth/internal/AuthEvent":238,"./auth/internal/AuthInfo":239,"./auth/internal/CoreStitchAuth":240,"./auth/internal/CoreStitchUserImpl":241,"./auth/internal/DeviceFields":242,"./auth/internal/StitchUserProfileImpl":244,"./auth/internal/models/ApiStitchUserIdentity":247,"./auth/providers/anonymous/AnonymousAuthProvider":251,"./auth/providers/anonymous/AnonymousCredential":252,"./auth/providers/custom/CustomAuthProvider":253,"./auth/providers/custom/CustomCredential":254,"./auth/providers/facebook/FacebookAuthProvider":255,"./auth/providers/facebook/FacebookCredential":256,"./auth/providers/function/FunctionAuthProvider":257,"./auth/providers/function/FunctionCredential":258,"./auth/providers/google/GoogleAuthProvider":259,"./auth/providers/google/GoogleCredential":260,"./auth/providers/internal/StitchAuthResponseCredential":262,"./auth/providers/serverapikey/ServerApiKeyAuthProvider":263,"./auth/providers/serverapikey/ServerApiKeyCredential":264,"./auth/providers/userapikey/CoreUserApiKeyAuthProviderClient":265,"./auth/providers/userapikey/UserApiKeyAuthProvider":266,"./auth/providers/userapikey/UserApiKeyCredential":267,"./auth/providers/userapikey/models/UserApiKey":268,"./auth/providers/userpass/CoreUserPasswordAuthProviderClient":269,"./auth/providers/userpass/UserPasswordAuthProvider":270,"./auth/providers/userpass/UserPasswordCredential":271,"./internal/CoreStitchAppClient":273,"./internal/common/Assertions":274,"./internal/common/Base64":275,"./internal/common/StitchErrorUtils":276,"./internal/common/Storage":277,"./internal/net/BaseEventStream":279,"./internal/net/BasicRequest":281,"./internal/net/ContentTypes":282,"./internal/net/Event":283,"./internal/net/Headers":284,"./internal/net/Method":285,"./internal/net/Response":286,"./internal/net/StitchAppAuthRoutes":287,"./internal/net/StitchAppRequestClient":288,"./internal/net/StitchAppRoutes":289,"./internal/net/StitchAuthRequest":291,"./internal/net/StitchEvent":293,"./internal/net/StitchRequestClient":295,"./services/internal/AuthRebindEvent":297,"./services/internal/CoreStitchServiceClientImpl":298,"./services/internal/RebindEvent":299,"./services/internal/StitchServiceRoutes":300,"bson":37}],273:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73770,7 +76695,7 @@ var CoreStitchAppClient = (function () {
 }());
 exports.default = CoreStitchAppClient;
 
-},{"../services/internal/CoreStitchServiceClientImpl":208}],184:[function(require,module,exports){
+},{"../services/internal/CoreStitchServiceClientImpl":298}],274:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Assertions = (function () {
@@ -73785,7 +76710,7 @@ var Assertions = (function () {
 }());
 exports.default = Assertions;
 
-},{}],185:[function(require,module,exports){
+},{}],275:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var base64_js_1 = require("base64-js");
@@ -73917,7 +76842,7 @@ function decodeUtf8Char(str) {
     }
 }
 
-},{"base64-js":36}],186:[function(require,module,exports){
+},{"base64-js":36}],276:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -73979,7 +76904,7 @@ function handleRichError(response, body) {
     throw new StitchServiceError_1.default(errorMsg, StitchServiceErrorCode_1.stitchServiceErrorCodeFromApi(errorCode));
 }
 
-},{"../../StitchError":138,"../../StitchRequestError":139,"../../StitchRequestErrorCode":140,"../../StitchServiceError":141,"../../StitchServiceErrorCode":142,"../net/ContentTypes":192,"../net/Headers":194}],187:[function(require,module,exports){
+},{"../../StitchError":228,"../../StitchRequestError":229,"../../StitchRequestErrorCode":230,"../../StitchServiceError":231,"../../StitchServiceErrorCode":232,"../net/ContentTypes":282,"../net/Headers":284}],277:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var MemoryStorage = (function () {
@@ -74000,7 +76925,7 @@ var MemoryStorage = (function () {
 }());
 exports.MemoryStorage = MemoryStorage;
 
-},{}],188:[function(require,module,exports){
+},{}],278:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Fields;
@@ -74030,7 +76955,7 @@ var ApiAppMetadata = (function () {
 }());
 exports.default = ApiAppMetadata;
 
-},{}],189:[function(require,module,exports){
+},{}],279:[function(require,module,exports){
 "use strict";
 var __values = (this && this.__values) || function (o) {
     var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
@@ -74172,7 +77097,7 @@ var BaseEventStream = (function () {
 }());
 exports.default = BaseEventStream;
 
-},{"../../StitchError":138,"../../StitchRequestError":139,"./Event":193,"./StitchEvent":203}],190:[function(require,module,exports){
+},{"../../StitchError":228,"../../StitchRequestError":229,"./Event":283,"./StitchEvent":293}],280:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -74225,7 +77150,7 @@ var BaseStitchRequestClient = (function () {
 }());
 exports.default = BaseStitchRequestClient;
 
-},{"../../StitchError":138,"../../StitchRequestError":139,"../../StitchRequestErrorCode":140,"../../internal/common/StitchErrorUtils":186,"./BasicRequest":191}],191:[function(require,module,exports){
+},{"../../StitchError":228,"../../StitchRequestError":229,"../../StitchRequestErrorCode":230,"../../internal/common/StitchErrorUtils":276,"./BasicRequest":281}],281:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var BasicRequest = (function () {
@@ -74280,7 +77205,7 @@ exports.BasicRequest = BasicRequest;
 })(BasicRequest = exports.BasicRequest || (exports.BasicRequest = {}));
 exports.BasicRequest = BasicRequest;
 
-},{}],192:[function(require,module,exports){
+},{}],282:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var ContentTypes = (function () {
@@ -74292,7 +77217,7 @@ var ContentTypes = (function () {
 }());
 exports.default = ContentTypes;
 
-},{}],193:[function(require,module,exports){
+},{}],283:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Event = (function () {
@@ -74305,7 +77230,7 @@ var Event = (function () {
 }());
 exports.default = Event;
 
-},{}],194:[function(require,module,exports){
+},{}],284:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Headers = (function () {
@@ -74325,7 +77250,7 @@ var Headers = (function () {
 }());
 exports.default = Headers;
 
-},{}],195:[function(require,module,exports){
+},{}],285:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Method;
@@ -74341,7 +77266,7 @@ var Method;
 })(Method || (Method = {}));
 exports.default = Method;
 
-},{}],196:[function(require,module,exports){
+},{}],286:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Response = (function () {
@@ -74358,7 +77283,7 @@ var Response = (function () {
 }());
 exports.default = Response;
 
-},{}],197:[function(require,module,exports){
+},{}],287:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var StitchRoutes_1 = require("./StitchRoutes");
@@ -74399,7 +77324,7 @@ var StitchAppAuthRoutes = (function () {
 }());
 exports.default = StitchAppAuthRoutes;
 
-},{"./StitchRoutes":206}],198:[function(require,module,exports){
+},{"./StitchRoutes":296}],288:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -74501,7 +77426,7 @@ var StitchAppRequestClient = (function (_super) {
 }(BaseStitchRequestClient_1.default));
 exports.default = StitchAppRequestClient;
 
-},{"./ApiAppMetadata":188,"./BaseStitchRequestClient":190,"./Method":195,"./StitchAppRoutes":199,"./StitchRequest":204,"bson":37}],199:[function(require,module,exports){
+},{"./ApiAppMetadata":278,"./BaseStitchRequestClient":280,"./Method":285,"./StitchAppRoutes":289,"./StitchRequest":294,"bson":37}],289:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -74522,7 +77447,7 @@ var StitchAppRoutes = (function () {
 }());
 exports.default = StitchAppRoutes;
 
-},{"../../services/internal/StitchServiceRoutes":210,"./StitchAppAuthRoutes":197,"./StitchRoutes":206}],200:[function(require,module,exports){
+},{"../../services/internal/StitchServiceRoutes":300,"./StitchAppAuthRoutes":287,"./StitchRoutes":296}],290:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -74597,7 +77522,7 @@ exports.StitchAuthDocRequest = StitchAuthDocRequest;
 })(StitchAuthDocRequest = exports.StitchAuthDocRequest || (exports.StitchAuthDocRequest = {}));
 exports.StitchAuthDocRequest = StitchAuthDocRequest;
 
-},{"./ContentTypes":192,"./Headers":194,"./StitchAuthRequest":201,"bson":37}],201:[function(require,module,exports){
+},{"./ContentTypes":282,"./Headers":284,"./StitchAuthRequest":291,"bson":37}],291:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -74661,7 +77586,7 @@ exports.StitchAuthRequest = StitchAuthRequest;
 })(StitchAuthRequest = exports.StitchAuthRequest || (exports.StitchAuthRequest = {}));
 exports.StitchAuthRequest = StitchAuthRequest;
 
-},{"./StitchRequest":204}],202:[function(require,module,exports){
+},{"./StitchRequest":294}],292:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -74729,7 +77654,7 @@ exports.StitchDocRequest = StitchDocRequest;
 })(StitchDocRequest = exports.StitchDocRequest || (exports.StitchDocRequest = {}));
 exports.StitchDocRequest = StitchDocRequest;
 
-},{"./ContentTypes":192,"./Headers":194,"./StitchRequest":204,"bson":37}],203:[function(require,module,exports){
+},{"./ContentTypes":282,"./Headers":284,"./StitchRequest":294,"bson":37}],293:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -74816,7 +77741,7 @@ var ErrorFields;
     ErrorFields["ErrorCode"] = "error_code";
 })(ErrorFields || (ErrorFields = {}));
 
-},{"../../StitchServiceError":141,"../../StitchServiceErrorCode":142,"./Event":193,"bson":37}],204:[function(require,module,exports){
+},{"../../StitchServiceError":231,"../../StitchServiceErrorCode":232,"./Event":283,"bson":37}],294:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var StitchRequest = (function () {
@@ -74882,7 +77807,7 @@ exports.StitchRequest = StitchRequest;
 })(StitchRequest = exports.StitchRequest || (exports.StitchRequest = {}));
 exports.StitchRequest = StitchRequest;
 
-},{}],205:[function(require,module,exports){
+},{}],295:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -74918,7 +77843,7 @@ var StitchRequestClient = (function (_super) {
 }(BaseStitchRequestClient_1.default));
 exports.default = StitchRequestClient;
 
-},{"./BaseStitchRequestClient":190}],206:[function(require,module,exports){
+},{"./BaseStitchRequestClient":280}],296:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var BASE_ROUTE = "/api/client/v2.0";
@@ -74936,7 +77861,7 @@ function getAppMetadataRoute(clientAppId) {
 }
 exports.getAppMetadataRoute = getAppMetadataRoute;
 
-},{}],207:[function(require,module,exports){
+},{}],297:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -74962,7 +77887,7 @@ var AuthRebindEvent = (function (_super) {
 }(RebindEvent_1.RebindEvent));
 exports.default = AuthRebindEvent;
 
-},{"./RebindEvent":209}],208:[function(require,module,exports){
+},{"./RebindEvent":299}],298:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -75051,7 +77976,7 @@ var CoreStitchServiceClientImpl = (function () {
 }());
 exports.default = CoreStitchServiceClientImpl;
 
-},{"../../auth/internal/AuthEvent":148,"../../internal/common/Base64":185,"../../internal/net/Method":195,"../../internal/net/StitchAuthDocRequest":200,"../../internal/net/StitchAuthRequest":201,"./RebindEvent":209,"bson":37}],209:[function(require,module,exports){
+},{"../../auth/internal/AuthEvent":238,"../../internal/common/Base64":275,"../../internal/net/Method":285,"../../internal/net/StitchAuthDocRequest":290,"../../internal/net/StitchAuthRequest":291,"./RebindEvent":299,"bson":37}],299:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var RebindEvent = (function () {
@@ -75065,7 +77990,7 @@ var RebindEventType;
     RebindEventType[RebindEventType["AUTH_EVENT"] = 0] = "AUTH_EVENT";
 })(RebindEventType = exports.RebindEventType || (exports.RebindEventType = {}));
 
-},{}],210:[function(require,module,exports){
+},{}],300:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var StitchRoutes_1 = require("../../internal/net/StitchRoutes");
@@ -75078,7 +78003,7 @@ var StitchServiceRoutes = (function () {
 }());
 exports.default = StitchServiceRoutes;
 
-},{"../../internal/net/StitchRoutes":206}],211:[function(require,module,exports){
+},{"../../internal/net/StitchRoutes":296}],301:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var OperationType;
@@ -75105,7 +78030,7 @@ function operationTypeFromRemote(type) {
 }
 exports.operationTypeFromRemote = operationTypeFromRemote;
 
-},{}],212:[function(require,module,exports){
+},{}],302:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var RemoteInsertManyResult = (function () {
@@ -75120,7 +78045,7 @@ var RemoteInsertManyResult = (function () {
 }());
 exports.default = RemoteInsertManyResult;
 
-},{}],213:[function(require,module,exports){
+},{}],303:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -75139,7 +78064,7 @@ exports.OperationType = OperationType_1.OperationType;
 var RemoteInsertManyResult_1 = __importDefault(require("./RemoteInsertManyResult"));
 exports.RemoteInsertManyResult = RemoteInsertManyResult_1.default;
 
-},{"./OperationType":211,"./RemoteInsertManyResult":212,"./internal/CoreRemoteMongoClientImpl":214,"./internal/CoreRemoteMongoCollectionImpl":215,"./internal/CoreRemoteMongoDatabaseImpl":216,"./internal/CoreRemoteMongoReadOperation":217}],214:[function(require,module,exports){
+},{"./OperationType":301,"./RemoteInsertManyResult":302,"./internal/CoreRemoteMongoClientImpl":304,"./internal/CoreRemoteMongoCollectionImpl":305,"./internal/CoreRemoteMongoDatabaseImpl":306,"./internal/CoreRemoteMongoReadOperation":307}],304:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -75157,7 +78082,7 @@ var CoreRemoteMongoClientImpl = (function () {
 }());
 exports.default = CoreRemoteMongoClientImpl;
 
-},{"./CoreRemoteMongoDatabaseImpl":216}],215:[function(require,module,exports){
+},{"./CoreRemoteMongoDatabaseImpl":306}],305:[function(require,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || Object.assign || function(t) {
     for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -75361,7 +78286,7 @@ var CoreRemoteMongoCollectionImpl = (function () {
 }());
 exports.default = CoreRemoteMongoCollectionImpl;
 
-},{"./CoreRemoteMongoReadOperation":217,"./ResultDecoders":218,"bson":37}],216:[function(require,module,exports){
+},{"./CoreRemoteMongoReadOperation":307,"./ResultDecoders":308,"bson":37}],306:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -75380,7 +78305,7 @@ var CoreRemoteMongoDatabaseImpl = (function () {
 }());
 exports.default = CoreRemoteMongoDatabaseImpl;
 
-},{"./CoreRemoteMongoCollectionImpl":215}],217:[function(require,module,exports){
+},{"./CoreRemoteMongoCollectionImpl":305}],307:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var CoreRemoteMongoReadOperation = (function () {
@@ -75421,7 +78346,7 @@ var CoreRemoteMongoReadOperation = (function () {
 }());
 exports.default = CoreRemoteMongoReadOperation;
 
-},{}],218:[function(require,module,exports){
+},{}],308:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -75618,7 +78543,7 @@ var ResultDecoders = (function () {
 }());
 exports.default = ResultDecoders;
 
-},{"../OperationType":211,"../RemoteInsertManyResult":212,"mongodb-stitch-core-sdk":182}],219:[function(require,module,exports){
+},{"../OperationType":301,"../RemoteInsertManyResult":302,"mongodb-stitch-core-sdk":272}],309:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -75710,7 +78635,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],220:[function(require,module,exports){
+},{}],310:[function(require,module,exports){
 /**
  * Obliterator Combinations Function
  * ==================================
@@ -75788,7 +78713,7 @@ module.exports = function combinations(array, r) {
   });
 };
 
-},{"./iterator.js":221}],221:[function(require,module,exports){
+},{"./iterator.js":311}],311:[function(require,module,exports){
 /**
  * Obliterator Iterator Class
  * ===========================
@@ -75894,7 +78819,7 @@ Iterator.is = function(value) {
  */
 module.exports = Iterator;
 
-},{}],222:[function(require,module,exports){
+},{}],312:[function(require,module,exports){
 'use strict'
 
 function parseURI (str, opts) {
@@ -75945,7 +78870,7 @@ function parseURI (str, opts) {
 
 module.exports = parseURI
 
-},{}],223:[function(require,module,exports){
+},{}],313:[function(require,module,exports){
 /*!
  * pixi.js - v5.3.3
  * Compiled Tue, 04 Aug 2020 16:23:09 UTC
@@ -77511,7 +80436,7 @@ exports.filters = filters;
 exports.useDeprecated = useDeprecated;
 
 
-},{"@pixi/accessibility":2,"@pixi/app":3,"@pixi/constants":4,"@pixi/core":5,"@pixi/display":6,"@pixi/extract":7,"@pixi/filter-alpha":8,"@pixi/filter-blur":9,"@pixi/filter-color-matrix":10,"@pixi/filter-displacement":11,"@pixi/filter-fxaa":12,"@pixi/filter-noise":13,"@pixi/graphics":14,"@pixi/interaction":15,"@pixi/loaders":16,"@pixi/math":17,"@pixi/mesh":19,"@pixi/mesh-extras":18,"@pixi/mixin-cache-as-bitmap":20,"@pixi/mixin-get-child-by-name":21,"@pixi/mixin-get-global-position":22,"@pixi/particles":23,"@pixi/polyfill":24,"@pixi/prepare":25,"@pixi/runner":26,"@pixi/settings":27,"@pixi/sprite":30,"@pixi/sprite-animated":28,"@pixi/sprite-tiling":29,"@pixi/spritesheet":31,"@pixi/text":33,"@pixi/text-bitmap":32,"@pixi/ticker":34,"@pixi/utils":35}],224:[function(require,module,exports){
+},{"@pixi/accessibility":2,"@pixi/app":3,"@pixi/constants":4,"@pixi/core":5,"@pixi/display":6,"@pixi/extract":7,"@pixi/filter-alpha":8,"@pixi/filter-blur":9,"@pixi/filter-color-matrix":10,"@pixi/filter-displacement":11,"@pixi/filter-fxaa":12,"@pixi/filter-noise":13,"@pixi/graphics":14,"@pixi/interaction":15,"@pixi/loaders":16,"@pixi/math":17,"@pixi/mesh":19,"@pixi/mesh-extras":18,"@pixi/mixin-cache-as-bitmap":20,"@pixi/mixin-get-child-by-name":21,"@pixi/mixin-get-global-position":22,"@pixi/particles":23,"@pixi/polyfill":24,"@pixi/prepare":25,"@pixi/runner":26,"@pixi/settings":27,"@pixi/sprite":30,"@pixi/sprite-animated":28,"@pixi/sprite-tiling":29,"@pixi/spritesheet":31,"@pixi/text":33,"@pixi/text-bitmap":32,"@pixi/ticker":34,"@pixi/utils":35}],314:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -77697,7 +80622,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],225:[function(require,module,exports){
+},{}],315:[function(require,module,exports){
 (function (global){(function (){
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 ;(function(root) {
@@ -78234,7 +81159,837 @@ process.umask = function() { return 0; };
 }(this));
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],226:[function(require,module,exports){
+},{}],316:[function(require,module,exports){
+'use strict';
+
+var replace = String.prototype.replace;
+var percentTwenties = /%20/g;
+
+var Format = {
+    RFC1738: 'RFC1738',
+    RFC3986: 'RFC3986'
+};
+
+module.exports = {
+    'default': Format.RFC3986,
+    formatters: {
+        RFC1738: function (value) {
+            return replace.call(value, percentTwenties, '+');
+        },
+        RFC3986: function (value) {
+            return String(value);
+        }
+    },
+    RFC1738: Format.RFC1738,
+    RFC3986: Format.RFC3986
+};
+
+},{}],317:[function(require,module,exports){
+'use strict';
+
+var stringify = require('./stringify');
+var parse = require('./parse');
+var formats = require('./formats');
+
+module.exports = {
+    formats: formats,
+    parse: parse,
+    stringify: stringify
+};
+
+},{"./formats":316,"./parse":318,"./stringify":319}],318:[function(require,module,exports){
+'use strict';
+
+var utils = require('./utils');
+
+var has = Object.prototype.hasOwnProperty;
+var isArray = Array.isArray;
+
+var defaults = {
+    allowDots: false,
+    allowPrototypes: false,
+    arrayLimit: 20,
+    charset: 'utf-8',
+    charsetSentinel: false,
+    comma: false,
+    decoder: utils.decode,
+    delimiter: '&',
+    depth: 5,
+    ignoreQueryPrefix: false,
+    interpretNumericEntities: false,
+    parameterLimit: 1000,
+    parseArrays: true,
+    plainObjects: false,
+    strictNullHandling: false
+};
+
+var interpretNumericEntities = function (str) {
+    return str.replace(/&#(\d+);/g, function ($0, numberStr) {
+        return String.fromCharCode(parseInt(numberStr, 10));
+    });
+};
+
+var parseArrayValue = function (val, options) {
+    if (val && typeof val === 'string' && options.comma && val.indexOf(',') > -1) {
+        return val.split(',');
+    }
+
+    return val;
+};
+
+// This is what browsers will submit when the ✓ character occurs in an
+// application/x-www-form-urlencoded body and the encoding of the page containing
+// the form is iso-8859-1, or when the submitted form has an accept-charset
+// attribute of iso-8859-1. Presumably also with other charsets that do not contain
+// the ✓ character, such as us-ascii.
+var isoSentinel = 'utf8=%26%2310003%3B'; // encodeURIComponent('&#10003;')
+
+// These are the percent-encoded utf-8 octets representing a checkmark, indicating that the request actually is utf-8 encoded.
+var charsetSentinel = 'utf8=%E2%9C%93'; // encodeURIComponent('✓')
+
+var parseValues = function parseQueryStringValues(str, options) {
+    var obj = {};
+    var cleanStr = options.ignoreQueryPrefix ? str.replace(/^\?/, '') : str;
+    var limit = options.parameterLimit === Infinity ? undefined : options.parameterLimit;
+    var parts = cleanStr.split(options.delimiter, limit);
+    var skipIndex = -1; // Keep track of where the utf8 sentinel was found
+    var i;
+
+    var charset = options.charset;
+    if (options.charsetSentinel) {
+        for (i = 0; i < parts.length; ++i) {
+            if (parts[i].indexOf('utf8=') === 0) {
+                if (parts[i] === charsetSentinel) {
+                    charset = 'utf-8';
+                } else if (parts[i] === isoSentinel) {
+                    charset = 'iso-8859-1';
+                }
+                skipIndex = i;
+                i = parts.length; // The eslint settings do not allow break;
+            }
+        }
+    }
+
+    for (i = 0; i < parts.length; ++i) {
+        if (i === skipIndex) {
+            continue;
+        }
+        var part = parts[i];
+
+        var bracketEqualsPos = part.indexOf(']=');
+        var pos = bracketEqualsPos === -1 ? part.indexOf('=') : bracketEqualsPos + 1;
+
+        var key, val;
+        if (pos === -1) {
+            key = options.decoder(part, defaults.decoder, charset, 'key');
+            val = options.strictNullHandling ? null : '';
+        } else {
+            key = options.decoder(part.slice(0, pos), defaults.decoder, charset, 'key');
+            val = utils.maybeMap(
+                parseArrayValue(part.slice(pos + 1), options),
+                function (encodedVal) {
+                    return options.decoder(encodedVal, defaults.decoder, charset, 'value');
+                }
+            );
+        }
+
+        if (val && options.interpretNumericEntities && charset === 'iso-8859-1') {
+            val = interpretNumericEntities(val);
+        }
+
+        if (part.indexOf('[]=') > -1) {
+            val = isArray(val) ? [val] : val;
+        }
+
+        if (has.call(obj, key)) {
+            obj[key] = utils.combine(obj[key], val);
+        } else {
+            obj[key] = val;
+        }
+    }
+
+    return obj;
+};
+
+var parseObject = function (chain, val, options, valuesParsed) {
+    var leaf = valuesParsed ? val : parseArrayValue(val, options);
+
+    for (var i = chain.length - 1; i >= 0; --i) {
+        var obj;
+        var root = chain[i];
+
+        if (root === '[]' && options.parseArrays) {
+            obj = [].concat(leaf);
+        } else {
+            obj = options.plainObjects ? Object.create(null) : {};
+            var cleanRoot = root.charAt(0) === '[' && root.charAt(root.length - 1) === ']' ? root.slice(1, -1) : root;
+            var index = parseInt(cleanRoot, 10);
+            if (!options.parseArrays && cleanRoot === '') {
+                obj = { 0: leaf };
+            } else if (
+                !isNaN(index)
+                && root !== cleanRoot
+                && String(index) === cleanRoot
+                && index >= 0
+                && (options.parseArrays && index <= options.arrayLimit)
+            ) {
+                obj = [];
+                obj[index] = leaf;
+            } else {
+                obj[cleanRoot] = leaf;
+            }
+        }
+
+        leaf = obj;
+    }
+
+    return leaf;
+};
+
+var parseKeys = function parseQueryStringKeys(givenKey, val, options, valuesParsed) {
+    if (!givenKey) {
+        return;
+    }
+
+    // Transform dot notation to bracket notation
+    var key = options.allowDots ? givenKey.replace(/\.([^.[]+)/g, '[$1]') : givenKey;
+
+    // The regex chunks
+
+    var brackets = /(\[[^[\]]*])/;
+    var child = /(\[[^[\]]*])/g;
+
+    // Get the parent
+
+    var segment = options.depth > 0 && brackets.exec(key);
+    var parent = segment ? key.slice(0, segment.index) : key;
+
+    // Stash the parent if it exists
+
+    var keys = [];
+    if (parent) {
+        // If we aren't using plain objects, optionally prefix keys that would overwrite object prototype properties
+        if (!options.plainObjects && has.call(Object.prototype, parent)) {
+            if (!options.allowPrototypes) {
+                return;
+            }
+        }
+
+        keys.push(parent);
+    }
+
+    // Loop through children appending to the array until we hit depth
+
+    var i = 0;
+    while (options.depth > 0 && (segment = child.exec(key)) !== null && i < options.depth) {
+        i += 1;
+        if (!options.plainObjects && has.call(Object.prototype, segment[1].slice(1, -1))) {
+            if (!options.allowPrototypes) {
+                return;
+            }
+        }
+        keys.push(segment[1]);
+    }
+
+    // If there's a remainder, just add whatever is left
+
+    if (segment) {
+        keys.push('[' + key.slice(segment.index) + ']');
+    }
+
+    return parseObject(keys, val, options, valuesParsed);
+};
+
+var normalizeParseOptions = function normalizeParseOptions(opts) {
+    if (!opts) {
+        return defaults;
+    }
+
+    if (opts.decoder !== null && opts.decoder !== undefined && typeof opts.decoder !== 'function') {
+        throw new TypeError('Decoder has to be a function.');
+    }
+
+    if (typeof opts.charset !== 'undefined' && opts.charset !== 'utf-8' && opts.charset !== 'iso-8859-1') {
+        throw new TypeError('The charset option must be either utf-8, iso-8859-1, or undefined');
+    }
+    var charset = typeof opts.charset === 'undefined' ? defaults.charset : opts.charset;
+
+    return {
+        allowDots: typeof opts.allowDots === 'undefined' ? defaults.allowDots : !!opts.allowDots,
+        allowPrototypes: typeof opts.allowPrototypes === 'boolean' ? opts.allowPrototypes : defaults.allowPrototypes,
+        arrayLimit: typeof opts.arrayLimit === 'number' ? opts.arrayLimit : defaults.arrayLimit,
+        charset: charset,
+        charsetSentinel: typeof opts.charsetSentinel === 'boolean' ? opts.charsetSentinel : defaults.charsetSentinel,
+        comma: typeof opts.comma === 'boolean' ? opts.comma : defaults.comma,
+        decoder: typeof opts.decoder === 'function' ? opts.decoder : defaults.decoder,
+        delimiter: typeof opts.delimiter === 'string' || utils.isRegExp(opts.delimiter) ? opts.delimiter : defaults.delimiter,
+        // eslint-disable-next-line no-implicit-coercion, no-extra-parens
+        depth: (typeof opts.depth === 'number' || opts.depth === false) ? +opts.depth : defaults.depth,
+        ignoreQueryPrefix: opts.ignoreQueryPrefix === true,
+        interpretNumericEntities: typeof opts.interpretNumericEntities === 'boolean' ? opts.interpretNumericEntities : defaults.interpretNumericEntities,
+        parameterLimit: typeof opts.parameterLimit === 'number' ? opts.parameterLimit : defaults.parameterLimit,
+        parseArrays: opts.parseArrays !== false,
+        plainObjects: typeof opts.plainObjects === 'boolean' ? opts.plainObjects : defaults.plainObjects,
+        strictNullHandling: typeof opts.strictNullHandling === 'boolean' ? opts.strictNullHandling : defaults.strictNullHandling
+    };
+};
+
+module.exports = function (str, opts) {
+    var options = normalizeParseOptions(opts);
+
+    if (str === '' || str === null || typeof str === 'undefined') {
+        return options.plainObjects ? Object.create(null) : {};
+    }
+
+    var tempObj = typeof str === 'string' ? parseValues(str, options) : str;
+    var obj = options.plainObjects ? Object.create(null) : {};
+
+    // Iterate over the keys and setup the new object
+
+    var keys = Object.keys(tempObj);
+    for (var i = 0; i < keys.length; ++i) {
+        var key = keys[i];
+        var newObj = parseKeys(key, tempObj[key], options, typeof str === 'string');
+        obj = utils.merge(obj, newObj, options);
+    }
+
+    return utils.compact(obj);
+};
+
+},{"./utils":320}],319:[function(require,module,exports){
+'use strict';
+
+var utils = require('./utils');
+var formats = require('./formats');
+var has = Object.prototype.hasOwnProperty;
+
+var arrayPrefixGenerators = {
+    brackets: function brackets(prefix) {
+        return prefix + '[]';
+    },
+    comma: 'comma',
+    indices: function indices(prefix, key) {
+        return prefix + '[' + key + ']';
+    },
+    repeat: function repeat(prefix) {
+        return prefix;
+    }
+};
+
+var isArray = Array.isArray;
+var push = Array.prototype.push;
+var pushToArray = function (arr, valueOrArray) {
+    push.apply(arr, isArray(valueOrArray) ? valueOrArray : [valueOrArray]);
+};
+
+var toISO = Date.prototype.toISOString;
+
+var defaultFormat = formats['default'];
+var defaults = {
+    addQueryPrefix: false,
+    allowDots: false,
+    charset: 'utf-8',
+    charsetSentinel: false,
+    delimiter: '&',
+    encode: true,
+    encoder: utils.encode,
+    encodeValuesOnly: false,
+    format: defaultFormat,
+    formatter: formats.formatters[defaultFormat],
+    // deprecated
+    indices: false,
+    serializeDate: function serializeDate(date) {
+        return toISO.call(date);
+    },
+    skipNulls: false,
+    strictNullHandling: false
+};
+
+var isNonNullishPrimitive = function isNonNullishPrimitive(v) {
+    return typeof v === 'string'
+        || typeof v === 'number'
+        || typeof v === 'boolean'
+        || typeof v === 'symbol'
+        || typeof v === 'bigint';
+};
+
+var stringify = function stringify(
+    object,
+    prefix,
+    generateArrayPrefix,
+    strictNullHandling,
+    skipNulls,
+    encoder,
+    filter,
+    sort,
+    allowDots,
+    serializeDate,
+    format,
+    formatter,
+    encodeValuesOnly,
+    charset
+) {
+    var obj = object;
+    if (typeof filter === 'function') {
+        obj = filter(prefix, obj);
+    } else if (obj instanceof Date) {
+        obj = serializeDate(obj);
+    } else if (generateArrayPrefix === 'comma' && isArray(obj)) {
+        obj = utils.maybeMap(obj, function (value) {
+            if (value instanceof Date) {
+                return serializeDate(value);
+            }
+            return value;
+        });
+    }
+
+    if (obj === null) {
+        if (strictNullHandling) {
+            return encoder && !encodeValuesOnly ? encoder(prefix, defaults.encoder, charset, 'key', format) : prefix;
+        }
+
+        obj = '';
+    }
+
+    if (isNonNullishPrimitive(obj) || utils.isBuffer(obj)) {
+        if (encoder) {
+            var keyValue = encodeValuesOnly ? prefix : encoder(prefix, defaults.encoder, charset, 'key', format);
+            return [formatter(keyValue) + '=' + formatter(encoder(obj, defaults.encoder, charset, 'value', format))];
+        }
+        return [formatter(prefix) + '=' + formatter(String(obj))];
+    }
+
+    var values = [];
+
+    if (typeof obj === 'undefined') {
+        return values;
+    }
+
+    var objKeys;
+    if (generateArrayPrefix === 'comma' && isArray(obj)) {
+        // we need to join elements in
+        objKeys = [{ value: obj.length > 0 ? obj.join(',') || null : undefined }];
+    } else if (isArray(filter)) {
+        objKeys = filter;
+    } else {
+        var keys = Object.keys(obj);
+        objKeys = sort ? keys.sort(sort) : keys;
+    }
+
+    for (var i = 0; i < objKeys.length; ++i) {
+        var key = objKeys[i];
+        var value = typeof key === 'object' && key.value !== undefined ? key.value : obj[key];
+
+        if (skipNulls && value === null) {
+            continue;
+        }
+
+        var keyPrefix = isArray(obj)
+            ? typeof generateArrayPrefix === 'function' ? generateArrayPrefix(prefix, key) : prefix
+            : prefix + (allowDots ? '.' + key : '[' + key + ']');
+
+        pushToArray(values, stringify(
+            value,
+            keyPrefix,
+            generateArrayPrefix,
+            strictNullHandling,
+            skipNulls,
+            encoder,
+            filter,
+            sort,
+            allowDots,
+            serializeDate,
+            format,
+            formatter,
+            encodeValuesOnly,
+            charset
+        ));
+    }
+
+    return values;
+};
+
+var normalizeStringifyOptions = function normalizeStringifyOptions(opts) {
+    if (!opts) {
+        return defaults;
+    }
+
+    if (opts.encoder !== null && opts.encoder !== undefined && typeof opts.encoder !== 'function') {
+        throw new TypeError('Encoder has to be a function.');
+    }
+
+    var charset = opts.charset || defaults.charset;
+    if (typeof opts.charset !== 'undefined' && opts.charset !== 'utf-8' && opts.charset !== 'iso-8859-1') {
+        throw new TypeError('The charset option must be either utf-8, iso-8859-1, or undefined');
+    }
+
+    var format = formats['default'];
+    if (typeof opts.format !== 'undefined') {
+        if (!has.call(formats.formatters, opts.format)) {
+            throw new TypeError('Unknown format option provided.');
+        }
+        format = opts.format;
+    }
+    var formatter = formats.formatters[format];
+
+    var filter = defaults.filter;
+    if (typeof opts.filter === 'function' || isArray(opts.filter)) {
+        filter = opts.filter;
+    }
+
+    return {
+        addQueryPrefix: typeof opts.addQueryPrefix === 'boolean' ? opts.addQueryPrefix : defaults.addQueryPrefix,
+        allowDots: typeof opts.allowDots === 'undefined' ? defaults.allowDots : !!opts.allowDots,
+        charset: charset,
+        charsetSentinel: typeof opts.charsetSentinel === 'boolean' ? opts.charsetSentinel : defaults.charsetSentinel,
+        delimiter: typeof opts.delimiter === 'undefined' ? defaults.delimiter : opts.delimiter,
+        encode: typeof opts.encode === 'boolean' ? opts.encode : defaults.encode,
+        encoder: typeof opts.encoder === 'function' ? opts.encoder : defaults.encoder,
+        encodeValuesOnly: typeof opts.encodeValuesOnly === 'boolean' ? opts.encodeValuesOnly : defaults.encodeValuesOnly,
+        filter: filter,
+        format: format,
+        formatter: formatter,
+        serializeDate: typeof opts.serializeDate === 'function' ? opts.serializeDate : defaults.serializeDate,
+        skipNulls: typeof opts.skipNulls === 'boolean' ? opts.skipNulls : defaults.skipNulls,
+        sort: typeof opts.sort === 'function' ? opts.sort : null,
+        strictNullHandling: typeof opts.strictNullHandling === 'boolean' ? opts.strictNullHandling : defaults.strictNullHandling
+    };
+};
+
+module.exports = function (object, opts) {
+    var obj = object;
+    var options = normalizeStringifyOptions(opts);
+
+    var objKeys;
+    var filter;
+
+    if (typeof options.filter === 'function') {
+        filter = options.filter;
+        obj = filter('', obj);
+    } else if (isArray(options.filter)) {
+        filter = options.filter;
+        objKeys = filter;
+    }
+
+    var keys = [];
+
+    if (typeof obj !== 'object' || obj === null) {
+        return '';
+    }
+
+    var arrayFormat;
+    if (opts && opts.arrayFormat in arrayPrefixGenerators) {
+        arrayFormat = opts.arrayFormat;
+    } else if (opts && 'indices' in opts) {
+        arrayFormat = opts.indices ? 'indices' : 'repeat';
+    } else {
+        arrayFormat = 'indices';
+    }
+
+    var generateArrayPrefix = arrayPrefixGenerators[arrayFormat];
+
+    if (!objKeys) {
+        objKeys = Object.keys(obj);
+    }
+
+    if (options.sort) {
+        objKeys.sort(options.sort);
+    }
+
+    for (var i = 0; i < objKeys.length; ++i) {
+        var key = objKeys[i];
+
+        if (options.skipNulls && obj[key] === null) {
+            continue;
+        }
+        pushToArray(keys, stringify(
+            obj[key],
+            key,
+            generateArrayPrefix,
+            options.strictNullHandling,
+            options.skipNulls,
+            options.encode ? options.encoder : null,
+            options.filter,
+            options.sort,
+            options.allowDots,
+            options.serializeDate,
+            options.format,
+            options.formatter,
+            options.encodeValuesOnly,
+            options.charset
+        ));
+    }
+
+    var joined = keys.join(options.delimiter);
+    var prefix = options.addQueryPrefix === true ? '?' : '';
+
+    if (options.charsetSentinel) {
+        if (options.charset === 'iso-8859-1') {
+            // encodeURIComponent('&#10003;'), the "numeric entity" representation of a checkmark
+            prefix += 'utf8=%26%2310003%3B&';
+        } else {
+            // encodeURIComponent('✓')
+            prefix += 'utf8=%E2%9C%93&';
+        }
+    }
+
+    return joined.length > 0 ? prefix + joined : '';
+};
+
+},{"./formats":316,"./utils":320}],320:[function(require,module,exports){
+'use strict';
+
+var formats = require('./formats');
+
+var has = Object.prototype.hasOwnProperty;
+var isArray = Array.isArray;
+
+var hexTable = (function () {
+    var array = [];
+    for (var i = 0; i < 256; ++i) {
+        array.push('%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase());
+    }
+
+    return array;
+}());
+
+var compactQueue = function compactQueue(queue) {
+    while (queue.length > 1) {
+        var item = queue.pop();
+        var obj = item.obj[item.prop];
+
+        if (isArray(obj)) {
+            var compacted = [];
+
+            for (var j = 0; j < obj.length; ++j) {
+                if (typeof obj[j] !== 'undefined') {
+                    compacted.push(obj[j]);
+                }
+            }
+
+            item.obj[item.prop] = compacted;
+        }
+    }
+};
+
+var arrayToObject = function arrayToObject(source, options) {
+    var obj = options && options.plainObjects ? Object.create(null) : {};
+    for (var i = 0; i < source.length; ++i) {
+        if (typeof source[i] !== 'undefined') {
+            obj[i] = source[i];
+        }
+    }
+
+    return obj;
+};
+
+var merge = function merge(target, source, options) {
+    /* eslint no-param-reassign: 0 */
+    if (!source) {
+        return target;
+    }
+
+    if (typeof source !== 'object') {
+        if (isArray(target)) {
+            target.push(source);
+        } else if (target && typeof target === 'object') {
+            if ((options && (options.plainObjects || options.allowPrototypes)) || !has.call(Object.prototype, source)) {
+                target[source] = true;
+            }
+        } else {
+            return [target, source];
+        }
+
+        return target;
+    }
+
+    if (!target || typeof target !== 'object') {
+        return [target].concat(source);
+    }
+
+    var mergeTarget = target;
+    if (isArray(target) && !isArray(source)) {
+        mergeTarget = arrayToObject(target, options);
+    }
+
+    if (isArray(target) && isArray(source)) {
+        source.forEach(function (item, i) {
+            if (has.call(target, i)) {
+                var targetItem = target[i];
+                if (targetItem && typeof targetItem === 'object' && item && typeof item === 'object') {
+                    target[i] = merge(targetItem, item, options);
+                } else {
+                    target.push(item);
+                }
+            } else {
+                target[i] = item;
+            }
+        });
+        return target;
+    }
+
+    return Object.keys(source).reduce(function (acc, key) {
+        var value = source[key];
+
+        if (has.call(acc, key)) {
+            acc[key] = merge(acc[key], value, options);
+        } else {
+            acc[key] = value;
+        }
+        return acc;
+    }, mergeTarget);
+};
+
+var assign = function assignSingleSource(target, source) {
+    return Object.keys(source).reduce(function (acc, key) {
+        acc[key] = source[key];
+        return acc;
+    }, target);
+};
+
+var decode = function (str, decoder, charset) {
+    var strWithoutPlus = str.replace(/\+/g, ' ');
+    if (charset === 'iso-8859-1') {
+        // unescape never throws, no try...catch needed:
+        return strWithoutPlus.replace(/%[0-9a-f]{2}/gi, unescape);
+    }
+    // utf-8
+    try {
+        return decodeURIComponent(strWithoutPlus);
+    } catch (e) {
+        return strWithoutPlus;
+    }
+};
+
+var encode = function encode(str, defaultEncoder, charset, kind, format) {
+    // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
+    // It has been adapted here for stricter adherence to RFC 3986
+    if (str.length === 0) {
+        return str;
+    }
+
+    var string = str;
+    if (typeof str === 'symbol') {
+        string = Symbol.prototype.toString.call(str);
+    } else if (typeof str !== 'string') {
+        string = String(str);
+    }
+
+    if (charset === 'iso-8859-1') {
+        return escape(string).replace(/%u[0-9a-f]{4}/gi, function ($0) {
+            return '%26%23' + parseInt($0.slice(2), 16) + '%3B';
+        });
+    }
+
+    var out = '';
+    for (var i = 0; i < string.length; ++i) {
+        var c = string.charCodeAt(i);
+
+        if (
+            c === 0x2D // -
+            || c === 0x2E // .
+            || c === 0x5F // _
+            || c === 0x7E // ~
+            || (c >= 0x30 && c <= 0x39) // 0-9
+            || (c >= 0x41 && c <= 0x5A) // a-z
+            || (c >= 0x61 && c <= 0x7A) // A-Z
+            || (format === formats.RFC1738 && (c === 0x28 || c === 0x29)) // ( )
+        ) {
+            out += string.charAt(i);
+            continue;
+        }
+
+        if (c < 0x80) {
+            out = out + hexTable[c];
+            continue;
+        }
+
+        if (c < 0x800) {
+            out = out + (hexTable[0xC0 | (c >> 6)] + hexTable[0x80 | (c & 0x3F)]);
+            continue;
+        }
+
+        if (c < 0xD800 || c >= 0xE000) {
+            out = out + (hexTable[0xE0 | (c >> 12)] + hexTable[0x80 | ((c >> 6) & 0x3F)] + hexTable[0x80 | (c & 0x3F)]);
+            continue;
+        }
+
+        i += 1;
+        c = 0x10000 + (((c & 0x3FF) << 10) | (string.charCodeAt(i) & 0x3FF));
+        out += hexTable[0xF0 | (c >> 18)]
+            + hexTable[0x80 | ((c >> 12) & 0x3F)]
+            + hexTable[0x80 | ((c >> 6) & 0x3F)]
+            + hexTable[0x80 | (c & 0x3F)];
+    }
+
+    return out;
+};
+
+var compact = function compact(value) {
+    var queue = [{ obj: { o: value }, prop: 'o' }];
+    var refs = [];
+
+    for (var i = 0; i < queue.length; ++i) {
+        var item = queue[i];
+        var obj = item.obj[item.prop];
+
+        var keys = Object.keys(obj);
+        for (var j = 0; j < keys.length; ++j) {
+            var key = keys[j];
+            var val = obj[key];
+            if (typeof val === 'object' && val !== null && refs.indexOf(val) === -1) {
+                queue.push({ obj: obj, prop: key });
+                refs.push(val);
+            }
+        }
+    }
+
+    compactQueue(queue);
+
+    return value;
+};
+
+var isRegExp = function isRegExp(obj) {
+    return Object.prototype.toString.call(obj) === '[object RegExp]';
+};
+
+var isBuffer = function isBuffer(obj) {
+    if (!obj || typeof obj !== 'object') {
+        return false;
+    }
+
+    return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
+};
+
+var combine = function combine(a, b) {
+    return [].concat(a, b);
+};
+
+var maybeMap = function maybeMap(val, fn) {
+    if (isArray(val)) {
+        var mapped = [];
+        for (var i = 0; i < val.length; i += 1) {
+            mapped.push(fn(val[i]));
+        }
+        return mapped;
+    }
+    return fn(val);
+};
+
+module.exports = {
+    arrayToObject: arrayToObject,
+    assign: assign,
+    combine: combine,
+    compact: compact,
+    decode: decode,
+    encode: encode,
+    isBuffer: isBuffer,
+    isRegExp: isRegExp,
+    maybeMap: maybeMap,
+    merge: merge
+};
+
+},{"./formats":316}],321:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -78320,7 +82075,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],227:[function(require,module,exports){
+},{}],322:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -78407,13 +82162,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],228:[function(require,module,exports){
+},{}],323:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":226,"./encode":227}],229:[function(require,module,exports){
+},{"./decode":321,"./encode":322}],324:[function(require,module,exports){
 /*!
  * resource-loader - v3.0.1
  * https://github.com/pixijs/pixi-sound
@@ -80764,7 +84519,2112 @@ exports.encodeBinary = encodeBinary;
 exports.middleware = index;
 
 
-},{"mini-signals":101,"parse-uri":222}],230:[function(require,module,exports){
+},{"mini-signals":191,"parse-uri":312}],325:[function(require,module,exports){
+"use strict";
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function Agent() {
+  this._defaults = [];
+}
+
+['use', 'on', 'once', 'set', 'query', 'type', 'accept', 'auth', 'withCredentials', 'sortQuery', 'retry', 'ok', 'redirects', 'timeout', 'buffer', 'serialize', 'parse', 'ca', 'key', 'pfx', 'cert', 'disableTLSCerts'].forEach(function (fn) {
+  // Default setting for all requests from this agent
+  Agent.prototype[fn] = function () {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    this._defaults.push({
+      fn: fn,
+      args: args
+    });
+
+    return this;
+  };
+});
+
+Agent.prototype._setDefaults = function (req) {
+  this._defaults.forEach(function (def) {
+    req[def.fn].apply(req, _toConsumableArray(def.args));
+  });
+};
+
+module.exports = Agent;
+
+},{}],326:[function(require,module,exports){
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+/**
+ * Root reference for iframes.
+ */
+var root;
+
+if (typeof window !== 'undefined') {
+  // Browser window
+  root = window;
+} else if (typeof self === 'undefined') {
+  // Other environments
+  console.warn('Using browser-only version of superagent in non-browser environment');
+  root = void 0;
+} else {
+  // Web Worker
+  root = self;
+}
+
+var Emitter = require('component-emitter');
+
+var safeStringify = require('fast-safe-stringify');
+
+var qs = require('qs');
+
+var RequestBase = require('./request-base');
+
+var isObject = require('./is-object');
+
+var ResponseBase = require('./response-base');
+
+var Agent = require('./agent-base');
+/**
+ * Noop.
+ */
+
+
+function noop() {}
+/**
+ * Expose `request`.
+ */
+
+
+module.exports = function (method, url) {
+  // callback
+  if (typeof url === 'function') {
+    return new exports.Request('GET', method).end(url);
+  } // url first
+
+
+  if (arguments.length === 1) {
+    return new exports.Request('GET', method);
+  }
+
+  return new exports.Request(method, url);
+};
+
+exports = module.exports;
+var request = exports;
+exports.Request = Request;
+/**
+ * Determine XHR.
+ */
+
+request.getXHR = function () {
+  if (root.XMLHttpRequest && (!root.location || root.location.protocol !== 'file:' || !root.ActiveXObject)) {
+    return new XMLHttpRequest();
+  }
+
+  try {
+    return new ActiveXObject('Microsoft.XMLHTTP');
+  } catch (_unused) {}
+
+  try {
+    return new ActiveXObject('Msxml2.XMLHTTP.6.0');
+  } catch (_unused2) {}
+
+  try {
+    return new ActiveXObject('Msxml2.XMLHTTP.3.0');
+  } catch (_unused3) {}
+
+  try {
+    return new ActiveXObject('Msxml2.XMLHTTP');
+  } catch (_unused4) {}
+
+  throw new Error('Browser-only version of superagent could not find XHR');
+};
+/**
+ * Removes leading and trailing whitespace, added to support IE.
+ *
+ * @param {String} s
+ * @return {String}
+ * @api private
+ */
+
+
+var trim = ''.trim ? function (s) {
+  return s.trim();
+} : function (s) {
+  return s.replace(/(^\s*|\s*$)/g, '');
+};
+/**
+ * Serialize the given `obj`.
+ *
+ * @param {Object} obj
+ * @return {String}
+ * @api private
+ */
+
+function serialize(obj) {
+  if (!isObject(obj)) return obj;
+  var pairs = [];
+
+  for (var key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) pushEncodedKeyValuePair(pairs, key, obj[key]);
+  }
+
+  return pairs.join('&');
+}
+/**
+ * Helps 'serialize' with serializing arrays.
+ * Mutates the pairs array.
+ *
+ * @param {Array} pairs
+ * @param {String} key
+ * @param {Mixed} val
+ */
+
+
+function pushEncodedKeyValuePair(pairs, key, val) {
+  if (val === undefined) return;
+
+  if (val === null) {
+    pairs.push(encodeURI(key));
+    return;
+  }
+
+  if (Array.isArray(val)) {
+    val.forEach(function (v) {
+      pushEncodedKeyValuePair(pairs, key, v);
+    });
+  } else if (isObject(val)) {
+    for (var subkey in val) {
+      if (Object.prototype.hasOwnProperty.call(val, subkey)) pushEncodedKeyValuePair(pairs, "".concat(key, "[").concat(subkey, "]"), val[subkey]);
+    }
+  } else {
+    pairs.push(encodeURI(key) + '=' + encodeURIComponent(val));
+  }
+}
+/**
+ * Expose serialization method.
+ */
+
+
+request.serializeObject = serialize;
+/**
+ * Parse the given x-www-form-urlencoded `str`.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+function parseString(str) {
+  var obj = {};
+  var pairs = str.split('&');
+  var pair;
+  var pos;
+
+  for (var i = 0, len = pairs.length; i < len; ++i) {
+    pair = pairs[i];
+    pos = pair.indexOf('=');
+
+    if (pos === -1) {
+      obj[decodeURIComponent(pair)] = '';
+    } else {
+      obj[decodeURIComponent(pair.slice(0, pos))] = decodeURIComponent(pair.slice(pos + 1));
+    }
+  }
+
+  return obj;
+}
+/**
+ * Expose parser.
+ */
+
+
+request.parseString = parseString;
+/**
+ * Default MIME type map.
+ *
+ *     superagent.types.xml = 'application/xml';
+ *
+ */
+
+request.types = {
+  html: 'text/html',
+  json: 'application/json',
+  xml: 'text/xml',
+  urlencoded: 'application/x-www-form-urlencoded',
+  form: 'application/x-www-form-urlencoded',
+  'form-data': 'application/x-www-form-urlencoded'
+};
+/**
+ * Default serialization map.
+ *
+ *     superagent.serialize['application/xml'] = function(obj){
+ *       return 'generated xml here';
+ *     };
+ *
+ */
+
+request.serialize = {
+  'application/x-www-form-urlencoded': qs.stringify,
+  'application/json': safeStringify
+};
+/**
+ * Default parsers.
+ *
+ *     superagent.parse['application/xml'] = function(str){
+ *       return { object parsed from str };
+ *     };
+ *
+ */
+
+request.parse = {
+  'application/x-www-form-urlencoded': parseString,
+  'application/json': JSON.parse
+};
+/**
+ * Parse the given header `str` into
+ * an object containing the mapped fields.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+function parseHeader(str) {
+  var lines = str.split(/\r?\n/);
+  var fields = {};
+  var index;
+  var line;
+  var field;
+  var val;
+
+  for (var i = 0, len = lines.length; i < len; ++i) {
+    line = lines[i];
+    index = line.indexOf(':');
+
+    if (index === -1) {
+      // could be empty line, just skip it
+      continue;
+    }
+
+    field = line.slice(0, index).toLowerCase();
+    val = trim(line.slice(index + 1));
+    fields[field] = val;
+  }
+
+  return fields;
+}
+/**
+ * Check if `mime` is json or has +json structured syntax suffix.
+ *
+ * @param {String} mime
+ * @return {Boolean}
+ * @api private
+ */
+
+
+function isJSON(mime) {
+  // should match /json or +json
+  // but not /json-seq
+  return /[/+]json($|[^-\w])/i.test(mime);
+}
+/**
+ * Initialize a new `Response` with the given `xhr`.
+ *
+ *  - set flags (.ok, .error, etc)
+ *  - parse header
+ *
+ * Examples:
+ *
+ *  Aliasing `superagent` as `request` is nice:
+ *
+ *      request = superagent;
+ *
+ *  We can use the promise-like API, or pass callbacks:
+ *
+ *      request.get('/').end(function(res){});
+ *      request.get('/', function(res){});
+ *
+ *  Sending data can be chained:
+ *
+ *      request
+ *        .post('/user')
+ *        .send({ name: 'tj' })
+ *        .end(function(res){});
+ *
+ *  Or passed to `.send()`:
+ *
+ *      request
+ *        .post('/user')
+ *        .send({ name: 'tj' }, function(res){});
+ *
+ *  Or passed to `.post()`:
+ *
+ *      request
+ *        .post('/user', { name: 'tj' })
+ *        .end(function(res){});
+ *
+ * Or further reduced to a single call for simple cases:
+ *
+ *      request
+ *        .post('/user', { name: 'tj' }, function(res){});
+ *
+ * @param {XMLHTTPRequest} xhr
+ * @param {Object} options
+ * @api private
+ */
+
+
+function Response(req) {
+  this.req = req;
+  this.xhr = this.req.xhr; // responseText is accessible only if responseType is '' or 'text' and on older browsers
+
+  this.text = this.req.method !== 'HEAD' && (this.xhr.responseType === '' || this.xhr.responseType === 'text') || typeof this.xhr.responseType === 'undefined' ? this.xhr.responseText : null;
+  this.statusText = this.req.xhr.statusText;
+  var status = this.xhr.status; // handle IE9 bug: http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
+
+  if (status === 1223) {
+    status = 204;
+  }
+
+  this._setStatusProperties(status);
+
+  this.headers = parseHeader(this.xhr.getAllResponseHeaders());
+  this.header = this.headers; // getAllResponseHeaders sometimes falsely returns "" for CORS requests, but
+  // getResponseHeader still works. so we get content-type even if getting
+  // other headers fails.
+
+  this.header['content-type'] = this.xhr.getResponseHeader('content-type');
+
+  this._setHeaderProperties(this.header);
+
+  if (this.text === null && req._responseType) {
+    this.body = this.xhr.response;
+  } else {
+    this.body = this.req.method === 'HEAD' ? null : this._parseBody(this.text ? this.text : this.xhr.response);
+  }
+} // eslint-disable-next-line new-cap
+
+
+ResponseBase(Response.prototype);
+/**
+ * Parse the given body `str`.
+ *
+ * Used for auto-parsing of bodies. Parsers
+ * are defined on the `superagent.parse` object.
+ *
+ * @param {String} str
+ * @return {Mixed}
+ * @api private
+ */
+
+Response.prototype._parseBody = function (str) {
+  var parse = request.parse[this.type];
+
+  if (this.req._parser) {
+    return this.req._parser(this, str);
+  }
+
+  if (!parse && isJSON(this.type)) {
+    parse = request.parse['application/json'];
+  }
+
+  return parse && str && (str.length > 0 || str instanceof Object) ? parse(str) : null;
+};
+/**
+ * Return an `Error` representative of this response.
+ *
+ * @return {Error}
+ * @api public
+ */
+
+
+Response.prototype.toError = function () {
+  var req = this.req;
+  var method = req.method;
+  var url = req.url;
+  var msg = "cannot ".concat(method, " ").concat(url, " (").concat(this.status, ")");
+  var err = new Error(msg);
+  err.status = this.status;
+  err.method = method;
+  err.url = url;
+  return err;
+};
+/**
+ * Expose `Response`.
+ */
+
+
+request.Response = Response;
+/**
+ * Initialize a new `Request` with the given `method` and `url`.
+ *
+ * @param {String} method
+ * @param {String} url
+ * @api public
+ */
+
+function Request(method, url) {
+  var self = this;
+  this._query = this._query || [];
+  this.method = method;
+  this.url = url;
+  this.header = {}; // preserves header name case
+
+  this._header = {}; // coerces header names to lowercase
+
+  this.on('end', function () {
+    var err = null;
+    var res = null;
+
+    try {
+      res = new Response(self);
+    } catch (err_) {
+      err = new Error('Parser is unable to parse the response');
+      err.parse = true;
+      err.original = err_; // issue #675: return the raw response if the response parsing fails
+
+      if (self.xhr) {
+        // ie9 doesn't have 'response' property
+        err.rawResponse = typeof self.xhr.responseType === 'undefined' ? self.xhr.responseText : self.xhr.response; // issue #876: return the http status code if the response parsing fails
+
+        err.status = self.xhr.status ? self.xhr.status : null;
+        err.statusCode = err.status; // backwards-compat only
+      } else {
+        err.rawResponse = null;
+        err.status = null;
+      }
+
+      return self.callback(err);
+    }
+
+    self.emit('response', res);
+    var new_err;
+
+    try {
+      if (!self._isResponseOK(res)) {
+        new_err = new Error(res.statusText || res.text || 'Unsuccessful HTTP response');
+      }
+    } catch (err_) {
+      new_err = err_; // ok() callback can throw
+    } // #1000 don't catch errors from the callback to avoid double calling it
+
+
+    if (new_err) {
+      new_err.original = err;
+      new_err.response = res;
+      new_err.status = res.status;
+      self.callback(new_err, res);
+    } else {
+      self.callback(null, res);
+    }
+  });
+}
+/**
+ * Mixin `Emitter` and `RequestBase`.
+ */
+// eslint-disable-next-line new-cap
+
+
+Emitter(Request.prototype); // eslint-disable-next-line new-cap
+
+RequestBase(Request.prototype);
+/**
+ * Set Content-Type to `type`, mapping values from `request.types`.
+ *
+ * Examples:
+ *
+ *      superagent.types.xml = 'application/xml';
+ *
+ *      request.post('/')
+ *        .type('xml')
+ *        .send(xmlstring)
+ *        .end(callback);
+ *
+ *      request.post('/')
+ *        .type('application/xml')
+ *        .send(xmlstring)
+ *        .end(callback);
+ *
+ * @param {String} type
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.type = function (type) {
+  this.set('Content-Type', request.types[type] || type);
+  return this;
+};
+/**
+ * Set Accept to `type`, mapping values from `request.types`.
+ *
+ * Examples:
+ *
+ *      superagent.types.json = 'application/json';
+ *
+ *      request.get('/agent')
+ *        .accept('json')
+ *        .end(callback);
+ *
+ *      request.get('/agent')
+ *        .accept('application/json')
+ *        .end(callback);
+ *
+ * @param {String} accept
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+Request.prototype.accept = function (type) {
+  this.set('Accept', request.types[type] || type);
+  return this;
+};
+/**
+ * Set Authorization field value with `user` and `pass`.
+ *
+ * @param {String} user
+ * @param {String} [pass] optional in case of using 'bearer' as type
+ * @param {Object} options with 'type' property 'auto', 'basic' or 'bearer' (default 'basic')
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+Request.prototype.auth = function (user, pass, options) {
+  if (arguments.length === 1) pass = '';
+
+  if (_typeof(pass) === 'object' && pass !== null) {
+    // pass is optional and can be replaced with options
+    options = pass;
+    pass = '';
+  }
+
+  if (!options) {
+    options = {
+      type: typeof btoa === 'function' ? 'basic' : 'auto'
+    };
+  }
+
+  var encoder = function encoder(string) {
+    if (typeof btoa === 'function') {
+      return btoa(string);
+    }
+
+    throw new Error('Cannot use basic auth, btoa is not a function');
+  };
+
+  return this._auth(user, pass, options, encoder);
+};
+/**
+ * Add query-string `val`.
+ *
+ * Examples:
+ *
+ *   request.get('/shoes')
+ *     .query('size=10')
+ *     .query({ color: 'blue' })
+ *
+ * @param {Object|String} val
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+Request.prototype.query = function (val) {
+  if (typeof val !== 'string') val = serialize(val);
+  if (val) this._query.push(val);
+  return this;
+};
+/**
+ * Queue the given `file` as an attachment to the specified `field`,
+ * with optional `options` (or filename).
+ *
+ * ``` js
+ * request.post('/upload')
+ *   .attach('content', new Blob(['<a id="a"><b id="b">hey!</b></a>'], { type: "text/html"}))
+ *   .end(callback);
+ * ```
+ *
+ * @param {String} field
+ * @param {Blob|File} file
+ * @param {String|Object} options
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+Request.prototype.attach = function (field, file, options) {
+  if (file) {
+    if (this._data) {
+      throw new Error("superagent can't mix .send() and .attach()");
+    }
+
+    this._getFormData().append(field, file, options || file.name);
+  }
+
+  return this;
+};
+
+Request.prototype._getFormData = function () {
+  if (!this._formData) {
+    this._formData = new root.FormData();
+  }
+
+  return this._formData;
+};
+/**
+ * Invoke the callback with `err` and `res`
+ * and handle arity check.
+ *
+ * @param {Error} err
+ * @param {Response} res
+ * @api private
+ */
+
+
+Request.prototype.callback = function (err, res) {
+  if (this._shouldRetry(err, res)) {
+    return this._retry();
+  }
+
+  var fn = this._callback;
+  this.clearTimeout();
+
+  if (err) {
+    if (this._maxRetries) err.retries = this._retries - 1;
+    this.emit('error', err);
+  }
+
+  fn(err, res);
+};
+/**
+ * Invoke callback with x-domain error.
+ *
+ * @api private
+ */
+
+
+Request.prototype.crossDomainError = function () {
+  var err = new Error('Request has been terminated\nPossible causes: the network is offline, Origin is not allowed by Access-Control-Allow-Origin, the page is being unloaded, etc.');
+  err.crossDomain = true;
+  err.status = this.status;
+  err.method = this.method;
+  err.url = this.url;
+  this.callback(err);
+}; // This only warns, because the request is still likely to work
+
+
+Request.prototype.agent = function () {
+  console.warn('This is not supported in browser version of superagent');
+  return this;
+};
+
+Request.prototype.ca = Request.prototype.agent;
+Request.prototype.buffer = Request.prototype.ca; // This throws, because it can't send/receive data as expected
+
+Request.prototype.write = function () {
+  throw new Error('Streaming is not supported in browser version of superagent');
+};
+
+Request.prototype.pipe = Request.prototype.write;
+/**
+ * Check if `obj` is a host object,
+ * we don't want to serialize these :)
+ *
+ * @param {Object} obj host object
+ * @return {Boolean} is a host object
+ * @api private
+ */
+
+Request.prototype._isHost = function (obj) {
+  // Native objects stringify to [object File], [object Blob], [object FormData], etc.
+  return obj && _typeof(obj) === 'object' && !Array.isArray(obj) && Object.prototype.toString.call(obj) !== '[object Object]';
+};
+/**
+ * Initiate request, invoking callback `fn(res)`
+ * with an instanceof `Response`.
+ *
+ * @param {Function} fn
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+Request.prototype.end = function (fn) {
+  if (this._endCalled) {
+    console.warn('Warning: .end() was called twice. This is not supported in superagent');
+  }
+
+  this._endCalled = true; // store callback
+
+  this._callback = fn || noop; // querystring
+
+  this._finalizeQueryString();
+
+  this._end();
+};
+
+Request.prototype._setUploadTimeout = function () {
+  var self = this; // upload timeout it's wokrs only if deadline timeout is off
+
+  if (this._uploadTimeout && !this._uploadTimeoutTimer) {
+    this._uploadTimeoutTimer = setTimeout(function () {
+      self._timeoutError('Upload timeout of ', self._uploadTimeout, 'ETIMEDOUT');
+    }, this._uploadTimeout);
+  }
+}; // eslint-disable-next-line complexity
+
+
+Request.prototype._end = function () {
+  if (this._aborted) return this.callback(new Error('The request has been aborted even before .end() was called'));
+  var self = this;
+  this.xhr = request.getXHR();
+  var xhr = this.xhr;
+  var data = this._formData || this._data;
+
+  this._setTimeouts(); // state change
+
+
+  xhr.onreadystatechange = function () {
+    var readyState = xhr.readyState;
+
+    if (readyState >= 2 && self._responseTimeoutTimer) {
+      clearTimeout(self._responseTimeoutTimer);
+    }
+
+    if (readyState !== 4) {
+      return;
+    } // In IE9, reads to any property (e.g. status) off of an aborted XHR will
+    // result in the error "Could not complete the operation due to error c00c023f"
+
+
+    var status;
+
+    try {
+      status = xhr.status;
+    } catch (_unused5) {
+      status = 0;
+    }
+
+    if (!status) {
+      if (self.timedout || self._aborted) return;
+      return self.crossDomainError();
+    }
+
+    self.emit('end');
+  }; // progress
+
+
+  var handleProgress = function handleProgress(direction, e) {
+    if (e.total > 0) {
+      e.percent = e.loaded / e.total * 100;
+
+      if (e.percent === 100) {
+        clearTimeout(self._uploadTimeoutTimer);
+      }
+    }
+
+    e.direction = direction;
+    self.emit('progress', e);
+  };
+
+  if (this.hasListeners('progress')) {
+    try {
+      xhr.addEventListener('progress', handleProgress.bind(null, 'download'));
+
+      if (xhr.upload) {
+        xhr.upload.addEventListener('progress', handleProgress.bind(null, 'upload'));
+      }
+    } catch (_unused6) {// Accessing xhr.upload fails in IE from a web worker, so just pretend it doesn't exist.
+      // Reported here:
+      // https://connect.microsoft.com/IE/feedback/details/837245/xmlhttprequest-upload-throws-invalid-argument-when-used-from-web-worker-context
+    }
+  }
+
+  if (xhr.upload) {
+    this._setUploadTimeout();
+  } // initiate request
+
+
+  try {
+    if (this.username && this.password) {
+      xhr.open(this.method, this.url, true, this.username, this.password);
+    } else {
+      xhr.open(this.method, this.url, true);
+    }
+  } catch (err) {
+    // see #1149
+    return this.callback(err);
+  } // CORS
+
+
+  if (this._withCredentials) xhr.withCredentials = true; // body
+
+  if (!this._formData && this.method !== 'GET' && this.method !== 'HEAD' && typeof data !== 'string' && !this._isHost(data)) {
+    // serialize stuff
+    var contentType = this._header['content-type'];
+
+    var _serialize = this._serializer || request.serialize[contentType ? contentType.split(';')[0] : ''];
+
+    if (!_serialize && isJSON(contentType)) {
+      _serialize = request.serialize['application/json'];
+    }
+
+    if (_serialize) data = _serialize(data);
+  } // set header fields
+
+
+  for (var field in this.header) {
+    if (this.header[field] === null) continue;
+    if (Object.prototype.hasOwnProperty.call(this.header, field)) xhr.setRequestHeader(field, this.header[field]);
+  }
+
+  if (this._responseType) {
+    xhr.responseType = this._responseType;
+  } // send stuff
+
+
+  this.emit('request', this); // IE11 xhr.send(undefined) sends 'undefined' string as POST payload (instead of nothing)
+  // We need null here if data is undefined
+
+  xhr.send(typeof data === 'undefined' ? null : data);
+};
+
+request.agent = function () {
+  return new Agent();
+};
+
+['GET', 'POST', 'OPTIONS', 'PATCH', 'PUT', 'DELETE'].forEach(function (method) {
+  Agent.prototype[method.toLowerCase()] = function (url, fn) {
+    var req = new request.Request(method, url);
+
+    this._setDefaults(req);
+
+    if (fn) {
+      req.end(fn);
+    }
+
+    return req;
+  };
+});
+Agent.prototype.del = Agent.prototype.delete;
+/**
+ * GET `url` with optional callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} [data] or fn
+ * @param {Function} [fn]
+ * @return {Request}
+ * @api public
+ */
+
+request.get = function (url, data, fn) {
+  var req = request('GET', url);
+
+  if (typeof data === 'function') {
+    fn = data;
+    data = null;
+  }
+
+  if (data) req.query(data);
+  if (fn) req.end(fn);
+  return req;
+};
+/**
+ * HEAD `url` with optional callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} [data] or fn
+ * @param {Function} [fn]
+ * @return {Request}
+ * @api public
+ */
+
+
+request.head = function (url, data, fn) {
+  var req = request('HEAD', url);
+
+  if (typeof data === 'function') {
+    fn = data;
+    data = null;
+  }
+
+  if (data) req.query(data);
+  if (fn) req.end(fn);
+  return req;
+};
+/**
+ * OPTIONS query to `url` with optional callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} [data] or fn
+ * @param {Function} [fn]
+ * @return {Request}
+ * @api public
+ */
+
+
+request.options = function (url, data, fn) {
+  var req = request('OPTIONS', url);
+
+  if (typeof data === 'function') {
+    fn = data;
+    data = null;
+  }
+
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+/**
+ * DELETE `url` with optional `data` and callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed} [data]
+ * @param {Function} [fn]
+ * @return {Request}
+ * @api public
+ */
+
+
+function del(url, data, fn) {
+  var req = request('DELETE', url);
+
+  if (typeof data === 'function') {
+    fn = data;
+    data = null;
+  }
+
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+}
+
+request.del = del;
+request.delete = del;
+/**
+ * PATCH `url` with optional `data` and callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed} [data]
+ * @param {Function} [fn]
+ * @return {Request}
+ * @api public
+ */
+
+request.patch = function (url, data, fn) {
+  var req = request('PATCH', url);
+
+  if (typeof data === 'function') {
+    fn = data;
+    data = null;
+  }
+
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+/**
+ * POST `url` with optional `data` and callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed} [data]
+ * @param {Function} [fn]
+ * @return {Request}
+ * @api public
+ */
+
+
+request.post = function (url, data, fn) {
+  var req = request('POST', url);
+
+  if (typeof data === 'function') {
+    fn = data;
+    data = null;
+  }
+
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+/**
+ * PUT `url` with optional `data` and callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} [data] or fn
+ * @param {Function} [fn]
+ * @return {Request}
+ * @api public
+ */
+
+
+request.put = function (url, data, fn) {
+  var req = request('PUT', url);
+
+  if (typeof data === 'function') {
+    fn = data;
+    data = null;
+  }
+
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+},{"./agent-base":325,"./is-object":327,"./request-base":328,"./response-base":329,"component-emitter":39,"fast-safe-stringify":45,"qs":317}],327:[function(require,module,exports){
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+/**
+ * Check if `obj` is an object.
+ *
+ * @param {Object} obj
+ * @return {Boolean}
+ * @api private
+ */
+function isObject(obj) {
+  return obj !== null && _typeof(obj) === 'object';
+}
+
+module.exports = isObject;
+
+},{}],328:[function(require,module,exports){
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+/**
+ * Module of mixed-in functions shared between node and client code
+ */
+var isObject = require('./is-object');
+/**
+ * Expose `RequestBase`.
+ */
+
+
+module.exports = RequestBase;
+/**
+ * Initialize a new `RequestBase`.
+ *
+ * @api public
+ */
+
+function RequestBase(object) {
+  if (object) return mixin(object);
+}
+/**
+ * Mixin the prototype properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+
+function mixin(object) {
+  for (var key in RequestBase.prototype) {
+    if (Object.prototype.hasOwnProperty.call(RequestBase.prototype, key)) object[key] = RequestBase.prototype[key];
+  }
+
+  return object;
+}
+/**
+ * Clear previous timeout.
+ *
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+RequestBase.prototype.clearTimeout = function () {
+  clearTimeout(this._timer);
+  clearTimeout(this._responseTimeoutTimer);
+  clearTimeout(this._uploadTimeoutTimer);
+  delete this._timer;
+  delete this._responseTimeoutTimer;
+  delete this._uploadTimeoutTimer;
+  return this;
+};
+/**
+ * Override default response body parser
+ *
+ * This function will be called to convert incoming data into request.body
+ *
+ * @param {Function}
+ * @api public
+ */
+
+
+RequestBase.prototype.parse = function (fn) {
+  this._parser = fn;
+  return this;
+};
+/**
+ * Set format of binary response body.
+ * In browser valid formats are 'blob' and 'arraybuffer',
+ * which return Blob and ArrayBuffer, respectively.
+ *
+ * In Node all values result in Buffer.
+ *
+ * Examples:
+ *
+ *      req.get('/')
+ *        .responseType('blob')
+ *        .end(callback);
+ *
+ * @param {String} val
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+RequestBase.prototype.responseType = function (value) {
+  this._responseType = value;
+  return this;
+};
+/**
+ * Override default request body serializer
+ *
+ * This function will be called to convert data set via .send or .attach into payload to send
+ *
+ * @param {Function}
+ * @api public
+ */
+
+
+RequestBase.prototype.serialize = function (fn) {
+  this._serializer = fn;
+  return this;
+};
+/**
+ * Set timeouts.
+ *
+ * - response timeout is time between sending request and receiving the first byte of the response. Includes DNS and connection time.
+ * - deadline is the time from start of the request to receiving response body in full. If the deadline is too short large files may not load at all on slow connections.
+ * - upload is the time  since last bit of data was sent or received. This timeout works only if deadline timeout is off
+ *
+ * Value of 0 or false means no timeout.
+ *
+ * @param {Number|Object} ms or {response, deadline}
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+RequestBase.prototype.timeout = function (options) {
+  if (!options || _typeof(options) !== 'object') {
+    this._timeout = options;
+    this._responseTimeout = 0;
+    this._uploadTimeout = 0;
+    return this;
+  }
+
+  for (var option in options) {
+    if (Object.prototype.hasOwnProperty.call(options, option)) {
+      switch (option) {
+        case 'deadline':
+          this._timeout = options.deadline;
+          break;
+
+        case 'response':
+          this._responseTimeout = options.response;
+          break;
+
+        case 'upload':
+          this._uploadTimeout = options.upload;
+          break;
+
+        default:
+          console.warn('Unknown timeout option', option);
+      }
+    }
+  }
+
+  return this;
+};
+/**
+ * Set number of retry attempts on error.
+ *
+ * Failed requests will be retried 'count' times if timeout or err.code >= 500.
+ *
+ * @param {Number} count
+ * @param {Function} [fn]
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+RequestBase.prototype.retry = function (count, fn) {
+  // Default to 1 if no count passed or true
+  if (arguments.length === 0 || count === true) count = 1;
+  if (count <= 0) count = 0;
+  this._maxRetries = count;
+  this._retries = 0;
+  this._retryCallback = fn;
+  return this;
+}; //
+// NOTE: we do not include ESOCKETTIMEDOUT because that is from `request` package
+//       <https://github.com/sindresorhus/got/pull/537>
+//
+// NOTE: we do not include EADDRINFO because it was removed from libuv in 2014
+//       <https://github.com/libuv/libuv/commit/02e1ebd40b807be5af46343ea873331b2ee4e9c1>
+//       <https://github.com/request/request/search?q=ESOCKETTIMEDOUT&unscoped_q=ESOCKETTIMEDOUT>
+//
+//
+// TODO: expose these as configurable defaults
+//
+
+
+var ERROR_CODES = new Set(['ETIMEDOUT', 'ECONNRESET', 'EADDRINUSE', 'ECONNREFUSED', 'EPIPE', 'ENOTFOUND', 'ENETUNREACH', 'EAI_AGAIN']);
+var STATUS_CODES = new Set([408, 413, 429, 500, 502, 503, 504, 521, 522, 524]); // TODO: we would need to make this easily configurable before adding it in (e.g. some might want to add POST)
+// const METHODS = new Set(['GET', 'PUT', 'HEAD', 'DELETE', 'OPTIONS', 'TRACE']);
+
+/**
+ * Determine if a request should be retried.
+ * (Inspired by https://github.com/sindresorhus/got#retry)
+ *
+ * @param {Error} err an error
+ * @param {Response} [res] response
+ * @returns {Boolean} if segment should be retried
+ */
+
+RequestBase.prototype._shouldRetry = function (err, res) {
+  if (!this._maxRetries || this._retries++ >= this._maxRetries) {
+    return false;
+  }
+
+  if (this._retryCallback) {
+    try {
+      var override = this._retryCallback(err, res);
+
+      if (override === true) return true;
+      if (override === false) return false; // undefined falls back to defaults
+    } catch (err_) {
+      console.error(err_);
+    }
+  } // TODO: we would need to make this easily configurable before adding it in (e.g. some might want to add POST)
+
+  /*
+  if (
+    this.req &&
+    this.req.method &&
+    !METHODS.has(this.req.method.toUpperCase())
+  )
+    return false;
+  */
+
+
+  if (res && res.status && STATUS_CODES.has(res.status)) return true;
+
+  if (err) {
+    if (err.code && ERROR_CODES.has(err.code)) return true; // Superagent timeout
+
+    if (err.timeout && err.code === 'ECONNABORTED') return true;
+    if (err.crossDomain) return true;
+  }
+
+  return false;
+};
+/**
+ * Retry request
+ *
+ * @return {Request} for chaining
+ * @api private
+ */
+
+
+RequestBase.prototype._retry = function () {
+  this.clearTimeout(); // node
+
+  if (this.req) {
+    this.req = null;
+    this.req = this.request();
+  }
+
+  this._aborted = false;
+  this.timedout = false;
+  this.timedoutError = null;
+  return this._end();
+};
+/**
+ * Promise support
+ *
+ * @param {Function} resolve
+ * @param {Function} [reject]
+ * @return {Request}
+ */
+
+
+RequestBase.prototype.then = function (resolve, reject) {
+  var _this = this;
+
+  if (!this._fullfilledPromise) {
+    var self = this;
+
+    if (this._endCalled) {
+      console.warn('Warning: superagent request was sent twice, because both .end() and .then() were called. Never call .end() if you use promises');
+    }
+
+    this._fullfilledPromise = new Promise(function (resolve, reject) {
+      self.on('abort', function () {
+        if (_this._maxRetries && _this._maxRetries > _this._retries) {
+          return;
+        }
+
+        if (_this.timedout && _this.timedoutError) {
+          reject(_this.timedoutError);
+          return;
+        }
+
+        var err = new Error('Aborted');
+        err.code = 'ABORTED';
+        err.status = _this.status;
+        err.method = _this.method;
+        err.url = _this.url;
+        reject(err);
+      });
+      self.end(function (err, res) {
+        if (err) reject(err);else resolve(res);
+      });
+    });
+  }
+
+  return this._fullfilledPromise.then(resolve, reject);
+};
+
+RequestBase.prototype.catch = function (cb) {
+  return this.then(undefined, cb);
+};
+/**
+ * Allow for extension
+ */
+
+
+RequestBase.prototype.use = function (fn) {
+  fn(this);
+  return this;
+};
+
+RequestBase.prototype.ok = function (cb) {
+  if (typeof cb !== 'function') throw new Error('Callback required');
+  this._okCallback = cb;
+  return this;
+};
+
+RequestBase.prototype._isResponseOK = function (res) {
+  if (!res) {
+    return false;
+  }
+
+  if (this._okCallback) {
+    return this._okCallback(res);
+  }
+
+  return res.status >= 200 && res.status < 300;
+};
+/**
+ * Get request header `field`.
+ * Case-insensitive.
+ *
+ * @param {String} field
+ * @return {String}
+ * @api public
+ */
+
+
+RequestBase.prototype.get = function (field) {
+  return this._header[field.toLowerCase()];
+};
+/**
+ * Get case-insensitive header `field` value.
+ * This is a deprecated internal API. Use `.get(field)` instead.
+ *
+ * (getHeader is no longer used internally by the superagent code base)
+ *
+ * @param {String} field
+ * @return {String}
+ * @api private
+ * @deprecated
+ */
+
+
+RequestBase.prototype.getHeader = RequestBase.prototype.get;
+/**
+ * Set header `field` to `val`, or multiple fields with one object.
+ * Case-insensitive.
+ *
+ * Examples:
+ *
+ *      req.get('/')
+ *        .set('Accept', 'application/json')
+ *        .set('X-API-Key', 'foobar')
+ *        .end(callback);
+ *
+ *      req.get('/')
+ *        .set({ Accept: 'application/json', 'X-API-Key': 'foobar' })
+ *        .end(callback);
+ *
+ * @param {String|Object} field
+ * @param {String} val
+ * @return {Request} for chaining
+ * @api public
+ */
+
+RequestBase.prototype.set = function (field, value) {
+  if (isObject(field)) {
+    for (var key in field) {
+      if (Object.prototype.hasOwnProperty.call(field, key)) this.set(key, field[key]);
+    }
+
+    return this;
+  }
+
+  this._header[field.toLowerCase()] = value;
+  this.header[field] = value;
+  return this;
+};
+/**
+ * Remove header `field`.
+ * Case-insensitive.
+ *
+ * Example:
+ *
+ *      req.get('/')
+ *        .unset('User-Agent')
+ *        .end(callback);
+ *
+ * @param {String} field field name
+ */
+
+
+RequestBase.prototype.unset = function (field) {
+  delete this._header[field.toLowerCase()];
+  delete this.header[field];
+  return this;
+};
+/**
+ * Write the field `name` and `val`, or multiple fields with one object
+ * for "multipart/form-data" request bodies.
+ *
+ * ``` js
+ * request.post('/upload')
+ *   .field('foo', 'bar')
+ *   .end(callback);
+ *
+ * request.post('/upload')
+ *   .field({ foo: 'bar', baz: 'qux' })
+ *   .end(callback);
+ * ```
+ *
+ * @param {String|Object} name name of field
+ * @param {String|Blob|File|Buffer|fs.ReadStream} val value of field
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+RequestBase.prototype.field = function (name, value) {
+  // name should be either a string or an object.
+  if (name === null || undefined === name) {
+    throw new Error('.field(name, val) name can not be empty');
+  }
+
+  if (this._data) {
+    throw new Error(".field() can't be used if .send() is used. Please use only .send() or only .field() & .attach()");
+  }
+
+  if (isObject(name)) {
+    for (var key in name) {
+      if (Object.prototype.hasOwnProperty.call(name, key)) this.field(key, name[key]);
+    }
+
+    return this;
+  }
+
+  if (Array.isArray(value)) {
+    for (var i in value) {
+      if (Object.prototype.hasOwnProperty.call(value, i)) this.field(name, value[i]);
+    }
+
+    return this;
+  } // val should be defined now
+
+
+  if (value === null || undefined === value) {
+    throw new Error('.field(name, val) val can not be empty');
+  }
+
+  if (typeof value === 'boolean') {
+    value = String(value);
+  }
+
+  this._getFormData().append(name, value);
+
+  return this;
+};
+/**
+ * Abort the request, and clear potential timeout.
+ *
+ * @return {Request} request
+ * @api public
+ */
+
+
+RequestBase.prototype.abort = function () {
+  if (this._aborted) {
+    return this;
+  }
+
+  this._aborted = true;
+  if (this.xhr) this.xhr.abort(); // browser
+
+  if (this.req) this.req.abort(); // node
+
+  this.clearTimeout();
+  this.emit('abort');
+  return this;
+};
+
+RequestBase.prototype._auth = function (user, pass, options, base64Encoder) {
+  switch (options.type) {
+    case 'basic':
+      this.set('Authorization', "Basic ".concat(base64Encoder("".concat(user, ":").concat(pass))));
+      break;
+
+    case 'auto':
+      this.username = user;
+      this.password = pass;
+      break;
+
+    case 'bearer':
+      // usage would be .auth(accessToken, { type: 'bearer' })
+      this.set('Authorization', "Bearer ".concat(user));
+      break;
+
+    default:
+      break;
+  }
+
+  return this;
+};
+/**
+ * Enable transmission of cookies with x-domain requests.
+ *
+ * Note that for this to work the origin must not be
+ * using "Access-Control-Allow-Origin" with a wildcard,
+ * and also must set "Access-Control-Allow-Credentials"
+ * to "true".
+ *
+ * @api public
+ */
+
+
+RequestBase.prototype.withCredentials = function (on) {
+  // This is browser-only functionality. Node side is no-op.
+  if (on === undefined) on = true;
+  this._withCredentials = on;
+  return this;
+};
+/**
+ * Set the max redirects to `n`. Does nothing in browser XHR implementation.
+ *
+ * @param {Number} n
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+RequestBase.prototype.redirects = function (n) {
+  this._maxRedirects = n;
+  return this;
+};
+/**
+ * Maximum size of buffered response body, in bytes. Counts uncompressed size.
+ * Default 200MB.
+ *
+ * @param {Number} n number of bytes
+ * @return {Request} for chaining
+ */
+
+
+RequestBase.prototype.maxResponseSize = function (n) {
+  if (typeof n !== 'number') {
+    throw new TypeError('Invalid argument');
+  }
+
+  this._maxResponseSize = n;
+  return this;
+};
+/**
+ * Convert to a plain javascript object (not JSON string) of scalar properties.
+ * Note as this method is designed to return a useful non-this value,
+ * it cannot be chained.
+ *
+ * @return {Object} describing method, url, and data of this request
+ * @api public
+ */
+
+
+RequestBase.prototype.toJSON = function () {
+  return {
+    method: this.method,
+    url: this.url,
+    data: this._data,
+    headers: this._header
+  };
+};
+/**
+ * Send `data` as the request body, defaulting the `.type()` to "json" when
+ * an object is given.
+ *
+ * Examples:
+ *
+ *       // manual json
+ *       request.post('/user')
+ *         .type('json')
+ *         .send('{"name":"tj"}')
+ *         .end(callback)
+ *
+ *       // auto json
+ *       request.post('/user')
+ *         .send({ name: 'tj' })
+ *         .end(callback)
+ *
+ *       // manual x-www-form-urlencoded
+ *       request.post('/user')
+ *         .type('form')
+ *         .send('name=tj')
+ *         .end(callback)
+ *
+ *       // auto x-www-form-urlencoded
+ *       request.post('/user')
+ *         .type('form')
+ *         .send({ name: 'tj' })
+ *         .end(callback)
+ *
+ *       // defaults to x-www-form-urlencoded
+ *      request.post('/user')
+ *        .send('name=tobi')
+ *        .send('species=ferret')
+ *        .end(callback)
+ *
+ * @param {String|Object} data
+ * @return {Request} for chaining
+ * @api public
+ */
+// eslint-disable-next-line complexity
+
+
+RequestBase.prototype.send = function (data) {
+  var isObject_ = isObject(data);
+  var type = this._header['content-type'];
+
+  if (this._formData) {
+    throw new Error(".send() can't be used if .attach() or .field() is used. Please use only .send() or only .field() & .attach()");
+  }
+
+  if (isObject_ && !this._data) {
+    if (Array.isArray(data)) {
+      this._data = [];
+    } else if (!this._isHost(data)) {
+      this._data = {};
+    }
+  } else if (data && this._data && this._isHost(this._data)) {
+    throw new Error("Can't merge these send calls");
+  } // merge
+
+
+  if (isObject_ && isObject(this._data)) {
+    for (var key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) this._data[key] = data[key];
+    }
+  } else if (typeof data === 'string') {
+    // default to x-www-form-urlencoded
+    if (!type) this.type('form');
+    type = this._header['content-type'];
+    if (type) type = type.toLowerCase().trim();
+
+    if (type === 'application/x-www-form-urlencoded') {
+      this._data = this._data ? "".concat(this._data, "&").concat(data) : data;
+    } else {
+      this._data = (this._data || '') + data;
+    }
+  } else {
+    this._data = data;
+  }
+
+  if (!isObject_ || this._isHost(data)) {
+    return this;
+  } // default to json
+
+
+  if (!type) this.type('json');
+  return this;
+};
+/**
+ * Sort `querystring` by the sort function
+ *
+ *
+ * Examples:
+ *
+ *       // default order
+ *       request.get('/user')
+ *         .query('name=Nick')
+ *         .query('search=Manny')
+ *         .sortQuery()
+ *         .end(callback)
+ *
+ *       // customized sort function
+ *       request.get('/user')
+ *         .query('name=Nick')
+ *         .query('search=Manny')
+ *         .sortQuery(function(a, b){
+ *           return a.length - b.length;
+ *         })
+ *         .end(callback)
+ *
+ *
+ * @param {Function} sort
+ * @return {Request} for chaining
+ * @api public
+ */
+
+
+RequestBase.prototype.sortQuery = function (sort) {
+  // _sort default to true but otherwise can be a function or boolean
+  this._sort = typeof sort === 'undefined' ? true : sort;
+  return this;
+};
+/**
+ * Compose querystring to append to req.url
+ *
+ * @api private
+ */
+
+
+RequestBase.prototype._finalizeQueryString = function () {
+  var query = this._query.join('&');
+
+  if (query) {
+    this.url += (this.url.includes('?') ? '&' : '?') + query;
+  }
+
+  this._query.length = 0; // Makes the call idempotent
+
+  if (this._sort) {
+    var index = this.url.indexOf('?');
+
+    if (index >= 0) {
+      var queryArray = this.url.slice(index + 1).split('&');
+
+      if (typeof this._sort === 'function') {
+        queryArray.sort(this._sort);
+      } else {
+        queryArray.sort();
+      }
+
+      this.url = this.url.slice(0, index) + '?' + queryArray.join('&');
+    }
+  }
+}; // For backwards compat only
+
+
+RequestBase.prototype._appendQueryString = function () {
+  console.warn('Unsupported');
+};
+/**
+ * Invoke callback with timeout error.
+ *
+ * @api private
+ */
+
+
+RequestBase.prototype._timeoutError = function (reason, timeout, errno) {
+  if (this._aborted) {
+    return;
+  }
+
+  var err = new Error("".concat(reason + timeout, "ms exceeded"));
+  err.timeout = timeout;
+  err.code = 'ECONNABORTED';
+  err.errno = errno;
+  this.timedout = true;
+  this.timedoutError = err;
+  this.abort();
+  this.callback(err);
+};
+
+RequestBase.prototype._setTimeouts = function () {
+  var self = this; // deadline
+
+  if (this._timeout && !this._timer) {
+    this._timer = setTimeout(function () {
+      self._timeoutError('Timeout of ', self._timeout, 'ETIME');
+    }, this._timeout);
+  } // response timeout
+
+
+  if (this._responseTimeout && !this._responseTimeoutTimer) {
+    this._responseTimeoutTimer = setTimeout(function () {
+      self._timeoutError('Response timeout of ', self._responseTimeout, 'ETIMEDOUT');
+    }, this._responseTimeout);
+  }
+};
+
+},{"./is-object":327}],329:[function(require,module,exports){
+"use strict";
+
+/**
+ * Module dependencies.
+ */
+var utils = require('./utils');
+/**
+ * Expose `ResponseBase`.
+ */
+
+
+module.exports = ResponseBase;
+/**
+ * Initialize a new `ResponseBase`.
+ *
+ * @api public
+ */
+
+function ResponseBase(obj) {
+  if (obj) return mixin(obj);
+}
+/**
+ * Mixin the prototype properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+
+function mixin(obj) {
+  for (var key in ResponseBase.prototype) {
+    if (Object.prototype.hasOwnProperty.call(ResponseBase.prototype, key)) obj[key] = ResponseBase.prototype[key];
+  }
+
+  return obj;
+}
+/**
+ * Get case-insensitive `field` value.
+ *
+ * @param {String} field
+ * @return {String}
+ * @api public
+ */
+
+
+ResponseBase.prototype.get = function (field) {
+  return this.header[field.toLowerCase()];
+};
+/**
+ * Set header related properties:
+ *
+ *   - `.type` the content type without params
+ *
+ * A response of "Content-Type: text/plain; charset=utf-8"
+ * will provide you with a `.type` of "text/plain".
+ *
+ * @param {Object} header
+ * @api private
+ */
+
+
+ResponseBase.prototype._setHeaderProperties = function (header) {
+  // TODO: moar!
+  // TODO: make this a util
+  // content-type
+  var ct = header['content-type'] || '';
+  this.type = utils.type(ct); // params
+
+  var params = utils.params(ct);
+
+  for (var key in params) {
+    if (Object.prototype.hasOwnProperty.call(params, key)) this[key] = params[key];
+  }
+
+  this.links = {}; // links
+
+  try {
+    if (header.link) {
+      this.links = utils.parseLinks(header.link);
+    }
+  } catch (_unused) {// ignore
+  }
+};
+/**
+ * Set flags such as `.ok` based on `status`.
+ *
+ * For example a 2xx response will give you a `.ok` of __true__
+ * whereas 5xx will be __false__ and `.error` will be __true__. The
+ * `.clientError` and `.serverError` are also available to be more
+ * specific, and `.statusType` is the class of error ranging from 1..5
+ * sometimes useful for mapping respond colors etc.
+ *
+ * "sugar" properties are also defined for common cases. Currently providing:
+ *
+ *   - .noContent
+ *   - .badRequest
+ *   - .unauthorized
+ *   - .notAcceptable
+ *   - .notFound
+ *
+ * @param {Number} status
+ * @api private
+ */
+
+
+ResponseBase.prototype._setStatusProperties = function (status) {
+  var type = status / 100 | 0; // status / class
+
+  this.statusCode = status;
+  this.status = this.statusCode;
+  this.statusType = type; // basics
+
+  this.info = type === 1;
+  this.ok = type === 2;
+  this.redirect = type === 3;
+  this.clientError = type === 4;
+  this.serverError = type === 5;
+  this.error = type === 4 || type === 5 ? this.toError() : false; // sugar
+
+  this.created = status === 201;
+  this.accepted = status === 202;
+  this.noContent = status === 204;
+  this.badRequest = status === 400;
+  this.unauthorized = status === 401;
+  this.notAcceptable = status === 406;
+  this.forbidden = status === 403;
+  this.notFound = status === 404;
+  this.unprocessableEntity = status === 422;
+};
+
+},{"./utils":330}],330:[function(require,module,exports){
+"use strict";
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+/**
+ * Return the mime type for the given `str`.
+ *
+ * @param {String} str
+ * @return {String}
+ * @api private
+ */
+exports.type = function (str) {
+  return str.split(/ *; */).shift();
+};
+/**
+ * Return header field parameters.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+
+exports.params = function (val) {
+  var obj = {};
+
+  var _iterator = _createForOfIteratorHelper(val.split(/ *; */)),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var str = _step.value;
+      var parts = str.split(/ *= */);
+      var key = parts.shift();
+
+      var _val = parts.shift();
+
+      if (key && _val) obj[key] = _val;
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  return obj;
+};
+/**
+ * Parse Link header fields.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+
+exports.parseLinks = function (val) {
+  var obj = {};
+
+  var _iterator2 = _createForOfIteratorHelper(val.split(/ *, */)),
+      _step2;
+
+  try {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      var str = _step2.value;
+      var parts = str.split(/ *; */);
+      var url = parts[0].slice(1, -1);
+      var rel = parts[1].split(/ *= */)[1].slice(1, -1);
+      obj[rel] = url;
+    }
+  } catch (err) {
+    _iterator2.e(err);
+  } finally {
+    _iterator2.f();
+  }
+
+  return obj;
+};
+/**
+ * Strip content related fields from `header`.
+ *
+ * @param {Object} header
+ * @return {Object} header
+ * @api private
+ */
+
+
+exports.cleanHeader = function (header, changesOrigin) {
+  delete header['content-type'];
+  delete header['content-length'];
+  delete header['transfer-encoding'];
+  delete header.host; // secuirty
+
+  if (changesOrigin) {
+    delete header.authorization;
+    delete header.cookie;
+  }
+
+  return header;
+};
+
+},{}],331:[function(require,module,exports){
 (function (setImmediate,clearImmediate){(function (){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
@@ -80843,7 +86703,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":224,"timers":230}],231:[function(require,module,exports){
+},{"process/browser.js":314,"timers":331}],332:[function(require,module,exports){
 !function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):"object"==typeof exports?exports.Tone=e():t.Tone=e()}("undefined"!=typeof self?self:this,(function(){return function(t){var e={};function s(n){if(e[n])return e[n].exports;var i=e[n]={i:n,l:!1,exports:{}};return t[n].call(i.exports,i,i.exports,s),i.l=!0,i.exports}return s.m=t,s.c=e,s.d=function(t,e,n){s.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:n})},s.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},s.t=function(t,e){if(1&e&&(t=s(t)),8&e)return t;if(4&e&&"object"==typeof t&&t&&t.__esModule)return t;var n=Object.create(null);if(s.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var i in t)s.d(n,i,function(e){return t[e]}.bind(null,i));return n},s.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return s.d(e,"a",e),e},s.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},s.p="",s(s.s=9)}([function(t,e,s){!function(t,e,s,n){"use strict";function i(t){return t&&"object"==typeof t&&"default"in t?t:{default:t}}var o=i(e),r=i(s),a=i(n),c=function(t,e,s){return{endTime:e,insertTime:s,type:"exponentialRampToValue",value:t}},h=function(t,e,s){return{endTime:e,insertTime:s,type:"linearRampToValue",value:t}},u=function(t,e){return{startTime:e,type:"setValue",value:t}},l=function(t,e,s){return{duration:s,startTime:e,type:"setValueCurve",values:t}},p=function(t,e,s){var n=s.startTime,i=s.target,o=s.timeConstant;return i+(e-i)*Math.exp((n-t)/o)},d=function(t){return"exponentialRampToValue"===t.type},f=function(t){return"linearRampToValue"===t.type},_=function(t){return d(t)||f(t)},m=function(t){return"setValue"===t.type},g=function(t){return"setValueCurve"===t.type},v=function t(e,s,n,i){var o=e[s];return void 0===o?i:_(o)||m(o)?o.value:g(o)?o.values[o.values.length-1]:p(n,t(e,s-1,o.startTime,i),o)},y=function(t,e,s,n,i){return void 0===s?[n.insertTime,i]:_(s)?[s.endTime,s.value]:m(s)?[s.startTime,s.value]:g(s)?[s.startTime+s.duration,s.values[s.values.length-1]]:[s.startTime,v(t,e-1,s.startTime,i)]},x=function(t){return"cancelAndHold"===t.type},w=function(t){return"cancelScheduledValues"===t.type},b=function(t){return x(t)||w(t)?t.cancelTime:d(t)||f(t)?t.endTime:t.startTime},T=function(t,e,s,n){var i=n.endTime,o=n.value;return s===o?o:0<s&&0<o||s<0&&o<0?s*Math.pow(o/s,(t-e)/(i-e)):0},S=function(t,e,s,n){return s+(t-e)/(n.endTime-e)*(n.value-s)},k=function(t,e){var s=e.duration,n=e.startTime,i=e.values;return function(t,e){var s=Math.floor(e),n=Math.ceil(e);return s===n?t[s]:(1-(e-s))*t[s]+(1-(n-e))*t[n]}(i,(t-n)/s*(i.length-1))},C=function(t){return"setTarget"===t.type},A=function(){function t(e){r.default(this,t),this._automationEvents=[],this._currenTime=0,this._defaultValue=e}return a.default(t,[{key:Symbol.iterator,value:function(){return this._automationEvents[Symbol.iterator]()}},{key:"add",value:function(t){var e=b(t);if(x(t)||w(t)){var s=this._automationEvents.findIndex((function(s){return w(t)&&g(s)?s.startTime+s.duration>=e:b(s)>=e})),n=this._automationEvents[s];if(-1!==s&&(this._automationEvents=this._automationEvents.slice(0,s)),x(t)){var i=this._automationEvents[this._automationEvents.length-1];if(void 0!==n&&_(n)){if(C(i))throw new Error("The internal list is malformed.");var o=g(i)?i.startTime+i.duration:b(i),r=g(i)?i.values[i.values.length-1]:i.value,a=d(n)?T(e,o,r,n):S(e,o,r,n),p=d(n)?c(a,e,this._currenTime):h(a,e,this._currenTime);this._automationEvents.push(p)}void 0!==i&&C(i)&&this._automationEvents.push(u(this.getValue(e),e)),void 0!==i&&g(i)&&i.startTime+i.duration>e&&(this._automationEvents[this._automationEvents.length-1]=l(new Float32Array([6,7]),i.startTime,e-i.startTime))}}else{var m=this._automationEvents.findIndex((function(t){return b(t)>e})),v=-1===m?this._automationEvents[this._automationEvents.length-1]:this._automationEvents[m-1];if(void 0!==v&&g(v)&&b(v)+v.duration>e)return!1;var y=d(t)?c(t.value,t.endTime,this._currenTime):f(t)?h(t.value,e,this._currenTime):t;if(-1===m)this._automationEvents.push(y);else{if(g(t)&&e+t.duration>b(this._automationEvents[m]))return!1;this._automationEvents.splice(m,0,y)}}return!0}},{key:"flush",value:function(t){var e=this._automationEvents.findIndex((function(e){return b(e)>t}));if(e>1){var s=this._automationEvents.slice(e-1),n=s[0];C(n)&&s.unshift(u(v(this._automationEvents,e-2,n.startTime,this._defaultValue),n.startTime)),this._automationEvents=s}}},{key:"getValue",value:function(t){if(0===this._automationEvents.length)return this._defaultValue;var e=this._automationEvents[this._automationEvents.length-1],s=this._automationEvents.findIndex((function(e){return b(e)>t})),n=this._automationEvents[s],i=b(e)<=t?e:this._automationEvents[s-1];if(void 0!==i&&C(i)&&(void 0===n||!_(n)||n.insertTime>t))return p(t,v(this._automationEvents,s-2,i.startTime,this._defaultValue),i);if(void 0!==i&&m(i)&&(void 0===n||!_(n)))return i.value;if(void 0!==i&&g(i)&&(void 0===n||!_(n)||i.startTime+i.duration>t))return t<i.startTime+i.duration?k(t,i):i.values[i.values.length-1];if(void 0!==i&&_(i)&&(void 0===n||!_(n)))return i.value;if(void 0!==n&&d(n)){var r=y(this._automationEvents,s-1,i,n,this._defaultValue),a=o.default(r,2),c=a[0],h=a[1];return T(t,c,h,n)}if(void 0!==n&&f(n)){var u=y(this._automationEvents,s-1,i,n,this._defaultValue),l=o.default(u,2),x=l[0],w=l[1];return S(t,x,w,n)}return this._defaultValue}}]),t}();t.AutomationEventList=A,t.createCancelAndHoldAutomationEvent=function(t){return{cancelTime:t,type:"cancelAndHold"}},t.createCancelScheduledValuesAutomationEvent=function(t){return{cancelTime:t,type:"cancelScheduledValues"}},t.createExponentialRampToValueAutomationEvent=function(t,e){return{endTime:e,type:"exponentialRampToValue",value:t}},t.createLinearRampToValueAutomationEvent=function(t,e){return{endTime:e,type:"linearRampToValue",value:t}},t.createSetTargetAutomationEvent=function(t,e,s){return{startTime:e,target:t,timeConstant:s,type:"setTarget"}},t.createSetValueAutomationEvent=u,t.createSetValueCurveAutomationEvent=l,Object.defineProperty(t,"__esModule",{value:!0})}(e,s(1),s(7),s(8))},function(t,e,s){var n=s(2),i=s(3),o=s(4),r=s(6);t.exports=function(t,e){return n(t)||i(t,e)||o(t,e)||r()}},function(t,e){t.exports=function(t){if(Array.isArray(t))return t}},function(t,e){t.exports=function(t,e){if("undefined"!=typeof Symbol&&Symbol.iterator in Object(t)){var s=[],n=!0,i=!1,o=void 0;try{for(var r,a=t[Symbol.iterator]();!(n=(r=a.next()).done)&&(s.push(r.value),!e||s.length!==e);n=!0);}catch(t){i=!0,o=t}finally{try{n||null==a.return||a.return()}finally{if(i)throw o}}return s}}},function(t,e,s){var n=s(5);t.exports=function(t,e){if(t){if("string"==typeof t)return n(t,e);var s=Object.prototype.toString.call(t).slice(8,-1);return"Object"===s&&t.constructor&&(s=t.constructor.name),"Map"===s||"Set"===s?Array.from(t):"Arguments"===s||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(s)?n(t,e):void 0}}},function(t,e){t.exports=function(t,e){(null==e||e>t.length)&&(e=t.length);for(var s=0,n=new Array(e);s<e;s++)n[s]=t[s];return n}},function(t,e){t.exports=function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}},function(t,e){t.exports=function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}},function(t,e){function s(t,e){for(var s=0;s<e.length;s++){var n=e[s];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,n.key,n)}}t.exports=function(t,e,n){return e&&s(t.prototype,e),n&&s(t,n),t}},function(t,e,s){"use strict";s.r(e),s.d(e,"getContext",(function(){return Qi})),s.d(e,"setContext",(function(){return Zi})),s.d(e,"Clock",(function(){return Ao})),s.d(e,"Context",(function(){return Pi})),s.d(e,"BaseContext",(function(){return Ni})),s.d(e,"Delay",(function(){return Do})),s.d(e,"Gain",(function(){return yo})),s.d(e,"Offline",(function(){return Oo})),s.d(e,"OfflineContext",(function(){return Wi})),s.d(e,"Param",(function(){return fo})),s.d(e,"ToneAudioBuffer",(function(){return Bi})),s.d(e,"ToneAudioBuffers",(function(){return Mo})),s.d(e,"ToneAudioNode",(function(){return _o})),s.d(e,"connectSeries",(function(){return mo})),s.d(e,"connect",(function(){return go})),s.d(e,"disconnect",(function(){return vo})),s.d(e,"FrequencyClass",(function(){return oo})),s.d(e,"Frequency",(function(){return co})),s.d(e,"MidiClass",(function(){return Eo})),s.d(e,"Midi",(function(){return Ro})),s.d(e,"TimeClass",(function(){return no})),s.d(e,"Time",(function(){return io})),s.d(e,"TicksClass",(function(){return qo})),s.d(e,"Ticks",(function(){return Fo})),s.d(e,"TransportTimeClass",(function(){return ho})),s.d(e,"TransportTime",(function(){return uo})),s.d(e,"Emitter",(function(){return Vi})),s.d(e,"IntervalTimeline",(function(){return Vo})),s.d(e,"StateTimeline",(function(){return po})),s.d(e,"Timeline",(function(){return Ei})),s.d(e,"isUndef",(function(){return ei})),s.d(e,"isDefined",(function(){return si})),s.d(e,"isFunction",(function(){return ni})),s.d(e,"isNumber",(function(){return ii})),s.d(e,"isObject",(function(){return oi})),s.d(e,"isBoolean",(function(){return ri})),s.d(e,"isArray",(function(){return ai})),s.d(e,"isString",(function(){return ci})),s.d(e,"isNote",(function(){return hi})),s.d(e,"dbToGain",(function(){return Yi})),s.d(e,"gainToDb",(function(){return Hi})),s.d(e,"intervalToFrequencyRatio",(function(){return $i})),s.d(e,"ftom",(function(){return Ki})),s.d(e,"mtof",(function(){return eo})),s.d(e,"optionsFromArguments",(function(){return bi})),s.d(e,"defaultArg",(function(){return Ti})),s.d(e,"Unit",(function(){return i})),s.d(e,"debug",(function(){return n})),s.d(e,"Noise",(function(){return Qo})),s.d(e,"UserMedia",(function(){return Yo})),s.d(e,"Oscillator",(function(){return Jo})),s.d(e,"AMOscillator",(function(){return nr})),s.d(e,"FMOscillator",(function(){return ir})),s.d(e,"PulseOscillator",(function(){return or})),s.d(e,"FatOscillator",(function(){return rr})),s.d(e,"PWMOscillator",(function(){return ar})),s.d(e,"OmniOscillator",(function(){return hr})),s.d(e,"ToneOscillatorNode",(function(){return $o})),s.d(e,"LFO",(function(){return dr})),s.d(e,"ToneBufferSource",(function(){return Go})),s.d(e,"Player",(function(){return mr})),s.d(e,"Players",(function(){return gr})),s.d(e,"GrainPlayer",(function(){return vr})),s.d(e,"Add",(function(){return ur})),s.d(e,"Abs",(function(){return yr})),s.d(e,"AudioToGain",(function(){return er})),s.d(e,"GainToAudio",(function(){return xr})),s.d(e,"GreaterThan",(function(){return Sr})),s.d(e,"GreaterThanZero",(function(){return Tr})),s.d(e,"Multiply",(function(){return sr})),s.d(e,"Negate",(function(){return wr})),s.d(e,"Pow",(function(){return kr})),s.d(e,"Signal",(function(){return bo})),s.d(e,"connectSignal",(function(){return To})),s.d(e,"Scale",(function(){return lr})),s.d(e,"ScaleExp",(function(){return Cr})),s.d(e,"Subtract",(function(){return br})),s.d(e,"SyncedSignal",(function(){return Ar})),s.d(e,"WaveShaper",(function(){return tr})),s.d(e,"Zero",(function(){return pr})),s.d(e,"AMSynth",(function(){return Ir})),s.d(e,"DuoSynth",(function(){return Lr})),s.d(e,"FMSynth",(function(){return zr})),s.d(e,"MetalSynth",(function(){return Wr})),s.d(e,"MembraneSynth",(function(){return Ur})),s.d(e,"MonoSynth",(function(){return jr})),s.d(e,"NoiseSynth",(function(){return Gr})),s.d(e,"PluckSynth",(function(){return Kr})),s.d(e,"PolySynth",(function(){return ta})),s.d(e,"Sampler",(function(){return ea})),s.d(e,"Synth",(function(){return qr})),s.d(e,"Loop",(function(){return na})),s.d(e,"Part",(function(){return ia})),s.d(e,"Pattern",(function(){return fa})),s.d(e,"Sequence",(function(){return _a})),s.d(e,"ToneEvent",(function(){return sa})),s.d(e,"AutoFilter",(function(){return ya})),s.d(e,"AutoPanner",(function(){return wa})),s.d(e,"AutoWah",(function(){return Ta})),s.d(e,"BitCrusher",(function(){return Sa})),s.d(e,"Chebyshev",(function(){return Ca})),s.d(e,"Chorus",(function(){return Ea})),s.d(e,"Distortion",(function(){return Ra})),s.d(e,"FeedbackDelay",(function(){return Fa})),s.d(e,"FrequencyShifter",(function(){return Va})),s.d(e,"Freeverb",(function(){return ja})),s.d(e,"JCReverb",(function(){return Wa})),s.d(e,"PingPongDelay",(function(){return Ga})),s.d(e,"PitchShift",(function(){return Qa})),s.d(e,"Phaser",(function(){return Za})),s.d(e,"Reverb",(function(){return Xa})),s.d(e,"StereoWidener",(function(){return Ja})),s.d(e,"Tremolo",(function(){return Ka})),s.d(e,"Vibrato",(function(){return tc})),s.d(e,"Analyser",(function(){return ec})),s.d(e,"Meter",(function(){return nc})),s.d(e,"FFT",(function(){return ic})),s.d(e,"DCMeter",(function(){return oc})),s.d(e,"Waveform",(function(){return rc})),s.d(e,"Follower",(function(){return ba})),s.d(e,"Channel",(function(){return hc})),s.d(e,"CrossFade",(function(){return ma})),s.d(e,"Merge",(function(){return Da})),s.d(e,"MidSideMerge",(function(){return Ha})),s.d(e,"MidSideSplit",(function(){return Ya})),s.d(e,"MultibandSplit",(function(){return uc})),s.d(e,"Panner",(function(){return xa})),s.d(e,"Panner3D",(function(){return pc})),s.d(e,"PanVol",(function(){return cc})),s.d(e,"Recorder",(function(){return dc})),s.d(e,"Solo",(function(){return ac})),s.d(e,"Split",(function(){return Aa})),s.d(e,"Volume",(function(){return Po})),s.d(e,"Compressor",(function(){return fc})),s.d(e,"Gate",(function(){return _c})),s.d(e,"Limiter",(function(){return mc})),s.d(e,"MidSideCompressor",(function(){return gc})),s.d(e,"MultibandCompressor",(function(){return vc})),s.d(e,"AmplitudeEnvelope",(function(){return Rr})),s.d(e,"Envelope",(function(){return Dr})),s.d(e,"FrequencyEnvelope",(function(){return Pr})),s.d(e,"EQ3",(function(){return yc})),s.d(e,"Filter",(function(){return Nr})),s.d(e,"OnePoleFilter",(function(){return $r})),s.d(e,"FeedbackCombFilter",(function(){return Hr})),s.d(e,"LowpassCombFilter",(function(){return Jr})),s.d(e,"Convolver",(function(){return xc})),s.d(e,"BiquadFilter",(function(){return Vr})),s.d(e,"version",(function(){return o})),s.d(e,"start",(function(){return Xi})),s.d(e,"supported",(function(){return Zn})),s.d(e,"now",(function(){return wc})),s.d(e,"immediate",(function(){return bc})),s.d(e,"Transport",(function(){return Tc})),s.d(e,"getTransport",(function(){return Sc})),s.d(e,"Destination",(function(){return kc})),s.d(e,"Master",(function(){return Cc})),s.d(e,"getDestination",(function(){return Ac})),s.d(e,"Listener",(function(){return Dc})),s.d(e,"getListener",(function(){return Oc})),s.d(e,"Draw",(function(){return Mc})),s.d(e,"getDraw",(function(){return Ec})),s.d(e,"context",(function(){return Rc})),s.d(e,"loaded",(function(){return qc})),s.d(e,"Buffer",(function(){return Fc})),s.d(e,"Buffers",(function(){return Ic})),s.d(e,"BufferSource",(function(){return Vc}));var n={};s.r(n),s.d(n,"assert",(function(){return Xn})),s.d(n,"assertRange",(function(){return Yn})),s.d(n,"assertContextRunning",(function(){return Hn})),s.d(n,"setLogger",(function(){return Jn})),s.d(n,"log",(function(){return Kn})),s.d(n,"warn",(function(){return ti}));var i={};s.r(i);const o="14.7.58";var r=s(0);const a=new WeakSet,c=new WeakMap,h=new WeakMap,u=new WeakMap,l=new WeakMap,p=new WeakMap,d=new WeakMap,f=new WeakMap,_=new WeakMap,m=new WeakMap,g={construct:()=>g},v=/^import(?:(?:[\s]+[\w]+|(?:[\s]+[\w]+[\s]*,)?[\s]*\{[\s]*[\w]+(?:[\s]+as[\s]+[\w]+)?(?:[\s]*,[\s]*[\w]+(?:[\s]+as[\s]+[\w]+)?)*[\s]*}|(?:[\s]+[\w]+[\s]*,)?[\s]*\*[\s]+as[\s]+[\w]+)[\s]+from)?(?:[\s]*)("([^"\\]|\\.)+"|'([^'\\]|\\.)+')(?:[\s]*);?/,y=(t,e)=>{const s=[];let n=t.replace(/^[\s]+/,""),i=n.match(v);for(;null!==i;){const t=i[1].slice(1,-1),o=i[0].replace(/([\s]+)?;?$/,"").replace(t,new URL(t,e).toString());s.push(o),n=n.slice(i[0].length).replace(/^[\s]+/,""),i=n.match(v)}return[s.join(";"),n]},x=t=>{if(void 0!==t&&!Array.isArray(t))throw new TypeError("The parameterDescriptors property of given value for processorCtor is not an array.")},w=t=>{if(!(t=>{try{new new Proxy(t,g)}catch{return!1}return!0})(t))throw new TypeError("The given value for processorCtor should be a constructor.");if(null===t.prototype||"object"!=typeof t.prototype)throw new TypeError("The given value for processorCtor should have a prototype.")},b={channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",fftSize:2048,maxDecibels:-30,minDecibels:-100,smoothingTimeConstant:.8},T=(t,e)=>t.context===e,S=t=>{try{t.copyToChannel(new Float32Array(1),0,-1)}catch{return!1}return!0},k=()=>new DOMException("","IndexSizeError"),C=t=>{var e;t.getChannelData=(e=t.getChannelData,s=>{try{return e.call(t,s)}catch(t){if(12===t.code)throw k();throw t}})},A={numberOfChannels:1},D=-34028234663852886e22,O=-D,M=t=>a.has(t),E=(t,e)=>{const s=t.get(e);if(void 0===s)throw new Error("A value with the given key could not be found.");return s},R=t=>E(d,t),q=t=>{if(a.has(t))throw new Error("The AudioNode is already stored.");a.add(t),R(t).forEach(t=>t(!0))},F=t=>{if(!a.has(t))throw new Error("The AudioNode is not stored.");a.delete(t),R(t).forEach(t=>t(!1))},I={buffer:null,channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",loop:!1,loopEnd:0,loopStart:0,playbackRate:1},V=t=>"port"in t,N=t=>E(c,t),P=t=>E(u,t),j=(t,e)=>{const{activeInputs:s}=N(t);s.forEach(s=>s.forEach(([s])=>{e.includes(t)||j(s,[...e,t])}));const n=(t=>"playbackRate"in t)(t)?[t.playbackRate]:V(t)?Array.from(t.parameters.values()):(t=>"frequency"in t&&"gain"in t)(t)?[t.Q,t.detune,t.frequency,t.gain]:(t=>"offset"in t)(t)?[t.offset]:(t=>!("frequency"in t)&&"gain"in t)(t)?[t.gain]:(t=>"detune"in t&&"frequency"in t)(t)?[t.detune,t.frequency]:(t=>"pan"in t)(t)?[t.pan]:[];for(const t of n){const s=P(t);void 0!==s&&s.activeInputs.forEach(([t])=>j(t,e))}M(t)&&F(t)},L=t=>{j(t.destination,[])},z=t=>void 0===t||"number"==typeof t||"string"==typeof t&&("balanced"===t||"interactive"===t||"playback"===t),B=t=>"context"in t,W=t=>B(t[0]),U=t=>"inputs"in t,G=(t,e,s,n)=>{if(U(e)){const i=e.inputs[n];return t.connect(i,s,0),[i,s,0]}return t.connect(e,s,n),[e,s,n]},Q=(t,e)=>{if(!R(t).delete(e))throw new Error("Missing the expected event listener.")},Z=(t,e,s,n)=>{U(e)?t.disconnect(e.inputs[n],s,0):t.disconnect(e,s,n)},X=t=>E(h,t),Y=t=>E(l,t),H=(t,e,s,n)=>{for(const e of t)if(s(e)){if(n)return!1;throw Error("The set contains at least one similar element.")}return t.add(e),!0},$=t=>f.has(t),J=t=>!a.has(t),K=(t,e)=>{const s=Array.from(t).filter(e);if(s.length>1)throw Error("More than one element was found.");if(0===s.length)throw Error("No element was found.");const[n]=s;return t.delete(n),n},tt=(t,e)=>{!V(t)&&e.every(t=>0===t.size)&&F(t)},et=t=>new Promise(e=>{const s=t.createScriptProcessor(256,1,1),n=t.createGain(),i=t.createBuffer(1,2,44100),o=i.getChannelData(0);o[0]=1,o[1]=1;const r=t.createBufferSource();r.buffer=i,r.loop=!0,r.connect(s).connect(t.destination),r.connect(n),r.disconnect(n),s.onaudioprocess=n=>{const i=n.inputBuffer.getChannelData(0);Array.prototype.some.call(i,t=>1===t)?e(!0):e(!1),r.stop(),s.onaudioprocess=null,r.disconnect(s),s.disconnect(t.destination)},r.start()}),st=(t,e)=>{const s=new Map;for(const e of t)for(const t of e){const e=s.get(t);s.set(t,void 0===e?1:e+1)}s.forEach((t,s)=>e(s,t))},nt=t=>"context"in t,it=(t,e,[s,n,i],o)=>{H(t[n],[e,s,i],t=>t[0]===e&&t[1]===s,o)},ot=(t,e,[s,n],i)=>{H(t,[e,s,n],t=>t[0]===e&&t[1]===s,i)},rt=(t,e,[s,n,i],o)=>{const r=t.get(s);void 0===r?t.set(s,new Set([[n,e,i]])):H(r,[n,e,i],t=>t[0]===n&&t[1]===e,o)},at=(t,[e,s,n],i)=>{const o=t.get(e);void 0===o?t.set(e,new Set([[s,n]])):H(o,[s,n],t=>t[0]===s,i)},ct=(t,e,s,n)=>{const i=E(t,e),o=K(i,t=>t[0]===s&&t[1]===n);return 0===i.size&&t.delete(e),o},ht=(t,e,s)=>{const n=E(t,e),i=K(n,t=>t[0]===s);return 0===n.size&&t.delete(e),i},ut=(t,e,s,n,i)=>{const{activeInputs:o,passiveInputs:r}=N(e),{outputs:a}=N(t),c=R(t),h=a=>{const c=X(e),h=X(t);if(a){const a=ct(r,t,s,n);it(o,t,a,!1),i||$(t)||G(h,c,s,n),J(e)&&q(e)}else{const a=((t,e,s,n)=>K(t[n],t=>t[0]===e&&t[1]===s))(o,t,s,n);rt(r,n,a,!1),i||$(t)||Z(h,c,s,n),M(e)&&tt(e,o)}};return!!H(a,[e,s,n],t=>t[0]===e&&t[1]===s&&t[2]===n,!0)&&(c.add(h),M(t)?it(o,t,[s,n,h],!0):rt(r,n,[t,s,h],!0),!0)},lt=(t,e,s,n)=>{const{activeInputs:i,passiveInputs:o}=P(e),{outputs:r}=N(t),a=R(t),c=r=>{const a=X(t),c=Y(e);if(r){const e=ht(o,t,s);ot(i,t,e,!1),n||$(t)||a.connect(c,s)}else{const e=((t,e,s)=>K(t,t=>t[0]===e&&t[1]===s))(i,t,s);at(o,e,!1),n||$(t)||a.disconnect(c,s)}};return!!H(r,[e,s],t=>t[0]===e&&t[1]===s,!0)&&(a.add(c),M(t)?ot(i,t,[s,c],!0):at(o,[t,s,c],!0),!0)},pt=(t,e,s)=>{for(const n of t)if(n[0]===e&&n[1]===s)return t.delete(n),n;return null},dt=(t,e,s,n,i)=>{const[o,r]=((t,e,s,n)=>{const{activeInputs:i,passiveInputs:o}=N(e),r=pt(i[n],t,s);if(null===r){return[ct(o,t,s,n)[2],!1]}return[r[2],!0]})(t,s,n,i);if(null!==o&&(Q(t,o),!r||e||$(t)||Z(X(t),X(s),n,i)),M(s)){const{activeInputs:t}=N(s);tt(s,t)}},ft=(t,e,s,n)=>{const[i,o]=((t,e,s)=>{const{activeInputs:n,passiveInputs:i}=P(e),o=pt(n,t,s);if(null===o){return[ht(i,t,s)[1],!1]}return[o[2],!0]})(t,s,n);null!==i&&(Q(t,i),!o||e||$(t)||X(t).disconnect(Y(s),n))};class _t{constructor(t){this._map=new Map(t)}get size(){return this._map.size}entries(){return this._map.entries()}forEach(t,e=null){return this._map.forEach((s,n)=>t.call(e,s,n,this))}get(t){return this._map.get(t)}has(t){return this._map.has(t)}keys(){return this._map.keys()}values(){return this._map.values()}}const mt={channelCount:2,channelCountMode:"explicit",channelInterpretation:"speakers",numberOfInputs:1,numberOfOutputs:1,parameterData:{},processorOptions:{}};function gt(t,e,s,n,i){if("function"==typeof t.copyFromChannel)0===e[s].byteLength&&(e[s]=new Float32Array(128)),t.copyFromChannel(e[s],n,i);else{const o=t.getChannelData(n);if(0===e[s].byteLength)e[s]=o.slice(i,i+128);else{const t=new Float32Array(o.buffer,i*Float32Array.BYTES_PER_ELEMENT,128);e[s].set(t)}}}const vt=(t,e,s,n,i)=>{"function"==typeof t.copyToChannel?0!==e[s].byteLength&&t.copyToChannel(e[s],n,i):0!==e[s].byteLength&&t.getChannelData(n).set(e[s],i)},yt=(t,e)=>{const s=[];for(let n=0;n<t;n+=1){const t=[],i="number"==typeof e?e:e[n];for(let e=0;e<i;e+=1)t.push(new Float32Array(128));s.push(t)}return s},xt=async(t,e,s,n,i,o,r)=>{const a=null===e?128*Math.ceil(t.context.length/128):e.length,c=n.channelCount*n.numberOfInputs,h=i.reduce((t,e)=>t+e,0),u=0===h?null:s.createBuffer(h,a,s.sampleRate);if(void 0===o)throw new Error("Missing the processor constructor.");const l=N(t),p=await((t,e)=>{const s=E(m,t),n=X(e);return E(s,n)})(s,t),d=yt(n.numberOfInputs,n.channelCount),f=yt(n.numberOfOutputs,i),_=Array.from(t.parameters.keys()).reduce((t,e)=>({...t,[e]:new Float32Array(128)}),{});for(let h=0;h<a;h+=128){if(n.numberOfInputs>0&&null!==e)for(let t=0;t<n.numberOfInputs;t+=1)for(let s=0;s<n.channelCount;s+=1)gt(e,d[t],s,s,h);void 0!==o.parameterDescriptors&&null!==e&&o.parameterDescriptors.forEach(({name:t},s)=>{gt(e,_,t,c+s,h)});for(let t=0;t<n.numberOfInputs;t+=1)for(let e=0;e<i[t];e+=1)0===f[t][e].byteLength&&(f[t][e]=new Float32Array(128));try{const t=d.map((t,e)=>0===l.activeInputs[e].size?[]:t),e=r(h/s.sampleRate,s.sampleRate,()=>p.process(t,f,_));if(null!==u)for(let t=0,e=0;t<n.numberOfOutputs;t+=1){for(let s=0;s<i[t];s+=1)vt(u,f[t],s,e+s,h);e+=i[t]}if(!e)break}catch(e){t.dispatchEvent(new ErrorEvent("processorerror",{colno:e.colno,filename:e.filename,lineno:e.lineno,message:e.message}));break}}return u},wt={Q:1,channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",detune:0,frequency:350,gain:0,type:"lowpass"},bt={channelCount:1,channelCountMode:"explicit",channelInterpretation:"speakers",numberOfInputs:6},Tt={channelCount:6,channelCountMode:"explicit",channelInterpretation:"discrete",numberOfOutputs:6},St={channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",offset:1},kt={buffer:null,channelCount:2,channelCountMode:"clamped-max",channelInterpretation:"speakers",disableNormalization:!1},Ct={channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",delayTime:0,maxDelayTime:1},At=(t,e,s)=>{const n=e[s];if(void 0===n)throw t();return n},Dt={attack:.003,channelCount:2,channelCountMode:"clamped-max",channelInterpretation:"speakers",knee:30,ratio:12,release:.25,threshold:-24},Ot={channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",gain:1},Mt=()=>new DOMException("","InvalidStateError"),Et=()=>new DOMException("","InvalidAccessError"),Rt={channelCount:2,channelCountMode:"max",channelInterpretation:"speakers"},qt=(t,e,s,n,i,o,r,a,c,h,u)=>{const l=h.length;let p=a;for(let a=0;a<l;a+=1){let l=s[0]*h[a];for(let e=1;e<i;e+=1){const n=p-e&c-1;l+=s[e]*o[n],l-=t[e]*r[n]}for(let t=i;t<n;t+=1)l+=s[t]*o[p-t&c-1];for(let s=i;s<e;s+=1)l-=t[s]*r[p-s&c-1];o[p]=h[a],r[p]=l,p=p+1&c-1,u[a]=l}return p},Ft={channelCount:2,channelCountMode:"explicit",channelInterpretation:"speakers"},It=t=>{const e=new Uint32Array([1179011410,40,1163280727,544501094,16,131073,44100,176400,1048580,1635017060,4,0]);try{const s=t.decodeAudioData(e.buffer,()=>{});return void 0!==s&&(s.catch(()=>{}),!0)}catch{}return!1},Vt={numberOfChannels:1},Nt=(t,e,s)=>{const n=e[s];void 0!==n&&n!==t[s]&&(t[s]=n)},Pt=(t,e)=>{Nt(t,e,"channelCount"),Nt(t,e,"channelCountMode"),Nt(t,e,"channelInterpretation")},jt=t=>"function"==typeof t.getFloatTimeDomainData,Lt=(t,e,s)=>{const n=e[s];void 0!==n&&n!==t[s].value&&(t[s].value=n)},zt=t=>{var e;t.start=(e=t.start,(s=0,n=0,i)=>{if("number"==typeof i&&i<0||n<0||s<0)throw new RangeError("The parameters can't be negative.");e.call(t,s,n,i)})},Bt=t=>{var e;t.stop=(e=t.stop,(s=0)=>{if(s<0)throw new RangeError("The parameter can't be negative.");e.call(t,s)})},Wt=(t,e)=>null===t?512:Math.max(512,Math.min(16384,Math.pow(2,Math.round(Math.log2(t*e))))),Ut=async(t,e)=>new t(await(t=>new Promise((e,s)=>{const{port1:n,port2:i}=new MessageChannel;n.onmessage=({data:t})=>{n.close(),i.close(),e(t)},n.onmessageerror=({data:t})=>{n.close(),i.close(),s(t)},i.postMessage(t)}))(e)),Gt=(t,e)=>{const s=t.createBiquadFilter();return Pt(s,e),Lt(s,e,"Q"),Lt(s,e,"detune"),Lt(s,e,"frequency"),Lt(s,e,"gain"),Nt(s,e,"type"),s},Qt=(t,e)=>{const s=t.createChannelSplitter(e.numberOfOutputs);return Pt(s,e),(t=>{const e=t.numberOfOutputs;Object.defineProperty(t,"channelCount",{get:()=>e,set:t=>{if(t!==e)throw Mt()}}),Object.defineProperty(t,"channelCountMode",{get:()=>"explicit",set:t=>{if("explicit"!==t)throw Mt()}}),Object.defineProperty(t,"channelInterpretation",{get:()=>"discrete",set:t=>{if("discrete"!==t)throw Mt()}})})(s),s},Zt=(t,e)=>(t.connect=e.connect.bind(e),t.disconnect=e.disconnect.bind(e),t),Xt=(t,e)=>{const s=t.createDelay(e.maxDelayTime);return Pt(s,e),Lt(s,e,"delayTime"),s},Yt=(t,e)=>{const s=t.createGain();return Pt(s,e),Lt(s,e,"gain"),s};function Ht(t,e){const s=e[0]*e[0]+e[1]*e[1];return[(t[0]*e[0]+t[1]*e[1])/s,(t[1]*e[0]-t[0]*e[1])/s]}function $t(t,e){let s=[0,0];for(let o=t.length-1;o>=0;o-=1)i=e,s=[(n=s)[0]*i[0]-n[1]*i[1],n[0]*i[1]+n[1]*i[0]],s[0]+=t[o];var n,i;return s}const Jt=(t,e,s,n)=>t.createScriptProcessor(e,s,n),Kt=()=>new DOMException("","NotSupportedError"),te={numberOfChannels:1},ee={channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",detune:0,frequency:440,periodicWave:void 0,type:"sine"},se={channelCount:2,channelCountMode:"clamped-max",channelInterpretation:"speakers",coneInnerAngle:360,coneOuterAngle:360,coneOuterGain:0,distanceModel:"inverse",maxDistance:1e4,orientationX:1,orientationY:0,orientationZ:0,panningModel:"equalpower",positionX:0,positionY:0,positionZ:0,refDistance:1,rolloffFactor:1},ne={disableNormalization:!1},ie={channelCount:2,channelCountMode:"explicit",channelInterpretation:"speakers",pan:0},oe=()=>new DOMException("","UnknownError"),re={channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",curve:null,oversample:"none"},ae=t=>{if(null===t)return!1;const e=t.length;return e%2!=0?0!==t[Math.floor(e/2)]:t[e/2-1]+t[e/2]!==0},ce=(t,e,s,n)=>{let i=Object.getPrototypeOf(t);for(;!i.hasOwnProperty(e);)i=Object.getPrototypeOf(i);const{get:o,set:r}=Object.getOwnPropertyDescriptor(i,e);Object.defineProperty(t,e,{get:s(o),set:n(r)})},he=t=>{const e=t.createOscillator();try{e.start(-1)}catch(t){return t instanceof RangeError}return!1},ue=t=>{const e=t.createBuffer(1,1,44100),s=t.createBufferSource();s.buffer=e,s.start(),s.stop();try{return s.stop(),!0}catch{return!1}},le=t=>{const e=t.createOscillator();try{e.stop(-1)}catch(t){return t instanceof RangeError}return!1},pe=()=>{try{new DOMException}catch{return!1}return!0},de=()=>new Promise(t=>{const e=new ArrayBuffer(0),{port1:s,port2:n}=new MessageChannel;s.onmessage=({data:e})=>t(null!==e),n.postMessage(e,[e])}),fe=(t,e)=>{const s=e.createGain();t.connect(s);const n=(i=t.disconnect,()=>{i.call(t,s),t.removeEventListener("ended",n)});var i;t.addEventListener("ended",n),Zt(t,s),t.stop=(e=>{let n=!1;return(i=0)=>{if(n)try{e.call(t,i)}catch{s.gain.setValueAtTime(0,i)}else e.call(t,i),n=!0}})(t.stop)},_e=(t,e)=>s=>{const n={value:t};return Object.defineProperties(s,{currentTarget:n,target:n}),"function"==typeof e?e.call(t,s):e.handleEvent.call(t,s)},me=(ge=new Map,ve=new WeakMap,(t,e)=>{const s=ve.get(t);if(void 0!==s)return s;const n=ge.get(t);if(void 0!==n)return n;try{const s=e();return s instanceof Promise?(ge.set(t,s),s.catch(()=>!1).then(e=>(ge.delete(t),ve.set(t,e),e))):(ve.set(t,s),s)}catch{return ve.set(t,!1),!1}});var ge,ve;const ye="undefined"==typeof window?null:window,xe=(we=me,be=k,(t,e)=>{const s=t.createAnalyser();if(Pt(s,e),!(e.maxDecibels>e.minDecibels))throw be();return Nt(s,e,"fftSize"),Nt(s,e,"maxDecibels"),Nt(s,e,"minDecibels"),Nt(s,e,"smoothingTimeConstant"),we(jt,()=>jt(s))||(t=>{t.getFloatTimeDomainData=e=>{const s=new Uint8Array(e.length);t.getByteTimeDomainData(s);const n=Math.max(s.length,t.fftSize);for(let t=0;t<n;t+=1)e[t]=.0078125*(s[t]-128);return e}})(s),s});var we,be;const Te=(Se=N,t=>{const e=Se(t);if(null===e.renderer)throw new Error("Missing the renderer of the given AudioNode in the audio graph.");return e.renderer});var Se;const ke=((t,e,s)=>async(n,i,o,r)=>{const a=t(n),c=[...r,n];await Promise.all(a.activeInputs.map((t,r)=>Array.from(t).filter(([t])=>!c.includes(t)).map(async([t,a])=>{const h=e(t),u=await h.render(t,i,c),l=n.context.destination;s(t)||n===l&&s(n)||u.connect(o,a,r)})).reduce((t,e)=>[...t,...e],[]))})(N,Te,$),Ce=(Ae=xe,De=X,Oe=ke,()=>{const t=new WeakMap;return{render(e,s,n){const i=t.get(s);return void 0!==i?Promise.resolve(i):(async(e,s,n)=>{let i=De(e);if(!T(i,s)){const t={channelCount:i.channelCount,channelCountMode:i.channelCountMode,channelInterpretation:i.channelInterpretation,fftSize:i.fftSize,maxDecibels:i.maxDecibels,minDecibels:i.minDecibels,smoothingTimeConstant:i.smoothingTimeConstant};i=Ae(s,t)}return t.set(s,i),await Oe(e,s,i,n),i})(e,s,n)}}});var Ae,De,Oe;const Me=(Ee=p,t=>{const e=Ee.get(t);if(void 0===e)throw Mt();return e});var Ee;const Re=(t=>null===t?null:t.hasOwnProperty("OfflineAudioContext")?t.OfflineAudioContext:t.hasOwnProperty("webkitOfflineAudioContext")?t.webkitOfflineAudioContext:null)(ye),qe=(Fe=Re,t=>null!==Fe&&t instanceof Fe);var Fe;const Ie=new WeakMap,Ve=(Ne=_e,class{constructor(t){this._nativeEventTarget=t,this._listeners=new WeakMap}addEventListener(t,e,s){if(null!==e){let n=this._listeners.get(e);void 0===n&&(n=Ne(this,e),"function"==typeof e&&this._listeners.set(e,n)),this._nativeEventTarget.addEventListener(t,n,s)}}dispatchEvent(t){return this._nativeEventTarget.dispatchEvent(t)}removeEventListener(t,e,s){const n=null===e?void 0:this._listeners.get(e);this._nativeEventTarget.removeEventListener(t,void 0===n?null:n,s)}});var Ne;const Pe=(t=>null===t?null:t.hasOwnProperty("AudioContext")?t.AudioContext:t.hasOwnProperty("webkitAudioContext")?t.webkitAudioContext:null)(ye),je=(Le=Pe,t=>null!==Le&&t instanceof Le);var Le;const ze=(t=>e=>null!==t&&"function"==typeof t.AudioNode&&e instanceof t.AudioNode)(ye),Be=(t=>e=>null!==t&&"function"==typeof t.AudioParam&&e instanceof t.AudioParam)(ye),We=((t,e,s,n,i,o,r,a,c,u,l,p,f,_)=>class extends c{constructor(s,n,i,o){super(i),this._context=s,this._nativeAudioNode=i;const r=u(s);l(r)&&!0!==e(et,()=>et(r))&&(t=>{const e=new Map;var s,n;t.connect=(s=t.connect.bind(t),(t,n=0,i=0)=>{const o=nt(t)?s(t,n,i):s(t,n),r=e.get(t);return void 0===r?e.set(t,[{input:i,output:n}]):r.every(t=>t.input!==i||t.output!==n)&&r.push({input:i,output:n}),o}),t.disconnect=(n=t.disconnect,(s,i,o)=>{if(n.apply(t),void 0===s)e.clear();else if("number"==typeof s)for(const[t,n]of e){const i=n.filter(t=>t.output!==s);0===i.length?e.delete(t):e.set(t,i)}else if(e.has(s))if(void 0===i)e.delete(s);else{const t=e.get(s);if(void 0!==t){const n=t.filter(t=>t.output!==i&&(t.input!==o||void 0===o));0===n.length?e.delete(s):e.set(s,n)}}for(const[s,n]of e)n.forEach(e=>{nt(s)?t.connect(s,e.output,e.input):t.connect(s,e.output)})})})(i),h.set(this,i),d.set(this,new Set),"closed"!==s.state&&n&&q(this),t(this,o,i)}get channelCount(){return this._nativeAudioNode.channelCount}set channelCount(t){this._nativeAudioNode.channelCount=t}get channelCountMode(){return this._nativeAudioNode.channelCountMode}set channelCountMode(t){this._nativeAudioNode.channelCountMode=t}get channelInterpretation(){return this._nativeAudioNode.channelInterpretation}set channelInterpretation(t){this._nativeAudioNode.channelInterpretation=t}get context(){return this._context}get numberOfInputs(){return this._nativeAudioNode.numberOfInputs}get numberOfOutputs(){return this._nativeAudioNode.numberOfOutputs}connect(t,e=0,r=0){if(e<0||e>=this._nativeAudioNode.numberOfOutputs)throw n();const c=u(this._context),h=_(c);if(p(t)||f(t))throw i();if(B(t)){const n=X(t);try{const s=G(this._nativeAudioNode,n,e,r),i=J(this);(h||i)&&this._nativeAudioNode.disconnect(...s),"closed"!==this.context.state&&!i&&J(t)&&q(t)}catch(t){if(12===t.code)throw i();throw t}if(ut(this,t,e,r,h)){const e=a([this],t);st(e,s(h))}return t}const l=Y(t);if("playbackRate"===l.name)throw o();try{this._nativeAudioNode.connect(l,e),(h||J(this))&&this._nativeAudioNode.disconnect(l,e)}catch(t){if(12===t.code)throw i();throw t}if(lt(this,t,e,h)){const e=a([this],t);st(e,s(h))}}disconnect(t,e,s){let o;const c=u(this._context),h=_(c);if(void 0===t)o=((t,e)=>{const s=N(t),n=[];for(const i of s.outputs)W(i)?dt(t,e,...i):ft(t,e,...i),n.push(i[0]);return s.outputs.clear(),n})(this,h);else if("number"==typeof t){if(t<0||t>=this.numberOfOutputs)throw n();o=((t,e,s)=>{const n=N(t),i=[];for(const o of n.outputs)o[1]===s&&(W(o)?dt(t,e,...o):ft(t,e,...o),i.push(o[0]),n.outputs.delete(o));return i})(this,h,t)}else{if(void 0!==e&&(e<0||e>=this.numberOfOutputs))throw n();if(B(t)&&void 0!==s&&(s<0||s>=t.numberOfInputs))throw n();if(o=((t,e,s,n,i)=>{const o=N(t);return Array.from(o.outputs).filter(t=>!(t[0]!==s||void 0!==n&&t[1]!==n||void 0!==i&&t[2]!==i)).map(s=>(W(s)?dt(t,e,...s):ft(t,e,...s),o.outputs.delete(s),s[0]))})(this,h,t,e,s),0===o.length)throw i()}for(const t of o){const e=a([this],t);st(e,r)}}})((Ue=c,(t,e,s)=>{const n=[];for(let t=0;t<s.numberOfInputs;t+=1)n.push(new Set);Ue.set(t,{activeInputs:n,outputs:new Set,passiveInputs:new WeakMap,renderer:e})}),me,((t,e,s,n,i,o)=>r=>(a,c)=>{const h=t.get(a);if(void 0===h){if(!r&&o(a)){const t=n(a),{outputs:o}=s(a);for(const s of o)if(W(s)){const i=n(s[0]);e(t,i,s[1],s[2])}else{const e=i(s[0]);t.disconnect(e,s[1])}}t.set(a,c)}else t.set(a,h+c)})(f,Z,N,X,Y,M),k,Et,Kt,((t,e,s,n,i,o,r,a)=>(c,h)=>{const u=e.get(c);if(void 0===u)throw new Error("Missing the expected cycle count.");const l=o(c.context),p=a(l);if(u===h){if(e.delete(c),!p&&r(c)){const e=n(c),{outputs:o}=s(c);for(const s of o)if(W(s)){const i=n(s[0]);t(e,i,s[1],s[2])}else{const t=i(s[0]);e.connect(t,s[1])}}}else e.set(c,u-h)})(G,f,N,X,Y,Me,M,qe),((t,e,s)=>function n(i,o){const r=B(o)?o:s(t,o);if((t=>"delayTime"in t)(r))return[];if(i[0]===r)return[i];if(i.includes(r))return[];const{outputs:a}=e(r);return Array.from(a).map(t=>n([...i,r],t[0])).reduce((t,e)=>t.concat(e),[])})(Ie,N,E),Ve,Me,je,ze,Be,qe);var Ue;const Ge=((t,e,s,n,i,o)=>class extends t{constructor(t,s){const r=i(t),a={...b,...s},c=n(r,a);super(t,!1,c,o(r)?e():null),this._nativeAnalyserNode=c}get fftSize(){return this._nativeAnalyserNode.fftSize}set fftSize(t){this._nativeAnalyserNode.fftSize=t}get frequencyBinCount(){return this._nativeAnalyserNode.frequencyBinCount}get maxDecibels(){return this._nativeAnalyserNode.maxDecibels}set maxDecibels(t){const e=this._nativeAnalyserNode.maxDecibels;if(this._nativeAnalyserNode.maxDecibels=t,!(t>this._nativeAnalyserNode.minDecibels))throw this._nativeAnalyserNode.maxDecibels=e,s()}get minDecibels(){return this._nativeAnalyserNode.minDecibels}set minDecibels(t){const e=this._nativeAnalyserNode.minDecibels;if(this._nativeAnalyserNode.minDecibels=t,!(this._nativeAnalyserNode.maxDecibels>t))throw this._nativeAnalyserNode.minDecibels=e,s()}get smoothingTimeConstant(){return this._nativeAnalyserNode.smoothingTimeConstant}set smoothingTimeConstant(t){this._nativeAnalyserNode.smoothingTimeConstant=t}getByteFrequencyData(t){this._nativeAnalyserNode.getByteFrequencyData(t)}getByteTimeDomainData(t){this._nativeAnalyserNode.getByteTimeDomainData(t)}getFloatFrequencyData(t){this._nativeAnalyserNode.getFloatFrequencyData(t)}getFloatTimeDomainData(t){this._nativeAnalyserNode.getFloatTimeDomainData(t)}})(We,Ce,k,xe,Me,qe),Qe=new WeakSet,Ze=(t=>null===t?null:t.hasOwnProperty("AudioBuffer")?t.AudioBuffer:null)(ye),Xe=(Ye=new Uint32Array(1),t=>(Ye[0]=t,Ye[0]));var Ye;const He=((t,e)=>s=>{s.copyFromChannel=(n,i,o=0)=>{const r=t(o),a=t(i);if(a>=s.numberOfChannels)throw e();const c=s.length,h=s.getChannelData(a),u=n.length;for(let t=r<0?-r:0;t+r<c&&t<u;t+=1)n[t]=h[t+r]},s.copyToChannel=(n,i,o=0)=>{const r=t(o),a=t(i);if(a>=s.numberOfChannels)throw e();const c=s.length,h=s.getChannelData(a),u=n.length;for(let t=r<0?-r:0;t+r<c&&t<u;t+=1)h[t+r]=n[t]}})(Xe,k),$e=(t=>e=>{e.copyFromChannel=(s=>(n,i,o=0)=>{const r=t(o),a=t(i);if(r<e.length)return s.call(e,n,a,r)})(e.copyFromChannel),e.copyToChannel=(s=>(n,i,o=0)=>{const r=t(o),a=t(i);if(r<e.length)return s.call(e,n,a,r)})(e.copyToChannel)})(Xe),Je=((t,e,s,n,i,o,r,a)=>{let c=null;return class h{constructor(h){if(null===i)throw new Error("Missing the native OfflineAudioContext constructor.");const{length:u,numberOfChannels:l,sampleRate:p}={...A,...h};null===c&&(c=new i(1,1,44100));const d=null!==n&&e(o,o)?new n({length:u,numberOfChannels:l,sampleRate:p}):c.createBuffer(l,u,p);if(0===d.numberOfChannels)throw s();return"function"!=typeof d.copyFromChannel?(r(d),C(d)):e(S,()=>S(d))||a(d),t.add(d),d}static[Symbol.hasInstance](e){return null!==e&&"object"==typeof e&&Object.getPrototypeOf(e)===h.prototype||t.has(e)}}})(Qe,me,Kt,Ze,Re,(Ke=Ze,()=>{if(null===Ke)return!1;try{new Ke({length:1,sampleRate:44100})}catch{return!1}return!0}),He,$e);var Ke;const ts=(es=Yt,(t,e)=>{const s=es(t,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete",gain:0});e.connect(s).connect(t.destination);const n=()=>{e.removeEventListener("ended",n),e.disconnect(s),s.disconnect()};e.addEventListener("ended",n)});var es;const ss=((t,e,s)=>async(n,i,o,r)=>{const a=e(n);await Promise.all(Array.from(a.activeInputs).map(async([e,n])=>{const a=t(e),c=await a.render(e,i,r);s(e)||c.connect(o,n)}))})(Te,P,$),ns=(t=>(e,s,n,i)=>t(s,e,n,i))(ss),is=((t,e,s,n,i,o,r,a,c,h,u)=>(l,p)=>{const d=l.createBufferSource();return Pt(d,p),Lt(d,p,"playbackRate"),Nt(d,p,"buffer"),Nt(d,p,"loop"),Nt(d,p,"loopEnd"),Nt(d,p,"loopStart"),e(s,()=>s(l))||(t=>{t.start=(e=>{let s=!1;return(n=0,i=0,o)=>{if(s)throw Mt();e.call(t,n,i,o),s=!0}})(t.start)})(d),e(n,()=>n(l))||c(d),e(i,()=>i(l))||h(d,l),e(o,()=>o(l))||zt(d),e(r,()=>r(l))||u(d,l),e(a,()=>a(l))||Bt(d),t(l,d),d})(ts,me,t=>{const e=t.createBufferSource();e.start();try{e.start()}catch{return!0}return!1},t=>{const e=t.createBufferSource(),s=t.createBuffer(1,1,44100);e.buffer=s;try{e.start(0,1)}catch{return!1}return!0},t=>{const e=t.createBufferSource();e.start();try{e.stop()}catch{return!1}return!0},he,ue,le,t=>{var e;t.start=(e=t.start,(s=0,n=0,i)=>{const o=t.buffer,r=null===o?n:Math.min(o.duration,n);null!==o&&r>o.duration-.5/t.context.sampleRate?e.call(t,s,0,0):e.call(t,s,r,i)})},(os=ce,(t,e)=>{const s=e.createBuffer(1,1,e.sampleRate);null===t.buffer&&(t.buffer=s),os(t,"buffer",e=>()=>{const n=e.call(t);return n===s?null:n},e=>n=>e.call(t,null===n?s:n))}),fe);var os;const rs=((t,e)=>(s,n,i,o)=>(t(n).replay(i),e(n,s,i,o)))((t=>e=>{const s=t(e);if(null===s.renderer)throw new Error("Missing the renderer of the given AudioParam in the audio graph.");return s.renderer})(P),ss),as=((t,e,s,n,i)=>()=>{const o=new WeakMap;let r=null,a=null;return{set start(t){r=t},set stop(t){a=t},render(c,h,u){const l=o.get(h);return void 0!==l?Promise.resolve(l):(async(c,h,u)=>{let l=s(c);const p=T(l,h);if(!p){const t={buffer:l.buffer,channelCount:l.channelCount,channelCountMode:l.channelCountMode,channelInterpretation:l.channelInterpretation,loop:l.loop,loopEnd:l.loopEnd,loopStart:l.loopStart,playbackRate:l.playbackRate.value};l=e(h,t),null!==r&&l.start(...r),null!==a&&l.stop(a)}return o.set(h,l),p?await t(h,c.playbackRate,l.playbackRate,u):await n(h,c.playbackRate,l.playbackRate,u),await i(c,h,l,u),l})(c,h,u)}}})(ns,is,X,rs,ke),cs=((t,e,s,n,i,o,a,c,h,u,l,p)=>(d,f,_,m=null,g=null)=>{const v=new r.AutomationEventList(_.defaultValue),y=f?n(v):null,x={get defaultValue(){return _.defaultValue},get maxValue(){return null===m?_.maxValue:m},get minValue(){return null===g?_.minValue:g},get value(){return _.value},set value(t){_.value=t,x.setValueAtTime(t,d.context.currentTime)},cancelAndHoldAtTime(t){if("function"==typeof _.cancelAndHoldAtTime)null===y&&v.flush(d.context.currentTime),v.add(i(t)),_.cancelAndHoldAtTime(t);else{const e=Array.from(v).pop();null===y&&v.flush(d.context.currentTime),v.add(i(t));const s=Array.from(v).pop();_.cancelScheduledValues(t),e!==s&&void 0!==s&&("exponentialRampToValue"===s.type?_.exponentialRampToValueAtTime(s.value,s.endTime):"linearRampToValue"===s.type?_.linearRampToValueAtTime(s.value,s.endTime):"setValue"===s.type?_.setValueAtTime(s.value,s.startTime):"setValueCurve"===s.type&&_.setValueCurveAtTime(s.values,s.startTime,s.duration))}return x},cancelScheduledValues:t=>(null===y&&v.flush(d.context.currentTime),v.add(o(t)),_.cancelScheduledValues(t),x),exponentialRampToValueAtTime(t,e){if(0===t)throw new RangeError;if(!Number.isFinite(e)||e<0)throw new RangeError;return null===y&&v.flush(d.context.currentTime),v.add(a(t,e)),_.exponentialRampToValueAtTime(t,e),x},linearRampToValueAtTime:(t,e)=>(null===y&&v.flush(d.context.currentTime),v.add(c(t,e)),_.linearRampToValueAtTime(t,e),x),setTargetAtTime:(t,e,s)=>(null===y&&v.flush(d.context.currentTime),v.add(h(t,e,s)),_.setTargetAtTime(t,e,s),x),setValueAtTime:(t,e)=>(null===y&&v.flush(d.context.currentTime),v.add(u(t,e)),_.setValueAtTime(t,e),x),setValueCurveAtTime(t,e,s){const n=t instanceof Float32Array?t:new Float32Array(t);if(null!==p&&"webkitAudioContext"===p.name){const t=e+s,i=d.context.sampleRate,o=Math.ceil(e*i),r=Math.floor(t*i),a=r-o,c=new Float32Array(a);for(let t=0;t<a;t+=1){const r=(n.length-1)/s*((o+t)/i-e),a=Math.floor(r),h=Math.ceil(r);c[t]=a===h?n[a]:(1-(r-a))*n[a]+(1-(h-r))*n[h]}null===y&&v.flush(d.context.currentTime),v.add(l(c,e,s)),_.setValueCurveAtTime(c,e,s);const h=r/i;h<t&&x.setValueAtTime(c[c.length-1],h),x.setValueAtTime(n[n.length-1],t)}else null===y&&v.flush(d.context.currentTime),v.add(l(n,e,s)),_.setValueCurveAtTime(n,e,s);return x}};return s.set(x,_),e.set(x,d),t(x,y),x})((hs=u,(t,e)=>{hs.set(t,{activeInputs:new Set,passiveInputs:new WeakMap,renderer:e})}),Ie,l,t=>({replay(e){for(const s of t)if("exponentialRampToValue"===s.type){const{endTime:t,value:n}=s;e.exponentialRampToValueAtTime(n,t)}else if("linearRampToValue"===s.type){const{endTime:t,value:n}=s;e.linearRampToValueAtTime(n,t)}else if("setTarget"===s.type){const{startTime:t,target:n,timeConstant:i}=s;e.setTargetAtTime(n,t,i)}else if("setValue"===s.type){const{startTime:t,value:n}=s;e.setValueAtTime(n,t)}else{if("setValueCurve"!==s.type)throw new Error("Can't apply an unknown automation.");{const{duration:t,startTime:n,values:i}=s;e.setValueCurveAtTime(i,n,t)}}}}),r.createCancelAndHoldAutomationEvent,r.createCancelScheduledValuesAutomationEvent,r.createExponentialRampToValueAutomationEvent,r.createLinearRampToValueAutomationEvent,r.createSetTargetAutomationEvent,r.createSetValueAutomationEvent,r.createSetValueCurveAutomationEvent,Pe);var hs;const us=((t,e,s,n,i,o,r,a)=>class extends t{constructor(t,n){const a=o(t),c={...I,...n},h=i(a,c),u=r(a),l=u?e():null;super(t,!1,h,l),this._audioBufferSourceNodeRenderer=l,this._isBufferNullified=!1,this._isBufferSet=null!==c.buffer,this._nativeAudioBufferSourceNode=h,this._onended=null,this._playbackRate=s(this,u,h.playbackRate,O,D)}get buffer(){return this._isBufferNullified?null:this._nativeAudioBufferSourceNode.buffer}set buffer(t){if(this._nativeAudioBufferSourceNode.buffer=t,null!==t){if(this._isBufferSet)throw n();this._isBufferSet=!0}}get loop(){return this._nativeAudioBufferSourceNode.loop}set loop(t){this._nativeAudioBufferSourceNode.loop=t}get loopEnd(){return this._nativeAudioBufferSourceNode.loopEnd}set loopEnd(t){this._nativeAudioBufferSourceNode.loopEnd=t}get loopStart(){return this._nativeAudioBufferSourceNode.loopStart}set loopStart(t){this._nativeAudioBufferSourceNode.loopStart=t}get onended(){return this._onended}set onended(t){const e="function"==typeof t?a(this,t):null;this._nativeAudioBufferSourceNode.onended=e;const s=this._nativeAudioBufferSourceNode.onended;this._onended=null!==s&&s===e?t:s}get playbackRate(){return this._playbackRate}start(t=0,e=0,s){if(this._nativeAudioBufferSourceNode.start(t,e,s),null!==this._audioBufferSourceNodeRenderer&&(this._audioBufferSourceNodeRenderer.start=void 0===s?[t,e]:[t,e,s]),"closed"!==this.context.state){q(this);const t=()=>{this._nativeAudioBufferSourceNode.removeEventListener("ended",t),setTimeout(()=>{M(this)&&F(this)},1e3)};this._nativeAudioBufferSourceNode.addEventListener("ended",t)}}stop(t=0){this._nativeAudioBufferSourceNode.stop(t),null!==this._audioBufferSourceNodeRenderer&&(this._audioBufferSourceNodeRenderer.stop=t)}})(We,as,cs,Mt,is,Me,qe,_e),ls=((t,e,s,n,i,o,r,a)=>class extends t{constructor(t,s){const n=o(t),c=r(n),h=i(n,s,c);super(t,!1,h,c?e(a):null),this._isNodeOfNativeOfflineAudioContext=c,this._nativeAudioDestinationNode=h}get channelCount(){return this._nativeAudioDestinationNode.channelCount}set channelCount(t){if(this._isNodeOfNativeOfflineAudioContext)throw n();if(t>this._nativeAudioDestinationNode.maxChannelCount)throw s();this._nativeAudioDestinationNode.channelCount=t}get channelCountMode(){return this._nativeAudioDestinationNode.channelCountMode}set channelCountMode(t){if(this._isNodeOfNativeOfflineAudioContext)throw n();this._nativeAudioDestinationNode.channelCountMode=t}get maxChannelCount(){return this._nativeAudioDestinationNode.maxChannelCount}})(We,t=>{let e=null;return{render:(s,n,i)=>(null===e&&(e=(async(e,s,n)=>{const i=s.destination;return await t(e,s,i,n),i})(s,n,i)),e)}},k,Mt,((t,e)=>(s,n,i)=>{const o=s.destination;if(o.channelCount!==n)try{o.channelCount=n}catch{}i&&"explicit"!==o.channelCountMode&&(o.channelCountMode="explicit"),0===o.maxChannelCount&&Object.defineProperty(o,"maxChannelCount",{value:n});const r=t(s,{channelCount:n,channelCountMode:o.channelCountMode,channelInterpretation:o.channelInterpretation,gain:1});return e(r,"channelCount",t=>()=>t.call(r),t=>e=>{t.call(r,e);try{o.channelCount=e}catch(t){if(e>o.maxChannelCount)throw t}}),e(r,"channelCountMode",t=>()=>t.call(r),t=>e=>{t.call(r,e),o.channelCountMode=e}),e(r,"channelInterpretation",t=>()=>t.call(r),t=>e=>{t.call(r,e),o.channelInterpretation=e}),Object.defineProperty(r,"maxChannelCount",{get:()=>o.maxChannelCount}),r.connect(o),r})(Yt,ce),Me,qe,ke),ps=((t,e,s,n,i)=>()=>{const o=new WeakMap;return{render(r,a,c){const h=o.get(a);return void 0!==h?Promise.resolve(h):(async(r,a,c)=>{let h=s(r);const u=T(h,a);if(!u){const t={Q:h.Q.value,channelCount:h.channelCount,channelCountMode:h.channelCountMode,channelInterpretation:h.channelInterpretation,detune:h.detune.value,frequency:h.frequency.value,gain:h.gain.value,type:h.type};h=e(a,t)}return o.set(a,h),u?(await t(a,r.Q,h.Q,c),await t(a,r.detune,h.detune,c),await t(a,r.frequency,h.frequency,c),await t(a,r.gain,h.gain,c)):(await n(a,r.Q,h.Q,c),await n(a,r.detune,h.detune,c),await n(a,r.frequency,h.frequency,c),await n(a,r.gain,h.gain,c)),await i(r,a,h,c),h})(r,a,c)}}})(ns,Gt,X,rs,ke),ds=(fs=We,_s=cs,ms=ps,gs=Et,vs=Gt,ys=Me,xs=qe,class extends fs{constructor(t,e){const s=ys(t),n={...wt,...e},i=vs(s,n),o=xs(s);super(t,!1,i,o?ms():null),this._Q=_s(this,o,i.Q,O,D),this._detune=_s(this,o,i.detune,1200*Math.log2(O),-1200*Math.log2(O)),this._frequency=_s(this,o,i.frequency,t.sampleRate/2,0),this._gain=_s(this,o,i.gain,40*Math.log10(O),D),this._nativeBiquadFilterNode=i}get detune(){return this._detune}get frequency(){return this._frequency}get gain(){return this._gain}get Q(){return this._Q}get type(){return this._nativeBiquadFilterNode.type}set type(t){this._nativeBiquadFilterNode.type=t}getFrequencyResponse(t,e,s){if(this._nativeBiquadFilterNode.getFrequencyResponse(t,e,s),t.length!==e.length||e.length!==s.length)throw gs()}});var fs,_s,ms,gs,vs,ys,xs;const ws=((t,e)=>(s,n,i)=>{const o=new Set;var r,a;return s.connect=(r=s.connect,(i,a=0,c=0)=>{const h=0===o.size;if(e(i))return r.call(s,i,a,c),t(o,[i,a,c],t=>t[0]===i&&t[1]===a&&t[2]===c,!0),h&&n(),i;r.call(s,i,a),t(o,[i,a],t=>t[0]===i&&t[1]===a,!0),h&&n()}),s.disconnect=(a=s.disconnect,(t,n,r)=>{const c=o.size>0;if(void 0===t)a.apply(s),o.clear();else if("number"==typeof t){a.call(s,t);for(const e of o)e[1]===t&&o.delete(e)}else{e(t)?a.call(s,t,n,r):a.call(s,t,n);for(const e of o)e[0]!==t||void 0!==n&&e[1]!==n||void 0!==r&&e[2]!==r||o.delete(e)}const h=0===o.size;c&&h&&i()}),s})(H,ze),bs=(Ts=Mt,Ss=ws,(t,e)=>{e.channelCount=1,e.channelCountMode="explicit",Object.defineProperty(e,"channelCount",{get:()=>1,set:()=>{throw Ts()}}),Object.defineProperty(e,"channelCountMode",{get:()=>"explicit",set:()=>{throw Ts()}});const s=t.createBufferSource();Ss(e,()=>{const t=e.numberOfInputs;for(let n=0;n<t;n+=1)s.connect(e,0,n)},()=>s.disconnect(e))});var Ts,Ss;const ks=((t,e)=>(s,n)=>{const i=s.createChannelMerger(n.numberOfInputs);return null!==t&&"webkitAudioContext"===t.name&&e(s,i),Pt(i,n),i})(Pe,bs),Cs=((t,e,s,n,i)=>class extends t{constructor(t,o){const r=n(t),a={...bt,...o};super(t,!1,s(r,a),i(r)?e():null)}})(We,((t,e,s)=>()=>{const n=new WeakMap;return{render(i,o,r){const a=n.get(o);return void 0!==a?Promise.resolve(a):(async(i,o,r)=>{let a=e(i);if(!T(a,o)){const e={channelCount:a.channelCount,channelCountMode:a.channelCountMode,channelInterpretation:a.channelInterpretation,numberOfInputs:a.numberOfInputs};a=t(o,e)}return n.set(o,a),await s(i,o,a,r),a})(i,o,r)}}})(ks,X,ke),ks,Me,qe),As=((t,e,s,n,i,o)=>class extends t{constructor(t,r){const a=n(t),c=o({...Tt,...r});super(t,!1,s(a,c),i(a)?e():null)}})(We,((t,e,s)=>()=>{const n=new WeakMap;return{render(i,o,r){const a=n.get(o);return void 0!==a?Promise.resolve(a):(async(i,o,r)=>{let a=e(i);if(!T(a,o)){const e={channelCount:a.channelCount,channelCountMode:a.channelCountMode,channelInterpretation:a.channelInterpretation,numberOfOutputs:a.numberOfOutputs};a=t(o,e)}return n.set(o,a),await s(i,o,a,r),a})(i,o,r)}}})(Qt,X,ke),Qt,Me,qe,t=>({...t,channelCount:t.numberOfOutputs})),Ds=((t,e,s,n)=>(i,{offset:o,...r})=>{const a=i.createBuffer(1,2,i.sampleRate),c=e(i,{buffer:null,channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",loop:!1,loopEnd:0,loopStart:0,playbackRate:1}),h=s(i,{...r,gain:o}),u=a.getChannelData(0);u[0]=1,u[1]=1,c.buffer=a,c.loop=!0;const l={get bufferSize(){},get channelCount(){return h.channelCount},set channelCount(t){h.channelCount=t},get channelCountMode(){return h.channelCountMode},set channelCountMode(t){h.channelCountMode=t},get channelInterpretation(){return h.channelInterpretation},set channelInterpretation(t){h.channelInterpretation=t},get context(){return h.context},get inputs(){return[]},get numberOfInputs(){return c.numberOfInputs},get numberOfOutputs(){return h.numberOfOutputs},get offset(){return h.gain},get onended(){return c.onended},set onended(t){c.onended=t},addEventListener:(...t)=>c.addEventListener(t[0],t[1],t[2]),dispatchEvent:(...t)=>c.dispatchEvent(t[0]),removeEventListener:(...t)=>c.removeEventListener(t[0],t[1],t[2]),start(t=0){c.start.call(c,t)},stop(t=0){c.stop.call(c,t)}};return t(i,c),n(Zt(l,h),()=>c.connect(h),()=>c.disconnect(h))})(ts,is,Yt,ws),Os=((t,e,s,n,i)=>(o,r)=>{if(void 0===o.createConstantSource)return s(o,r);const a=o.createConstantSource();return Pt(a,r),Lt(a,r,"offset"),e(n,()=>n(o))||zt(a),e(i,()=>i(o))||Bt(a),t(o,a),a})(ts,me,Ds,he,le),Ms=((t,e,s,n,i,o,r)=>class extends t{constructor(t,r){const a=i(t),c={...St,...r},h=n(a,c),u=o(a),l=u?s():null;super(t,!1,h,l),this._constantSourceNodeRenderer=l,this._nativeConstantSourceNode=h,this._offset=e(this,u,h.offset,O,D),this._onended=null}get offset(){return this._offset}get onended(){return this._onended}set onended(t){const e="function"==typeof t?r(this,t):null;this._nativeConstantSourceNode.onended=e;const s=this._nativeConstantSourceNode.onended;this._onended=null!==s&&s===e?t:s}start(t=0){if(this._nativeConstantSourceNode.start(t),null!==this._constantSourceNodeRenderer&&(this._constantSourceNodeRenderer.start=t),"closed"!==this.context.state){q(this);const t=()=>{this._nativeConstantSourceNode.removeEventListener("ended",t),setTimeout(()=>{M(this)&&F(this)},1e3)};this._nativeConstantSourceNode.addEventListener("ended",t)}}stop(t=0){this._nativeConstantSourceNode.stop(t),null!==this._constantSourceNodeRenderer&&(this._constantSourceNodeRenderer.stop=t)}})(We,cs,((t,e,s,n,i)=>()=>{const o=new WeakMap;let r=null,a=null;return{set start(t){r=t},set stop(t){a=t},render(c,h,u){const l=o.get(h);return void 0!==l?Promise.resolve(l):(async(c,h,u)=>{let l=s(c);const p=T(l,h);if(!p){const t={channelCount:l.channelCount,channelCountMode:l.channelCountMode,channelInterpretation:l.channelInterpretation,offset:l.offset.value};l=e(h,t),null!==r&&l.start(r),null!==a&&l.stop(a)}return o.set(h,l),p?await t(h,c.offset,l.offset,u):await n(h,c.offset,l.offset,u),await i(c,h,l,u),l})(c,h,u)}}})(ns,Os,X,rs,ke),Os,Me,qe,_e),Es=((t,e)=>(s,n)=>{const i=s.createConvolver();if(Pt(i,n),n.disableNormalization===i.normalize&&(i.normalize=!n.disableNormalization),Nt(i,n,"buffer"),n.channelCount>2)throw t();if(e(i,"channelCount",t=>()=>t.call(i),e=>s=>{if(s>2)throw t();return e.call(i,s)}),"max"===n.channelCountMode)throw t();return e(i,"channelCountMode",t=>()=>t.call(i),e=>s=>{if("max"===s)throw t();return e.call(i,s)}),i})(Kt,ce),Rs=((t,e,s,n,i)=>class extends t{constructor(t,o){const r=n(t),a={...kt,...o},c=s(r,a);super(t,!1,c,i(r)?e():null),this._isBufferNullified=!1,this._nativeConvolverNode=c}get buffer(){return this._isBufferNullified?null:this._nativeConvolverNode.buffer}set buffer(t){if(this._nativeConvolverNode.buffer=t,null===t&&null!==this._nativeConvolverNode.buffer){const t=this._nativeConvolverNode.context;this._nativeConvolverNode.buffer=t.createBuffer(1,1,t.sampleRate),this._isBufferNullified=!0}else this._isBufferNullified=!1}get normalize(){return this._nativeConvolverNode.normalize}set normalize(t){this._nativeConvolverNode.normalize=t}})(We,((t,e,s)=>()=>{const n=new WeakMap;return{render(i,o,r){const a=n.get(o);return void 0!==a?Promise.resolve(a):(async(i,o,r)=>{let a=e(i);if(!T(a,o)){const e={buffer:a.buffer,channelCount:a.channelCount,channelCountMode:a.channelCountMode,channelInterpretation:a.channelInterpretation,disableNormalization:!a.normalize};a=t(o,e)}return n.set(o,a),U(a)?await s(i,o,a.inputs[0],r):await s(i,o,a,r),a})(i,o,r)}}})(Es,X,ke),Es,Me,qe),qs=((t,e,s,n,i,o)=>class extends t{constructor(t,r){const a=i(t),c={...Ct,...r},h=n(a,c),u=o(a);super(t,!1,h,u?s(c.maxDelayTime):null),this._delayTime=e(this,u,h.delayTime)}get delayTime(){return this._delayTime}})(We,cs,((t,e,s,n,i)=>o=>{const r=new WeakMap;return{render(a,c,h){const u=r.get(c);return void 0!==u?Promise.resolve(u):(async(a,c,h)=>{let u=s(a);const l=T(u,c);if(!l){const t={channelCount:u.channelCount,channelCountMode:u.channelCountMode,channelInterpretation:u.channelInterpretation,delayTime:u.delayTime.value,maxDelayTime:o};u=e(c,t)}return r.set(c,u),l?await t(c,a.delayTime,u.delayTime,h):await n(c,a.delayTime,u.delayTime,h),await i(a,c,u,h),u})(a,c,h)}}})(ns,Xt,X,rs,ke),Xt,Me,qe),Fs=(Is=Kt,(t,e)=>{const s=t.createDynamicsCompressor();if(Pt(s,e),e.channelCount>2)throw Is();if("max"===e.channelCountMode)throw Is();return Lt(s,e,"attack"),Lt(s,e,"knee"),Lt(s,e,"ratio"),Lt(s,e,"release"),Lt(s,e,"threshold"),s});var Is;const Vs=((t,e,s,n,i,o,r)=>class extends t{constructor(t,i){const a=o(t),c={...Dt,...i},h=n(a,c),u=r(a);super(t,!1,h,u?s():null),this._attack=e(this,u,h.attack),this._knee=e(this,u,h.knee),this._nativeDynamicsCompressorNode=h,this._ratio=e(this,u,h.ratio),this._release=e(this,u,h.release),this._threshold=e(this,u,h.threshold)}get attack(){return this._attack}get channelCount(){return this._nativeDynamicsCompressorNode.channelCount}set channelCount(t){const e=this._nativeDynamicsCompressorNode.channelCount;if(this._nativeDynamicsCompressorNode.channelCount=t,t>2)throw this._nativeDynamicsCompressorNode.channelCount=e,i()}get channelCountMode(){return this._nativeDynamicsCompressorNode.channelCountMode}set channelCountMode(t){const e=this._nativeDynamicsCompressorNode.channelCountMode;if(this._nativeDynamicsCompressorNode.channelCountMode=t,"max"===t)throw this._nativeDynamicsCompressorNode.channelCountMode=e,i()}get knee(){return this._knee}get ratio(){return this._ratio}get reduction(){return"number"==typeof this._nativeDynamicsCompressorNode.reduction.value?this._nativeDynamicsCompressorNode.reduction.value:this._nativeDynamicsCompressorNode.reduction}get release(){return this._release}get threshold(){return this._threshold}})(We,cs,((t,e,s,n,i)=>()=>{const o=new WeakMap;return{render(r,a,c){const h=o.get(a);return void 0!==h?Promise.resolve(h):(async(r,a,c)=>{let h=s(r);const u=T(h,a);if(!u){const t={attack:h.attack.value,channelCount:h.channelCount,channelCountMode:h.channelCountMode,channelInterpretation:h.channelInterpretation,knee:h.knee.value,ratio:h.ratio.value,release:h.release.value,threshold:h.threshold.value};h=e(a,t)}return o.set(a,h),u?(await t(a,r.attack,h.attack,c),await t(a,r.knee,h.knee,c),await t(a,r.ratio,h.ratio,c),await t(a,r.release,h.release,c),await t(a,r.threshold,h.threshold,c)):(await n(a,r.attack,h.attack,c),await n(a,r.knee,h.knee,c),await n(a,r.ratio,h.ratio,c),await n(a,r.release,h.release,c),await n(a,r.threshold,h.threshold,c)),await i(r,a,h,c),h})(r,a,c)}}})(ns,Fs,X,rs,ke),Fs,Kt,Me,qe),Ns=((t,e,s,n,i,o)=>class extends t{constructor(t,r){const a=i(t),c={...Ot,...r},h=n(a,c),u=o(a);super(t,!1,h,u?s():null),this._gain=e(this,u,h.gain,O,D)}get gain(){return this._gain}})(We,cs,((t,e,s,n,i)=>()=>{const o=new WeakMap;return{render(r,a,c){const h=o.get(a);return void 0!==h?Promise.resolve(h):(async(r,a,c)=>{let h=s(r);const u=T(h,a);if(!u){const t={channelCount:h.channelCount,channelCountMode:h.channelCountMode,channelInterpretation:h.channelInterpretation,gain:h.gain.value};h=e(a,t)}return o.set(a,h),u?await t(a,r.gain,h.gain,c):await n(a,r.gain,h.gain,c),await i(r,a,h,c),h})(r,a,c)}}})(ns,Yt,X,rs,ke),Yt,Me,qe),Ps=((t,e,s,n)=>(i,o,{channelCount:r,channelCountMode:a,channelInterpretation:c,feedback:h,feedforward:u})=>{const l=Wt(o,i.sampleRate),p=h instanceof Float64Array?h:new Float64Array(h),d=u instanceof Float64Array?u:new Float64Array(u),f=p.length,_=d.length,m=Math.min(f,_);if(0===f||f>20)throw n();if(0===p[0])throw e();if(0===_||_>20)throw n();if(0===d[0])throw e();if(1!==p[0]){for(let t=0;t<_;t+=1)d[t]/=p[0];for(let t=1;t<f;t+=1)p[t]/=p[0]}const g=s(i,l,r,r);g.channelCount=r,g.channelCountMode=a,g.channelInterpretation=c;const v=[],y=[],x=[];for(let t=0;t<r;t+=1){v.push(0);const t=new Float32Array(32),e=new Float32Array(32);t.fill(0),e.fill(0),y.push(t),x.push(e)}g.onaudioprocess=t=>{const e=t.inputBuffer,s=t.outputBuffer,n=e.numberOfChannels;for(let t=0;t<n;t+=1){const n=e.getChannelData(t),i=s.getChannelData(t);v[t]=qt(p,f,d,_,m,y[t],x[t],v[t],32,n,i)}};const w=i.sampleRate/2;return Zt({get bufferSize(){return l},get channelCount(){return g.channelCount},set channelCount(t){g.channelCount=t},get channelCountMode(){return g.channelCountMode},set channelCountMode(t){g.channelCountMode=t},get channelInterpretation(){return g.channelInterpretation},set channelInterpretation(t){g.channelInterpretation=t},get context(){return g.context},get inputs(){return[g]},get numberOfInputs(){return g.numberOfInputs},get numberOfOutputs(){return g.numberOfOutputs},addEventListener:(...t)=>g.addEventListener(t[0],t[1],t[2]),dispatchEvent:(...t)=>g.dispatchEvent(t[0]),getFrequencyResponse(e,s,n){if(e.length!==s.length||s.length!==n.length)throw t();const i=e.length;for(let t=0;t<i;t+=1){const i=-Math.PI*(e[t]/w),o=[Math.cos(i),Math.sin(i)],r=Ht($t(d,o),$t(p,o));s[t]=Math.sqrt(r[0]*r[0]+r[1]*r[1]),n[t]=Math.atan2(r[1],r[0])}},removeEventListener:(...t)=>g.removeEventListener(t[0],t[1],t[2])},g)})(Et,Mt,Jt,Kt),js=((t,e,s,n)=>i=>t(It,()=>It(i))?Promise.resolve(t(n,n)).then(t=>{if(!t){const t=s(i,512,0,1);i.oncomplete=()=>{t.onaudioprocess=null,t.disconnect()},t.onaudioprocess=()=>i.currentTime,t.connect(i.destination)}return i.startRendering()}):new Promise(t=>{const s=e(i,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete",gain:0});i.oncomplete=e=>{s.disconnect(),t(e.renderedBuffer)},s.connect(i.destination),i.startRendering()}))(me,Yt,Jt,((t,e)=>()=>{if(null===e)return Promise.resolve(!1);const s=new e(1,1,44100),n=t(s,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete",gain:0});return new Promise(t=>{s.oncomplete=()=>{n.disconnect(),t(0!==s.currentTime)},s.startRendering()})})(Yt,Re)),Ls=((t,e,s,n,i)=>(o,r)=>{const a=new WeakMap;let c=null;const h=async(h,u,l)=>{let p=null,d=e(h);const f=T(d,u);if(void 0===u.createIIRFilter?p=t(u,{buffer:null,channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",loop:!1,loopEnd:0,loopStart:0,playbackRate:1}):f||(d=u.createIIRFilter(r,o)),a.set(u,null===p?d:p),null!==p){if(null===c){if(null===s)throw new Error("Missing the native OfflineAudioContext constructor.");const t=new s(h.context.destination.channelCount,h.context.length,u.sampleRate);c=(async()=>{await n(h,t,t.destination,l);return((t,e,s,n)=>{const i=s instanceof Float64Array?s:new Float64Array(s),o=n instanceof Float64Array?n:new Float64Array(n),r=i.length,a=o.length,c=Math.min(r,a);if(1!==i[0]){for(let t=0;t<r;t+=1)o[t]/=i[0];for(let t=1;t<a;t+=1)i[t]/=i[0]}const h=new Float32Array(32),u=new Float32Array(32),l=e.createBuffer(t.numberOfChannels,t.length,t.sampleRate),p=t.numberOfChannels;for(let e=0;e<p;e+=1){const s=t.getChannelData(e),n=l.getChannelData(e);h.fill(0),u.fill(0),qt(i,r,o,a,c,h,u,0,32,s,n)}return l})(await i(t),u,o,r)})()}const t=await c;return p.buffer=t,p.start(0),p}return await n(h,u,d,l),d};return{render(t,e,s){const n=a.get(e);return void 0!==n?Promise.resolve(n):h(t,e,s)}}})(is,X,Re,ke,js);var zs;const Bs=((t,e,s,n,i)=>class extends t{constructor(t,o){const r=n(t),a=i(r),c={...Rt,...o},h=e(r,a?null:t.baseLatency,c);super(t,!1,h,a?s(c.feedback,c.feedforward):null),(t=>{var e;t.getFrequencyResponse=(e=t.getFrequencyResponse,(s,n,i)=>{if(s.length!==n.length||n.length!==i.length)throw Et();return e.call(t,s,n,i)})})(h),this._nativeIIRFilterNode=h}getFrequencyResponse(t,e,s){return this._nativeIIRFilterNode.getFrequencyResponse(t,e,s)}})(We,(zs=Ps,(t,e,s)=>{if(void 0===t.createIIRFilter)return zs(t,e,s);const n=t.createIIRFilter(s.feedforward,s.feedback);return Pt(n,s),n}),Ls,Me,qe),Ws=((t,e,s,n,i)=>(o,r)=>{const a=r.listener,{forwardX:c,forwardY:h,forwardZ:u,positionX:l,positionY:p,positionZ:d,upX:f,upY:_,upZ:m}=void 0===a.forwardX?(()=>{const c=e(r,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"speakers",numberOfInputs:9}),h=i(r),u=n(r,256,9,0),l=(e,n)=>{const i=s(r,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete",offset:n});return i.connect(c,0,e),i.start(),Object.defineProperty(i.offset,"defaultValue",{get:()=>n}),t({context:o},h,i.offset,O,D)};let p=[0,0,-1,0,1,0],d=[0,0,0];return u.onaudioprocess=({inputBuffer:t})=>{const e=[t.getChannelData(0)[0],t.getChannelData(1)[0],t.getChannelData(2)[0],t.getChannelData(3)[0],t.getChannelData(4)[0],t.getChannelData(5)[0]];e.some((t,e)=>t!==p[e])&&(a.setOrientation(...e),p=e);const s=[t.getChannelData(6)[0],t.getChannelData(7)[0],t.getChannelData(8)[0]];s.some((t,e)=>t!==d[e])&&(a.setPosition(...s),d=s)},c.connect(u),{forwardX:l(0,0),forwardY:l(1,0),forwardZ:l(2,-1),positionX:l(6,0),positionY:l(7,0),positionZ:l(8,0),upX:l(3,0),upY:l(4,1),upZ:l(5,0)}})():a;return{get forwardX(){return c},get forwardY(){return h},get forwardZ(){return u},get positionX(){return l},get positionY(){return p},get positionZ(){return d},get upX(){return f},get upY(){return _},get upZ(){return m}}})(cs,ks,Os,Jt,qe),Us=new WeakMap,Gs=((t,e,s,n,i,o)=>class extends s{constructor(s,o){super(s),this._nativeContext=s,p.set(this,s),n(s)&&i.set(s,new Set),this._destination=new t(this,o),this._listener=e(this,s),this._onstatechange=null}get currentTime(){return this._nativeContext.currentTime}get destination(){return this._destination}get listener(){return this._listener}get onstatechange(){return this._onstatechange}set onstatechange(t){const e="function"==typeof t?o(this,t):null;this._nativeContext.onstatechange=e;const s=this._nativeContext.onstatechange;this._onstatechange=null!==s&&s===e?t:s}get sampleRate(){return this._nativeContext.sampleRate}get state(){return this._nativeContext.state}})(ls,Ws,Ve,qe,Us,_e),Qs=((t,e,s,n,i,o)=>(r,a)=>{const c=r.createOscillator();return Pt(c,a),Lt(c,a,"detune"),Lt(c,a,"frequency"),void 0!==a.periodicWave?c.setPeriodicWave(a.periodicWave):Nt(c,a,"type"),e(s,()=>s(r))||zt(c),e(n,()=>n(r))||o(c,r),e(i,()=>i(r))||Bt(c),t(r,c),c})(ts,me,he,ue,le,fe),Zs=((t,e,s,n,i,o,r)=>class extends t{constructor(t,r){const a=i(t),c={...ee,...r},h=s(a,c),u=o(a),l=u?n():null,p=t.sampleRate/2;super(t,!1,h,l),this._detune=e(this,u,h.detune,153600,-153600),this._frequency=e(this,u,h.frequency,p,-p),this._nativeOscillatorNode=h,this._onended=null,this._oscillatorNodeRenderer=l,null!==this._oscillatorNodeRenderer&&void 0!==c.periodicWave&&(this._oscillatorNodeRenderer.periodicWave=c.periodicWave)}get detune(){return this._detune}get frequency(){return this._frequency}get onended(){return this._onended}set onended(t){const e="function"==typeof t?r(this,t):null;this._nativeOscillatorNode.onended=e;const s=this._nativeOscillatorNode.onended;this._onended=null!==s&&s===e?t:s}get type(){return this._nativeOscillatorNode.type}set type(t){this._nativeOscillatorNode.type=t,null!==this._oscillatorNodeRenderer&&(this._oscillatorNodeRenderer.periodicWave=null)}setPeriodicWave(t){this._nativeOscillatorNode.setPeriodicWave(t),null!==this._oscillatorNodeRenderer&&(this._oscillatorNodeRenderer.periodicWave=t)}start(t=0){if(this._nativeOscillatorNode.start(t),null!==this._oscillatorNodeRenderer&&(this._oscillatorNodeRenderer.start=t),"closed"!==this.context.state){q(this);const t=()=>{this._nativeOscillatorNode.removeEventListener("ended",t),setTimeout(()=>{M(this)&&F(this)},1e3)};this._nativeOscillatorNode.addEventListener("ended",t)}}stop(t=0){this._nativeOscillatorNode.stop(t),null!==this._oscillatorNodeRenderer&&(this._oscillatorNodeRenderer.stop=t)}})(We,cs,Qs,((t,e,s,n,i)=>()=>{const o=new WeakMap;let r=null,a=null,c=null;return{set periodicWave(t){r=t},set start(t){a=t},set stop(t){c=t},render(h,u,l){const p=o.get(u);return void 0!==p?Promise.resolve(p):(async(h,u,l)=>{let p=s(h);const d=T(p,u);if(!d){const t={channelCount:p.channelCount,channelCountMode:p.channelCountMode,channelInterpretation:p.channelInterpretation,detune:p.detune.value,frequency:p.frequency.value,periodicWave:null===r?void 0:r,type:p.type};p=e(u,t),null!==a&&p.start(a),null!==c&&p.stop(c)}return o.set(u,p),d?(await t(u,h.detune,p.detune,l),await t(u,h.frequency,p.frequency,l)):(await n(u,h.detune,p.detune,l),await n(u,h.frequency,p.frequency,l)),await i(h,u,p,l),p})(h,u,l)}}})(ns,Qs,X,rs,ke),Me,qe,_e),Xs=(Ys=is,(t,e)=>{const s=Ys(t,{buffer:null,channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",loop:!1,loopEnd:0,loopStart:0,playbackRate:1}),n=t.createBuffer(1,2,t.sampleRate);return s.buffer=n,s.loop=!0,s.connect(e),s.start(),()=>{s.stop(),s.disconnect(e)}});var Ys;const Hs=((t,e,s,n,i)=>(o,{curve:r,oversample:a,...c})=>{const h=o.createWaveShaper(),u=o.createWaveShaper();Pt(h,c),Pt(u,c);const l=s(o,{...c,gain:1}),p=s(o,{...c,gain:-1}),d=s(o,{...c,gain:1}),f=s(o,{...c,gain:-1});let _=null,m=!1,g=null;const v={get bufferSize(){},get channelCount(){return h.channelCount},set channelCount(t){l.channelCount=t,p.channelCount=t,h.channelCount=t,d.channelCount=t,u.channelCount=t,f.channelCount=t},get channelCountMode(){return h.channelCountMode},set channelCountMode(t){l.channelCountMode=t,p.channelCountMode=t,h.channelCountMode=t,d.channelCountMode=t,u.channelCountMode=t,f.channelCountMode=t},get channelInterpretation(){return h.channelInterpretation},set channelInterpretation(t){l.channelInterpretation=t,p.channelInterpretation=t,h.channelInterpretation=t,d.channelInterpretation=t,u.channelInterpretation=t,f.channelInterpretation=t},get context(){return h.context},get curve(){return g},set curve(s){if(null!==s&&s.length<2)throw e();if(null===s)h.curve=s,u.curve=s;else{const t=s.length,e=new Float32Array(t+2-t%2),n=new Float32Array(t+2-t%2);e[0]=s[0],n[0]=-s[t-1];const i=Math.ceil((t+1)/2),o=(t+1)/2-1;for(let r=1;r<i;r+=1){const a=r/i*o,c=Math.floor(a),h=Math.ceil(a);e[r]=c===h?s[c]:(1-(a-c))*s[c]+(1-(h-a))*s[h],n[r]=c===h?-s[t-1-c]:-(1-(a-c))*s[t-1-c]-(1-(h-a))*s[t-1-h]}e[i]=t%2==1?s[i-1]:(s[i-2]+s[i-1])/2,h.curve=e,u.curve=n}g=s,m&&(n(g)&&null===_?_=t(o,l):null!==_&&(_(),_=null))},get inputs(){return[l]},get numberOfInputs(){return h.numberOfInputs},get numberOfOutputs(){return h.numberOfOutputs},get oversample(){return h.oversample},set oversample(t){h.oversample=t,u.oversample=t},addEventListener:(...t)=>l.addEventListener(t[0],t[1],t[2]),dispatchEvent:(...t)=>l.dispatchEvent(t[0]),removeEventListener:(...t)=>l.removeEventListener(t[0],t[1],t[2])};null!==r&&(v.curve=r instanceof Float32Array?r:new Float32Array(r)),a!==v.oversample&&(v.oversample=a);return i(Zt(v,d),()=>{l.connect(h).connect(d),l.connect(p).connect(u).connect(f).connect(d),m=!0,n(g)&&(_=t(o,l))},()=>{l.disconnect(h),h.disconnect(d),l.disconnect(p),p.disconnect(u),u.disconnect(f),f.disconnect(d),m=!1,null!==_&&(_(),_=null)})})(Xs,Mt,Yt,ae,ws),$s=((t,e,s,n,i,o,r)=>(a,c)=>{const h=a.createWaveShaper();if(null!==o&&"webkitAudioContext"===o.name)return s(a,c);Pt(h,c);const u=null===c.curve||c.curve instanceof Float32Array?c.curve:new Float32Array(c.curve);if(null!==u&&u.length<2)throw e();Nt(h,{curve:u},"curve"),Nt(h,c,"oversample");let l=null,p=!1;r(h,"curve",t=>()=>t.call(h),e=>s=>(e.call(h,s),p&&(n(s)&&null===l?l=t(a,h):n(s)||null===l||(l(),l=null)),s));return i(h,()=>{p=!0,n(h.curve)&&(l=t(a,h))},()=>{p=!1,null!==l&&(l(),l=null)})})(Xs,Mt,Hs,ae,ws,Pe,ce),Js=((t,e,s,n,i,o,r,a,c)=>(h,{coneInnerAngle:u,coneOuterAngle:l,coneOuterGain:p,distanceModel:d,maxDistance:f,orientationX:_,orientationY:m,orientationZ:g,panningModel:v,positionX:y,positionY:x,positionZ:w,refDistance:b,rolloffFactor:T,...S})=>{const k=h.createPanner();if(S.channelCount>2)throw r();if("max"===S.channelCountMode)throw r();Pt(k,S);const C={channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete"},A=s(h,{...C,channelInterpretation:"speakers",numberOfInputs:6}),D=n(h,{...S,gain:1}),O=n(h,{...C,gain:1}),M=n(h,{...C,gain:0}),E=n(h,{...C,gain:0}),R=n(h,{...C,gain:0}),q=n(h,{...C,gain:0}),F=n(h,{...C,gain:0}),I=i(h,256,6,1),V=o(h,{...C,curve:new Float32Array([1,1]),oversample:"none"});let N=[_,m,g],P=[y,x,w];I.onaudioprocess=({inputBuffer:t})=>{const e=[t.getChannelData(0)[0],t.getChannelData(1)[0],t.getChannelData(2)[0]];e.some((t,e)=>t!==N[e])&&(k.setOrientation(...e),N=e);const s=[t.getChannelData(3)[0],t.getChannelData(4)[0],t.getChannelData(5)[0]];s.some((t,e)=>t!==P[e])&&(k.setPosition(...s),P=s)},Object.defineProperty(M.gain,"defaultValue",{get:()=>0}),Object.defineProperty(E.gain,"defaultValue",{get:()=>0}),Object.defineProperty(R.gain,"defaultValue",{get:()=>0}),Object.defineProperty(q.gain,"defaultValue",{get:()=>0}),Object.defineProperty(F.gain,"defaultValue",{get:()=>0});const j={get bufferSize(){},get channelCount(){return k.channelCount},set channelCount(t){if(t>2)throw r();D.channelCount=t,k.channelCount=t},get channelCountMode(){return k.channelCountMode},set channelCountMode(t){if("max"===t)throw r();D.channelCountMode=t,k.channelCountMode=t},get channelInterpretation(){return k.channelInterpretation},set channelInterpretation(t){D.channelInterpretation=t,k.channelInterpretation=t},get coneInnerAngle(){return k.coneInnerAngle},set coneInnerAngle(t){k.coneInnerAngle=t},get coneOuterAngle(){return k.coneOuterAngle},set coneOuterAngle(t){k.coneOuterAngle=t},get coneOuterGain(){return k.coneOuterGain},set coneOuterGain(t){if(t<0||t>1)throw e();k.coneOuterGain=t},get context(){return k.context},get distanceModel(){return k.distanceModel},set distanceModel(t){k.distanceModel=t},get inputs(){return[D]},get maxDistance(){return k.maxDistance},set maxDistance(t){if(t<0)throw new RangeError;k.maxDistance=t},get numberOfInputs(){return k.numberOfInputs},get numberOfOutputs(){return k.numberOfOutputs},get orientationX(){return O.gain},get orientationY(){return M.gain},get orientationZ(){return E.gain},get panningModel(){return k.panningModel},set panningModel(t){k.panningModel=t},get positionX(){return R.gain},get positionY(){return q.gain},get positionZ(){return F.gain},get refDistance(){return k.refDistance},set refDistance(t){if(t<0)throw new RangeError;k.refDistance=t},get rolloffFactor(){return k.rolloffFactor},set rolloffFactor(t){if(t<0)throw new RangeError;k.rolloffFactor=t},addEventListener:(...t)=>D.addEventListener(t[0],t[1],t[2]),dispatchEvent:(...t)=>D.dispatchEvent(t[0]),removeEventListener:(...t)=>D.removeEventListener(t[0],t[1],t[2])};u!==j.coneInnerAngle&&(j.coneInnerAngle=u),l!==j.coneOuterAngle&&(j.coneOuterAngle=l),p!==j.coneOuterGain&&(j.coneOuterGain=p),d!==j.distanceModel&&(j.distanceModel=d),f!==j.maxDistance&&(j.maxDistance=f),_!==j.orientationX.value&&(j.orientationX.value=_),m!==j.orientationY.value&&(j.orientationY.value=m),g!==j.orientationZ.value&&(j.orientationZ.value=g),v!==j.panningModel&&(j.panningModel=v),y!==j.positionX.value&&(j.positionX.value=y),x!==j.positionY.value&&(j.positionY.value=x),w!==j.positionZ.value&&(j.positionZ.value=w),b!==j.refDistance&&(j.refDistance=b),T!==j.rolloffFactor&&(j.rolloffFactor=T),1===N[0]&&0===N[1]&&0===N[2]||k.setOrientation(...N),0===P[0]&&0===P[1]&&0===P[2]||k.setPosition(...P);return c(Zt(j,k),()=>{D.connect(k),t(D,V,0,0),V.connect(O).connect(A,0,0),V.connect(M).connect(A,0,1),V.connect(E).connect(A,0,2),V.connect(R).connect(A,0,3),V.connect(q).connect(A,0,4),V.connect(F).connect(A,0,5),A.connect(I).connect(h.destination)},()=>{D.disconnect(k),a(D,V,0,0),V.disconnect(O),O.disconnect(A),V.disconnect(M),M.disconnect(A),V.disconnect(E),E.disconnect(A),V.disconnect(R),R.disconnect(A),V.disconnect(q),q.disconnect(A),V.disconnect(F),F.disconnect(A),A.disconnect(I),I.disconnect(h.destination)})})(G,Mt,ks,Yt,Jt,$s,Kt,Z,ws),Ks=(tn=Js,(t,e)=>{const s=t.createPanner();return void 0===s.orientationX?tn(t,e):(Pt(s,e),Lt(s,e,"orientationX"),Lt(s,e,"orientationY"),Lt(s,e,"orientationZ"),Lt(s,e,"positionX"),Lt(s,e,"positionY"),Lt(s,e,"positionZ"),Nt(s,e,"coneInnerAngle"),Nt(s,e,"coneOuterAngle"),Nt(s,e,"coneOuterGain"),Nt(s,e,"distanceModel"),Nt(s,e,"maxDistance"),Nt(s,e,"panningModel"),Nt(s,e,"refDistance"),Nt(s,e,"rolloffFactor"),s)});var tn;const en=((t,e,s,n,i,o)=>class extends t{constructor(t,r){const a=i(t),c={...se,...r},h=s(a,c),u=o(a);super(t,!1,h,u?n():null),this._nativePannerNode=h,this._orientationX=e(this,u,h.orientationX,O,D),this._orientationY=e(this,u,h.orientationY,O,D),this._orientationZ=e(this,u,h.orientationZ,O,D),this._positionX=e(this,u,h.positionX,O,D),this._positionY=e(this,u,h.positionY,O,D),this._positionZ=e(this,u,h.positionZ,O,D)}get coneInnerAngle(){return this._nativePannerNode.coneInnerAngle}set coneInnerAngle(t){this._nativePannerNode.coneInnerAngle=t}get coneOuterAngle(){return this._nativePannerNode.coneOuterAngle}set coneOuterAngle(t){this._nativePannerNode.coneOuterAngle=t}get coneOuterGain(){return this._nativePannerNode.coneOuterGain}set coneOuterGain(t){this._nativePannerNode.coneOuterGain=t}get distanceModel(){return this._nativePannerNode.distanceModel}set distanceModel(t){this._nativePannerNode.distanceModel=t}get maxDistance(){return this._nativePannerNode.maxDistance}set maxDistance(t){this._nativePannerNode.maxDistance=t}get orientationX(){return this._orientationX}get orientationY(){return this._orientationY}get orientationZ(){return this._orientationZ}get panningModel(){return this._nativePannerNode.panningModel}set panningModel(t){this._nativePannerNode.panningModel=t}get positionX(){return this._positionX}get positionY(){return this._positionY}get positionZ(){return this._positionZ}get refDistance(){return this._nativePannerNode.refDistance}set refDistance(t){this._nativePannerNode.refDistance=t}get rolloffFactor(){return this._nativePannerNode.rolloffFactor}set rolloffFactor(t){this._nativePannerNode.rolloffFactor=t}})(We,cs,Ks,((t,e,s,n,i,o,r,a,c,h)=>()=>{const u=new WeakMap;let l=null;return{render(p,d,f){const _=u.get(d);return void 0!==_?Promise.resolve(_):(async(p,d,f)=>{let _=null,m=o(p);const g={channelCount:m.channelCount,channelCountMode:m.channelCountMode,channelInterpretation:m.channelInterpretation},v={...g,coneInnerAngle:m.coneInnerAngle,coneOuterAngle:m.coneOuterAngle,coneOuterGain:m.coneOuterGain,distanceModel:m.distanceModel,maxDistance:m.maxDistance,panningModel:m.panningModel,refDistance:m.refDistance,rolloffFactor:m.rolloffFactor},y=T(m,d);if("bufferSize"in m)_=n(d,{...g,gain:1});else if(!y){const t={...v,orientationX:m.orientationX.value,orientationY:m.orientationY.value,orientationZ:m.orientationZ.value,positionX:m.positionX.value,positionY:m.positionY.value,positionZ:m.positionZ.value};m=i(d,t)}if(u.set(d,null===_?m:_),null!==_){if(null===l){if(null===r)throw new Error("Missing the native OfflineAudioContext constructor.");const t=new r(6,p.context.length,d.sampleRate),n=e(t,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"speakers",numberOfInputs:6});n.connect(t.destination),l=(async()=>{const e=await Promise.all([p.orientationX,p.orientationY,p.orientationZ,p.positionX,p.positionY,p.positionZ].map(async(e,n)=>{const i=s(t,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete",offset:0===n?1:0});return await a(t,e,i.offset,f),i}));for(let t=0;t<6;t+=1)e[t].connect(n,0,t),e[t].start(0);return h(t)})()}const t=await l,o=n(d,{...g,gain:1});await c(p,d,o,f);const u=[];for(let e=0;e<t.numberOfChannels;e+=1)u.push(t.getChannelData(e));let m=[u[0][0],u[1][0],u[2][0]],y=[u[3][0],u[4][0],u[5][0]],x=n(d,{...g,gain:1}),w=i(d,{...v,orientationX:m[0],orientationY:m[1],orientationZ:m[2],positionX:y[0],positionY:y[1],positionZ:y[2]});o.connect(x).connect(w.inputs[0]),w.connect(_);for(let e=128;e<t.length;e+=128){const t=[u[0][e],u[1][e],u[2][e]],s=[u[3][e],u[4][e],u[5][e]];if(t.some((t,e)=>t!==m[e])||s.some((t,e)=>t!==y[e])){m=t,y=s;const r=e/d.sampleRate;x.gain.setValueAtTime(0,r),x=n(d,{...g,gain:0}),w=i(d,{...v,orientationX:m[0],orientationY:m[1],orientationZ:m[2],positionX:y[0],positionY:y[1],positionZ:y[2]}),x.gain.setValueAtTime(1,r),o.connect(x).connect(w.inputs[0]),w.connect(_)}}return _}return y?(await t(d,p.orientationX,m.orientationX,f),await t(d,p.orientationY,m.orientationY,f),await t(d,p.orientationZ,m.orientationZ,f),await t(d,p.positionX,m.positionX,f),await t(d,p.positionY,m.positionY,f),await t(d,p.positionZ,m.positionZ,f)):(await a(d,p.orientationX,m.orientationX,f),await a(d,p.orientationY,m.orientationY,f),await a(d,p.orientationZ,m.orientationZ,f),await a(d,p.positionX,m.positionX,f),await a(d,p.positionY,m.positionY,f),await a(d,p.positionZ,m.positionZ,f)),U(m)?await c(p,d,m.inputs[0],f):await c(p,d,m,f),m})(p,d,f)}}})(ns,ks,Os,Yt,Ks,X,Re,rs,ke,js),Me,qe),sn=((t,e,s,n)=>class i{constructor(i,o){const r=e(i),a=n({...ne,...o}),c=t(r,a);return s.add(c),c}static[Symbol.hasInstance](t){return null!==t&&"object"==typeof t&&Object.getPrototypeOf(t)===i.prototype||s.has(t)}})((t=>(e,{disableNormalization:s,imag:n,real:i})=>{const o=n instanceof Float32Array?n:new Float32Array(n),r=i instanceof Float32Array?i:new Float32Array(i),a=e.createPeriodicWave(r,o,{disableNormalization:s});if(Array.from(n).length<2)throw t();return a})(k),Me,new WeakSet,t=>{const{imag:e,real:s}=t;return void 0===e?void 0===s?{...t,imag:[0,0],real:[0,0]}:{...t,imag:Array.from(s,()=>0),real:s}:void 0===s?{...t,imag:e,real:Array.from(e,()=>0)}:{...t,imag:e,real:s}}),nn=((t,e)=>(s,n)=>{const i=n.channelCountMode;if("clamped-max"===i)throw e();if(void 0===s.createStereoPanner)return t(s,n);const o=s.createStereoPanner();return Pt(o,n),Lt(o,n,"pan"),Object.defineProperty(o,"channelCountMode",{get:()=>i,set:t=>{if(t!==i)throw e()}}),o})(((t,e,s,n,i,o)=>{const r=new Float32Array([1,1]),a=Math.PI/2,c={channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete"},h={...c,oversample:"none"},u=(t,o,u,l,p)=>{if(1===o)return((t,e,i,o)=>{const u=new Float32Array(16385),l=new Float32Array(16385);for(let t=0;t<16385;t+=1){const e=t/16384*a;u[t]=Math.cos(e),l[t]=Math.sin(e)}const p=s(t,{...c,gain:0}),d=n(t,{...h,curve:u}),f=n(t,{...h,curve:r}),_=s(t,{...c,gain:0}),m=n(t,{...h,curve:l});return{connectGraph(){e.connect(p),e.connect(f.inputs[0]),e.connect(_),f.connect(i),i.connect(d.inputs[0]),i.connect(m.inputs[0]),d.connect(p.gain),m.connect(_.gain),p.connect(o,0,0),_.connect(o,0,1)},disconnectGraph(){e.disconnect(p),e.disconnect(f.inputs[0]),e.disconnect(_),f.disconnect(i),i.disconnect(d.inputs[0]),i.disconnect(m.inputs[0]),d.disconnect(p.gain),m.disconnect(_.gain),p.disconnect(o,0,0),_.disconnect(o,0,1)}}})(t,u,l,p);if(2===o)return((t,i,o,u)=>{const l=new Float32Array(16385),p=new Float32Array(16385),d=new Float32Array(16385),f=new Float32Array(16385),_=Math.floor(8192.5);for(let t=0;t<16385;t+=1)if(t>_){const e=(t-_)/(16384-_)*a;l[t]=Math.cos(e),p[t]=Math.sin(e),d[t]=0,f[t]=1}else{const e=t/(16384-_)*a;l[t]=1,p[t]=0,d[t]=Math.cos(e),f[t]=Math.sin(e)}const m=e(t,{channelCount:2,channelCountMode:"explicit",channelInterpretation:"discrete",numberOfOutputs:2}),g=s(t,{...c,gain:0}),v=n(t,{...h,curve:l}),y=s(t,{...c,gain:0}),x=n(t,{...h,curve:p}),w=n(t,{...h,curve:r}),b=s(t,{...c,gain:0}),T=n(t,{...h,curve:d}),S=s(t,{...c,gain:0}),k=n(t,{...h,curve:f});return{connectGraph(){i.connect(m),i.connect(w.inputs[0]),m.connect(g,0),m.connect(y,0),m.connect(b,1),m.connect(S,1),w.connect(o),o.connect(v.inputs[0]),o.connect(x.inputs[0]),o.connect(T.inputs[0]),o.connect(k.inputs[0]),v.connect(g.gain),x.connect(y.gain),T.connect(b.gain),k.connect(S.gain),g.connect(u,0,0),b.connect(u,0,0),y.connect(u,0,1),S.connect(u,0,1)},disconnectGraph(){i.disconnect(m),i.disconnect(w.inputs[0]),m.disconnect(g,0),m.disconnect(y,0),m.disconnect(b,1),m.disconnect(S,1),w.disconnect(o),o.disconnect(v.inputs[0]),o.disconnect(x.inputs[0]),o.disconnect(T.inputs[0]),o.disconnect(k.inputs[0]),v.disconnect(g.gain),x.disconnect(y.gain),T.disconnect(b.gain),k.disconnect(S.gain),g.disconnect(u,0,0),b.disconnect(u,0,0),y.disconnect(u,0,1),S.disconnect(u,0,1)}}})(t,u,l,p);throw i()};return(e,{channelCount:n,channelCountMode:r,pan:a,...c})=>{if("max"===r)throw i();const h=t(e,{...c,channelCount:1,channelCountMode:r,numberOfInputs:2}),l=s(e,{...c,channelCount:n,channelCountMode:r,gain:1}),p=s(e,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete",gain:a});let{connectGraph:d,disconnectGraph:f}=u(e,n,l,p,h);Object.defineProperty(p.gain,"defaultValue",{get:()=>0}),Object.defineProperty(p.gain,"minValue",{get:()=>-1});const _={get bufferSize(){},get channelCount(){return l.channelCount},set channelCount(t){l.channelCount!==t&&(m&&f(),({connectGraph:d,disconnectGraph:f}=u(e,t,l,p,h)),m&&d()),l.channelCount=t},get channelCountMode(){return l.channelCountMode},set channelCountMode(t){if("clamped-max"===t||"max"===t)throw i();l.channelCountMode=t},get channelInterpretation(){return l.channelInterpretation},set channelInterpretation(t){l.channelInterpretation=t},get context(){return l.context},get inputs(){return[l]},get numberOfInputs(){return l.numberOfInputs},get numberOfOutputs(){return l.numberOfOutputs},get pan(){return p.gain},addEventListener:(...t)=>l.addEventListener(t[0],t[1],t[2]),dispatchEvent:(...t)=>l.dispatchEvent(t[0]),removeEventListener:(...t)=>l.removeEventListener(t[0],t[1],t[2])};let m=!1;return o(Zt(_,h),()=>{d(),m=!0},()=>{f(),m=!1})}})(ks,Qt,Yt,$s,Kt,ws),Kt),on=((t,e,s,n,i,o)=>class extends t{constructor(t,r){const a=i(t),c={...ie,...r},h=s(a,c),u=o(a);super(t,!1,h,u?n():null),this._pan=e(this,u,h.pan)}get pan(){return this._pan}})(We,cs,nn,((t,e,s,n,i)=>()=>{const o=new WeakMap;return{render(r,a,c){const h=o.get(a);return void 0!==h?Promise.resolve(h):(async(r,a,c)=>{let h=s(r);const u=T(h,a);if(!u){const t={channelCount:h.channelCount,channelCountMode:h.channelCountMode,channelInterpretation:h.channelInterpretation,pan:h.pan.value};h=e(a,t)}return o.set(a,h),u?await t(a,r.pan,h.pan,c):await n(a,r.pan,h.pan,c),U(h)?await i(r,a,h.inputs[0],c):await i(r,a,h,c),h})(r,a,c)}}})(ns,nn,X,rs,ke),Me,qe),rn=((t,e,s)=>()=>{const n=new WeakMap;return{render(i,o,r){const a=n.get(o);return void 0!==a?Promise.resolve(a):(async(i,o,r)=>{let a=e(i);if(!T(a,o)){const e={channelCount:a.channelCount,channelCountMode:a.channelCountMode,channelInterpretation:a.channelInterpretation,curve:a.curve,oversample:a.oversample};a=t(o,e)}return n.set(o,a),U(a)?await s(i,o,a.inputs[0],r):await s(i,o,a,r),a})(i,o,r)}}})($s,X,ke),an=((t,e,s,n,i,o)=>class extends t{constructor(t,e){const r=i(t),a={...re,...e},c=s(r,a);super(t,!0,c,o(r)?n():null),this._isCurveNullified=!1,this._nativeWaveShaperNode=c}get curve(){return this._isCurveNullified?null:this._nativeWaveShaperNode.curve}set curve(t){if(null===t)this._isCurveNullified=!0,this._nativeWaveShaperNode.curve=new Float32Array([0,0]);else{if(t.length<2)throw e();this._isCurveNullified=!1,this._nativeWaveShaperNode.curve=t}}get oversample(){return this._nativeWaveShaperNode.oversample}set oversample(t){this._nativeWaveShaperNode.oversample=t}})(We,Mt,$s,rn,Me,qe),cn=(t=>null!==t&&t.isSecureContext)(ye),hn=(t=>(e,s,n)=>{Object.defineProperties(t,{currentFrame:{configurable:!0,get:()=>Math.round(e*s)},currentTime:{configurable:!0,get:()=>e}});try{return n()}finally{null!==t&&(delete t.currentFrame,delete t.currentTime)}})(ye),un=new WeakMap,ln=((t,e)=>s=>{let n=t.get(s);if(void 0!==n)return n;if(null===e)throw new Error("Missing the native OfflineAudioContext constructor.");return n=new e(1,1,8e3),t.set(s,n),n})(un,Re),pn=(t=>null===t?null:t.hasOwnProperty("AudioWorkletNode")?t.AudioWorkletNode:null)(ye),dn=cn?((t,e,s,n,i,o,r,a,c,h,u,l)=>(p,d,f={credentials:"omit"})=>{const m=o(p),g=new URL(d,l.location.href).toString();if(void 0!==m.audioWorklet)return Promise.all([i(d),Promise.resolve(t(u,u))]).then(([t,e])=>{const[s,n]=y(t,g),i=e?n:n.replace(/\s+extends\s+AudioWorkletProcessor\s*{/," extends (class extends AudioWorkletProcessor {__b=new WeakSet();constructor(){super();(p=>p.postMessage=(q=>(m,t)=>q.call(p,m,t?t.filter(u=>!this.__b.has(u)):t))(p.postMessage))(this.port)}}){"),o=new Blob([`${s};(registerProcessor=>{${i}\n})((n,p)=>registerProcessor(n,class extends p{${e?"":"__c = (a) => a.forEach(e=>this.__b.add(e.buffer));"}process(i,o,p){${e?"":"i.forEach(this.__c);o.forEach(this.__c);this.__c(Object.values(p));"}return super.process(i.map(j=>j.some(k=>k.length===0)?[]:j),o,p)}}))`],{type:"application/javascript; charset=utf-8"}),c=URL.createObjectURL(o);return m.audioWorklet.addModule(c,f).then(()=>{if(a(m))return;return r(m).audioWorklet.addModule(c,f)}).finally(()=>URL.revokeObjectURL(c))});const v=h.get(p);if(void 0!==v&&v.has(d))return Promise.resolve();const b=c.get(p);if(void 0!==b){const t=b.get(d);if(void 0!==t)return t}const T=i(d).then(t=>{const[e,n]=y(t,g);return s(`${e};((a,b)=>{(a[b]=a[b]||[]).push((AudioWorkletProcessor,global,registerProcessor,sampleRate,self,window)=>{${n}\n})})(window,'_AWGS')`)}).then(()=>{const t=l._AWGS.pop();if(void 0===t)throw new SyntaxError;n(m.currentTime,m.sampleRate,()=>t(class{},void 0,(t,s)=>{if(""===t.trim())throw e();const n=_.get(m);if(void 0!==n){if(n.has(t))throw e();w(s),x(s.parameterDescriptors),n.set(t,s)}else w(s),x(s.parameterDescriptors),_.set(m,new Map([[t,s]]))},m.sampleRate,void 0,void 0))});return void 0===b?c.set(p,new Map([[d,T]])):b.set(d,T),T.then(()=>{const t=h.get(p);void 0===t?h.set(p,new Set([d])):t.add(d)}).finally(()=>{const t=c.get(p);void 0!==t&&t.delete(d)}),T})(me,Kt,(t=>e=>new Promise((s,n)=>{if(null===t)return void n(new SyntaxError);const i=t.document.head;if(null===i)n(new SyntaxError);else{const o=t.document.createElement("script"),r=new Blob([e],{type:"application/javascript"}),a=URL.createObjectURL(r),c=t.onerror,h=()=>{t.onerror=c,URL.revokeObjectURL(a)};t.onerror=(e,s,i,o,r)=>s===a||s===t.location.href&&1===i&&1===o?(h(),n(r),!1):null!==c?c(e,s,i,o,r):void 0,o.onerror=()=>{h(),n(new SyntaxError)},o.onload=()=>{h(),s()},o.src=a,o.type="module",i.appendChild(o)}}))(ye),hn,(t=>async e=>{try{const t=await fetch(e);if(t.ok)return t.text()}catch{}throw t()})(()=>new DOMException("","AbortError")),Me,ln,qe,new WeakMap,new WeakMap,((t,e)=>async()=>{if(null===t)return!0;if(null===e)return!1;const s=new Blob(['class A extends AudioWorkletProcessor{process(i){this.port.postMessage(i,[i[0][0].buffer])}}registerProcessor("a",A)'],{type:"application/javascript; charset=utf-8"}),n=new e(1,128,8e3),i=URL.createObjectURL(s);let o=!1,r=!1;try{await n.audioWorklet.addModule(i);const e=new t(n,"a",{numberOfOutputs:0}),s=n.createOscillator();e.port.onmessage=()=>o=!0,e.onprocessorerror=()=>r=!0,s.connect(e),await n.startRendering()}catch{}finally{URL.revokeObjectURL(i)}return o&&!r})(pn,Re),ye):void 0,fn=((t,e)=>s=>t(s)||e(s))(je,qe),_n=((t,e,s,n,i,o,r,a,c,h,u,l,p,d,f,_,m,g,v,y)=>class extends f{constructor(e,s){super(e,s),this._nativeContext=e,this._audioWorklet=void 0===t?void 0:{addModule:(e,s)=>t(this,e,s)}}get audioWorklet(){return this._audioWorklet}createAnalyser(){return new e(this)}createBiquadFilter(){return new i(this)}createBuffer(t,e,n){return new s({length:e,numberOfChannels:t,sampleRate:n})}createBufferSource(){return new n(this)}createChannelMerger(t=6){return new o(this,{numberOfInputs:t})}createChannelSplitter(t=6){return new r(this,{numberOfOutputs:t})}createConstantSource(){return new a(this)}createConvolver(){return new c(this)}createDelay(t=1){return new u(this,{maxDelayTime:t})}createDynamicsCompressor(){return new l(this)}createGain(){return new p(this)}createIIRFilter(t,e){return new d(this,{feedback:e,feedforward:t})}createOscillator(){return new _(this)}createPanner(){return new m(this)}createPeriodicWave(t,e,s={disableNormalization:!1}){return new g(this,{...s,imag:e,real:t})}createStereoPanner(){return new v(this)}createWaveShaper(){return new y(this)}decodeAudioData(t,e,s){return h(this._nativeContext,t).then(t=>("function"==typeof e&&e(t),t)).catch(t=>{throw"function"==typeof s&&s(t),t})}})(dn,Ge,Je,us,ds,Cs,As,Ms,Rs,((t,e,s,n,i,o,r,a,c,h,u)=>(l,p)=>{const d=r(l)?l:o(l);if(i.has(p)){const t=s();return Promise.reject(t)}try{i.add(p)}catch{}return e(c,()=>c(d))?d.decodeAudioData(p).then(s=>(e(a,()=>a(s))||u(s),t.add(s),s)):new Promise((e,s)=>{const i=()=>{try{(t=>{const{port1:e}=new MessageChannel;e.postMessage(t,[t])})(p)}catch{}},o=t=>{s(t),i()};try{d.decodeAudioData(p,s=>{"function"!=typeof s.copyFromChannel&&(h(s),C(s)),t.add(s),i(),e(s)},t=>{o(null===t?n():t)})}catch(t){o(t)}})})(Qe,me,()=>new DOMException("","DataCloneError"),()=>new DOMException("","EncodingError"),new WeakSet,Me,fn,S,It,He,$e),qs,Vs,Ns,Bs,Gs,Zs,en,sn,on,an),mn=((t,e,s,n)=>class extends t{constructor(t,i){const o=s(t),r=e(o,i);if(n(o))throw TypeError();super(t,!0,r,null),this._nativeMediaElementAudioSourceNode=r}get mediaElement(){return this._nativeMediaElementAudioSourceNode.mediaElement}})(We,(t,e)=>t.createMediaElementSource(e.mediaElement),Me,qe),gn=((t,e,s,n)=>class extends t{constructor(t,i){const o=s(t);if(n(o))throw new TypeError;const r={...Ft,...i},a=e(o,r);super(t,!1,a,null),this._nativeMediaStreamAudioDestinationNode=a}get stream(){return this._nativeMediaStreamAudioDestinationNode.stream}})(We,(t,e)=>{const s=t.createMediaStreamDestination();return Pt(s,e),1===s.numberOfOutputs&&Object.defineProperty(s,"numberOfOutputs",{get:()=>0}),s},Me,qe),vn=((t,e,s,n)=>class extends t{constructor(t,i){const o=s(t),r=e(o,i);if(n(o))throw new TypeError;super(t,!0,r,null),this._nativeMediaStreamAudioSourceNode=r}get mediaStream(){return this._nativeMediaStreamAudioSourceNode.mediaStream}})(We,(t,{mediaStream:e})=>{const s=e.getAudioTracks();s.sort((t,e)=>t.id<e.id?-1:t.id>e.id?1:0);const n=s.slice(0,1),i=t.createMediaStreamSource(new MediaStream(n));return Object.defineProperty(i,"mediaStream",{value:e}),i},Me,qe),yn=((t,e,s)=>class extends t{constructor(t,n){const i=s(t);super(t,!0,e(i,n),null)}})(We,((t,e)=>(s,{mediaStreamTrack:n})=>{if("function"==typeof s.createMediaStreamTrackSource)return s.createMediaStreamTrackSource(n);const i=new MediaStream([n]),o=s.createMediaStreamSource(i);if("audio"!==n.kind)throw t();if(e(s))throw new TypeError;return o})(Mt,qe),Me),xn=((t,e,s,n,i,o,r,a,c)=>class extends t{constructor(t={}){if(null===c)throw new Error("Missing the native AudioContext constructor.");const e=new c(t);if(null===e)throw n();if(!z(t.latencyHint))throw new TypeError(`The provided value '${t.latencyHint}' is not a valid enum value of type AudioContextLatencyCategory.`);if(void 0!==t.sampleRate&&e.sampleRate!==t.sampleRate)throw s();super(e,2);const{latencyHint:i}=t,{sampleRate:o}=e;if(this._baseLatency="number"==typeof e.baseLatency?e.baseLatency:"balanced"===i?512/o:"interactive"===i||void 0===i?256/o:"playback"===i?1024/o:128*Math.max(2,Math.min(128,Math.round(i*o/128)))/o,this._nativeAudioContext=e,"webkitAudioContext"===c.name?(this._nativeGainNode=e.createGain(),this._nativeOscillatorNode=e.createOscillator(),this._nativeGainNode.gain.value=1e-37,this._nativeOscillatorNode.connect(this._nativeGainNode).connect(e.destination),this._nativeOscillatorNode.start()):(this._nativeGainNode=null,this._nativeOscillatorNode=null),this._state=null,"running"===e.state){this._state="suspended";const t=()=>{"suspended"===this._state&&(this._state=null),e.removeEventListener("statechange",t)};e.addEventListener("statechange",t)}}get baseLatency(){return this._baseLatency}get state(){return null!==this._state?this._state:this._nativeAudioContext.state}close(){return"closed"===this.state?this._nativeAudioContext.close().then(()=>{throw e()}):("suspended"===this._state&&(this._state=null),this._nativeAudioContext.close().then(()=>{null!==this._nativeGainNode&&null!==this._nativeOscillatorNode&&(this._nativeOscillatorNode.stop(),this._nativeGainNode.disconnect(),this._nativeOscillatorNode.disconnect()),L(this)}))}createMediaElementSource(t){return new i(this,{mediaElement:t})}createMediaStreamDestination(){return new o(this)}createMediaStreamSource(t){return new r(this,{mediaStream:t})}createMediaStreamTrackSource(t){return new a(this,{mediaStreamTrack:t})}resume(){return"suspended"===this._state?new Promise((t,e)=>{const s=()=>{this._nativeAudioContext.removeEventListener("statechange",s),"running"===this._nativeAudioContext.state?t():this.resume().then(t,e)};this._nativeAudioContext.addEventListener("statechange",s)}):this._nativeAudioContext.resume().catch(t=>{if(void 0===t||15===t.code)throw e();throw t})}suspend(){return this._nativeAudioContext.suspend().catch(t=>{if(void 0===t)throw e();throw t})}})(_n,Mt,Kt,oe,mn,gn,vn,yn,Pe),wn=(bn=Us,t=>{const e=bn.get(t);if(void 0===e)throw new Error("The context has no set of AudioWorkletNodes.");return e});var bn;const Tn=(Sn=wn,(t,e)=>{Sn(t).add(e)});var Sn;const kn=(t=>(e,s,n=0,i=0)=>{const o=e[n];if(void 0===o)throw t();return nt(s)?o.connect(s,0,i):o.connect(s,0)})(k),Cn=(t=>(e,s)=>{t(e).delete(s)})(wn),An=(t=>(e,s,n,i=0)=>void 0===s?e.forEach(t=>t.disconnect()):"number"==typeof s?At(t,e,s).disconnect():nt(s)?void 0===n?e.forEach(t=>t.disconnect(s)):void 0===i?At(t,e,n).disconnect(s,0):At(t,e,n).disconnect(s,0,i):void 0===n?e.forEach(t=>t.disconnect(s)):At(t,e,n).disconnect(s,0))(k),Dn=new WeakMap,On=((t,e)=>s=>e(t,s))(Dn,E),Mn=((t,e,s,n,i,o,r,a,c,h,u,l,p)=>(d,f,_,g)=>{if(0===g.numberOfInputs&&0===g.numberOfOutputs)throw c();const v=Array.isArray(g.outputChannelCount)?g.outputChannelCount:Array.from(g.outputChannelCount);if(v.some(t=>t<1))throw c();if(v.length!==g.numberOfOutputs)throw e();if("explicit"!==g.channelCountMode)throw c();const y=g.channelCount*g.numberOfInputs,x=v.reduce((t,e)=>t+e,0),w=void 0===_.parameterDescriptors?0:_.parameterDescriptors.length;if(y+w>6||x>6)throw c();const b=new MessageChannel,T=[],S=[];for(let t=0;t<g.numberOfInputs;t+=1)T.push(r(d,{channelCount:g.channelCount,channelCountMode:g.channelCountMode,channelInterpretation:g.channelInterpretation,gain:1})),S.push(i(d,{channelCount:g.channelCount,channelCountMode:"explicit",channelInterpretation:"discrete",numberOfOutputs:g.channelCount}));const k=[];if(void 0!==_.parameterDescriptors)for(const{defaultValue:t,maxValue:e,minValue:s,name:n}of _.parameterDescriptors){const i=o(d,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete",offset:void 0!==g.parameterData[n]?g.parameterData[n]:void 0===t?0:t});Object.defineProperties(i.offset,{defaultValue:{get:()=>void 0===t?0:t},maxValue:{get:()=>void 0===e?O:e},minValue:{get:()=>void 0===s?D:s}}),k.push(i)}const C=n(d,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"speakers",numberOfInputs:Math.max(1,y+w)}),A=Wt(f,d.sampleRate),M=a(d,A,y+w,Math.max(1,x)),E=i(d,{channelCount:Math.max(1,x),channelCountMode:"explicit",channelInterpretation:"discrete",numberOfOutputs:Math.max(1,x)}),R=[];for(let t=0;t<g.numberOfOutputs;t+=1)R.push(n(d,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"speakers",numberOfInputs:v[t]}));for(let t=0;t<g.numberOfInputs;t+=1){T[t].connect(S[t]);for(let e=0;e<g.channelCount;e+=1)S[t].connect(C,e,t*g.channelCount+e)}const q=new _t(void 0===_.parameterDescriptors?[]:_.parameterDescriptors.map(({name:t},e)=>{const s=k[e];return s.connect(C,0,y+e),s.start(0),[t,s.offset]}));C.connect(M);let F=g.channelInterpretation,I=null;const V=0===g.numberOfOutputs?[M]:R,N={get bufferSize(){return A},get channelCount(){return g.channelCount},set channelCount(t){throw s()},get channelCountMode(){return g.channelCountMode},set channelCountMode(t){throw s()},get channelInterpretation(){return F},set channelInterpretation(t){for(const e of T)e.channelInterpretation=t;F=t},get context(){return M.context},get inputs(){return T},get numberOfInputs(){return g.numberOfInputs},get numberOfOutputs(){return g.numberOfOutputs},get onprocessorerror(){return I},set onprocessorerror(t){"function"==typeof I&&N.removeEventListener("processorerror",I),I="function"==typeof t?t:null,"function"==typeof I&&N.addEventListener("processorerror",I)},get parameters(){return q},get port(){return b.port2},addEventListener:(...t)=>M.addEventListener(t[0],t[1],t[2]),connect:t.bind(null,V),disconnect:h.bind(null,V),dispatchEvent:(...t)=>M.dispatchEvent(t[0]),removeEventListener:(...t)=>M.removeEventListener(t[0],t[1],t[2])},P=new Map;var j,L;b.port1.addEventListener=(j=b.port1.addEventListener,(...t)=>{if("message"===t[0]){const e="function"==typeof t[1]?t[1]:"object"==typeof t[1]&&null!==t[1]&&"function"==typeof t[1].handleEvent?t[1].handleEvent:null;if(null!==e){const s=P.get(t[1]);void 0!==s?t[1]=s:(t[1]=t=>{u(d.currentTime,d.sampleRate,()=>e(t))},P.set(e,t[1]))}}return j.call(b.port1,t[0],t[1],t[2])}),b.port1.removeEventListener=(L=b.port1.removeEventListener,(...t)=>{if("message"===t[0]){const e=P.get(t[1]);void 0!==e&&(P.delete(t[1]),t[1]=e)}return L.call(b.port1,t[0],t[1],t[2])});let z=null;Object.defineProperty(b.port1,"onmessage",{get:()=>z,set:t=>{"function"==typeof z&&b.port1.removeEventListener("message",z),z="function"==typeof t?t:null,"function"==typeof z&&(b.port1.addEventListener("message",z),b.port1.start())}}),_.prototype.port=b.port1;let B=null;((t,e,s,n)=>{let i=m.get(t);void 0===i&&(i=new WeakMap,m.set(t,i));const o=Ut(s,n);return i.set(e,o),o})(d,N,_,g).then(t=>B=t);const W=yt(g.numberOfInputs,g.channelCount),U=yt(g.numberOfOutputs,v),G=void 0===_.parameterDescriptors?[]:_.parameterDescriptors.reduce((t,{name:e})=>({...t,[e]:new Float32Array(128)}),{});let Q=!0;const Z=()=>{g.numberOfOutputs>0&&M.disconnect(E);for(let t=0,e=0;t<g.numberOfOutputs;t+=1){const s=R[t];for(let n=0;n<v[t];n+=1)E.disconnect(s,e+n,n);e+=v[t]}};M.onaudioprocess=({inputBuffer:t,outputBuffer:e})=>{if(null!==B)for(let s=0;s<A;s+=128){for(let e=0;e<g.numberOfInputs;e+=1)for(let n=0;n<g.channelCount;n+=1)gt(t,W[e],n,n,s);void 0!==_.parameterDescriptors&&_.parameterDescriptors.forEach(({name:e},n)=>{gt(t,G,e,y+n,s)});for(let t=0;t<g.numberOfInputs;t+=1)for(let e=0;e<v[t];e+=1)0===U[t][e].byteLength&&(U[t][e]=new Float32Array(128));try{const t=l(N),n=W.map((e,s)=>t[s].size>0?e:[]),i=u(d.currentTime+s/d.sampleRate,d.sampleRate,()=>B.process(n,U,G));Q=i;for(let t=0,n=0;t<g.numberOfOutputs;t+=1){for(let i=0;i<v[t];i+=1)vt(e,U[t],i,n+i,s);n+=v[t]}}catch(t){Q=!1,N.dispatchEvent(new ErrorEvent("processorerror",{colno:t.colno,filename:t.filename,lineno:t.lineno,message:t.message}))}if(!Q){for(let t=0;t<g.numberOfInputs;t+=1){T[t].disconnect(S[t]);for(let e=0;e<g.channelCount;e+=1)S[s].disconnect(C,e,t*g.channelCount+e)}if(void 0!==_.parameterDescriptors){const t=_.parameterDescriptors.length;for(let e=0;e<t;e+=1){const t=k[e];t.disconnect(C,0,y+e),t.stop()}}C.disconnect(M),M.onaudioprocess=null,X?Z():$();break}}};let X=!1;const Y=r(d,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete",gain:0}),H=()=>M.connect(Y).connect(d.destination),$=()=>{M.disconnect(Y),Y.disconnect()};return H(),p(N,()=>{if(Q){$(),g.numberOfOutputs>0&&M.connect(E);for(let t=0,e=0;t<g.numberOfOutputs;t+=1){const s=R[t];for(let n=0;n<v[t];n+=1)E.connect(s,e+n,n);e+=v[t]}}X=!0},()=>{Q&&(H(),Z()),X=!1})})(kn,k,Mt,ks,Qt,Os,Yt,Jt,Kt,An,hn,On,ws),En=((t,e,s,n,i)=>(o,r,a,c,h,u)=>{if(null!==a)try{const e=new a(o,c,u),n=new Map;let r=null;if(Object.defineProperties(e,{channelCount:{get:()=>u.channelCount,set:()=>{throw t()}},channelCountMode:{get:()=>"explicit",set:()=>{throw t()}},onprocessorerror:{get:()=>r,set:t=>{"function"==typeof r&&e.removeEventListener("processorerror",r),r="function"==typeof t?t:null,"function"==typeof r&&e.addEventListener("processorerror",r)}}}),e.addEventListener=(p=e.addEventListener,(...t)=>{if("processorerror"===t[0]){const e="function"==typeof t[1]?t[1]:"object"==typeof t[1]&&null!==t[1]&&"function"==typeof t[1].handleEvent?t[1].handleEvent:null;if(null!==e){const s=n.get(t[1]);void 0!==s?t[1]=s:(t[1]=s=>{"error"===s.type?(Object.defineProperties(s,{type:{value:"processorerror"}}),e(s)):e(new ErrorEvent(t[0],{...s}))},n.set(e,t[1]))}}return p.call(e,"error",t[1],t[2]),p.call(e,...t)}),e.removeEventListener=(l=e.removeEventListener,(...t)=>{if("processorerror"===t[0]){const e=n.get(t[1]);void 0!==e&&(n.delete(t[1]),t[1]=e)}return l.call(e,"error",t[1],t[2]),l.call(e,t[0],t[1],t[2])}),0!==u.numberOfOutputs){const t=s(o,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete",gain:0});e.connect(t).connect(o.destination);return i(e,()=>t.disconnect(),()=>t.connect(o.destination))}return e}catch(t){if(11===t.code)throw n();throw t}var l,p;if(void 0===h)throw n();return(t=>{const{port1:e}=new MessageChannel;try{e.postMessage(t)}finally{e.close()}})(u),e(o,r,h,u)})(Mt,Mn,Yt,Kt,ws),Rn=((t,e,s,n,i,o,r,a,c,h,u,l,p,d,f,_)=>(m,g,v)=>{const y=new WeakMap;let x=null;return{render(w,b,S){a(b,w);const k=y.get(b);return void 0!==k?Promise.resolve(k):(async(a,w,b)=>{let S=u(a),k=null;const C=T(S,w),A=Array.isArray(g.outputChannelCount)?g.outputChannelCount:Array.from(g.outputChannelCount);if(null===l){const t=A.reduce((t,e)=>t+e,0),s=i(w,{channelCount:Math.max(1,t),channelCountMode:"explicit",channelInterpretation:"discrete",numberOfOutputs:Math.max(1,t)}),o=[];for(let t=0;t<a.numberOfOutputs;t+=1)o.push(n(w,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"speakers",numberOfInputs:A[t]}));const h=r(w,{channelCount:g.channelCount,channelCountMode:g.channelCountMode,channelInterpretation:g.channelInterpretation,gain:1});h.connect=e.bind(null,o),h.disconnect=c.bind(null,o),k=[s,o,h]}else C||(S=new l(w,m));if(y.set(w,null===k?S:k[2]),null!==k){if(null===x){if(void 0===v)throw new Error("Missing the processor constructor.");if(null===p)throw new Error("Missing the native OfflineAudioContext constructor.");const t=a.channelCount*a.numberOfInputs,e=void 0===v.parameterDescriptors?0:v.parameterDescriptors.length,s=t+e,c=async()=>{const c=new p(s,128*Math.ceil(a.context.length/128),w.sampleRate),h=[],u=[];for(let t=0;t<g.numberOfInputs;t+=1)h.push(r(c,{channelCount:g.channelCount,channelCountMode:g.channelCountMode,channelInterpretation:g.channelInterpretation,gain:1})),u.push(i(c,{channelCount:g.channelCount,channelCountMode:"explicit",channelInterpretation:"discrete",numberOfOutputs:g.channelCount}));const l=await Promise.all(Array.from(a.parameters.values()).map(async t=>{const e=o(c,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"discrete",offset:t.value});return await d(c,t,e.offset,b),e})),m=n(c,{channelCount:1,channelCountMode:"explicit",channelInterpretation:"speakers",numberOfInputs:Math.max(1,t+e)});for(let t=0;t<g.numberOfInputs;t+=1){h[t].connect(u[t]);for(let e=0;e<g.channelCount;e+=1)u[t].connect(m,e,t*g.channelCount+e)}for(const[e,s]of l.entries())s.connect(m,0,t+e),s.start(0);return m.connect(c.destination),await Promise.all(h.map(t=>f(a,c,t,b))),_(c)};x=xt(a,0===s?null:await c(),w,g,A,v,h)}const t=await x,e=s(w,{buffer:null,channelCount:2,channelCountMode:"max",channelInterpretation:"speakers",loop:!1,loopEnd:0,loopStart:0,playbackRate:1}),[c,u,l]=k;null!==t&&(e.buffer=t,e.start(0)),e.connect(c);for(let t=0,e=0;t<a.numberOfOutputs;t+=1){const s=u[t];for(let n=0;n<A[t];n+=1)c.connect(s,e+n,n);e+=A[t]}return l}if(C)for(const[e,s]of a.parameters.entries())await t(w,s,S.parameters.get(e),b);else for(const[t,e]of a.parameters.entries())await d(w,e,S.parameters.get(t),b);return await f(a,w,S,b),S})(w,b,S)}}})(ns,kn,is,ks,Qt,Os,Yt,Cn,An,hn,X,pn,Re,rs,ke,js),qn=(t=>e=>t.get(e))(un),Fn=(t=>(e,s)=>{t.set(e,s)})(Dn),In=cn?((t,e,s,n,i,o,r,a,c,h,u,l,p)=>class extends e{constructor(e,p,d){var f;const m=a(e),g=c(m),v=u({...mt,...d}),y=_.get(m),x=null==y?void 0:y.get(p),w=g||"closed"!==m.state?m:null!==(f=r(m))&&void 0!==f?f:m,b=i(w,g?null:e.baseLatency,h,p,x,v);super(e,!0,b,g?n(p,v,x):null);const T=[];b.parameters.forEach((t,e)=>{const n=s(this,g,t);T.push([e,n])}),this._nativeAudioWorkletNode=b,this._onprocessorerror=null,this._parameters=new _t(T),g&&t(m,this);const{activeInputs:S}=o(this);l(b,S)}get onprocessorerror(){return this._onprocessorerror}set onprocessorerror(t){const e="function"==typeof t?p(this,t):null;this._nativeAudioWorkletNode.onprocessorerror=e;const s=this._nativeAudioWorkletNode.onprocessorerror;this._onprocessorerror=null!==s&&s===e?t:s}get parameters(){return null===this._parameters?this._nativeAudioWorkletNode.parameters:this._parameters}get port(){return this._nativeAudioWorkletNode.port}})(Tn,We,cs,Rn,En,N,qn,Me,qe,pn,t=>({...t,outputChannelCount:void 0!==t.outputChannelCount?t.outputChannelCount:1===t.numberOfInputs&&1===t.numberOfOutputs?[t.channelCount]:Array.from({length:t.numberOfOutputs},()=>1)}),Fn,_e):void 0,Vn=(((t,e,s,n,i)=>{})(Mt,Kt,oe,Gs,Pe),((t,e)=>(s,n,i)=>{if(null===e)throw new Error("Missing the native OfflineAudioContext constructor.");try{return new e(s,n,i)}catch(e){if("SyntaxError"===e.name)throw t();throw e}})(Kt,Re)),Nn=((t,e,s,n,i,o,r,a)=>{const c=[];return(h,u)=>s(h).render(h,u,c).then(()=>Promise.all(Array.from(n(u)).map(t=>s(t).render(t,u,c)))).then(()=>i(u)).then(s=>("function"!=typeof s.copyFromChannel?(r(s),C(s)):e(o,()=>o(s))||a(s),t.add(s),s))})(Qe,me,Te,wn,js,S,He,$e),Pn=(((t,e,s,n,i)=>{})(me,Mt,Vn,Gs,Nn),((t,e,s,n,i)=>class extends t{constructor(t,s,i){let o;if("number"==typeof t&&void 0!==s&&void 0!==i)o={length:s,numberOfChannels:t,sampleRate:i};else{if("object"!=typeof t)throw new Error("The given parameters are not valid.");o=t}const{length:r,numberOfChannels:a,sampleRate:c}={...te,...o},h=n(a,r,c);e(It,()=>It(h))||h.addEventListener("statechange",(()=>{let t=0;const e=s=>{"running"===this._state&&(t>0?(h.removeEventListener("statechange",e),s.stopImmediatePropagation(),this._waitForThePromiseToSettle(s)):t+=1)};return e})()),super(h,a),this._length=r,this._nativeOfflineAudioContext=h,this._state=null}get length(){return void 0===this._nativeOfflineAudioContext.length?this._length:this._nativeOfflineAudioContext.length}get state(){return null===this._state?this._nativeOfflineAudioContext.state:this._state}startRendering(){return"running"===this._state?Promise.reject(s()):(this._state="running",i(this.destination,this._nativeOfflineAudioContext).finally(()=>{this._state=null,L(this)}))}_waitForThePromiseToSettle(t){null===this._state?this._nativeOfflineAudioContext.dispatchEvent(t):setTimeout(()=>this._waitForThePromiseToSettle(t))}})(_n,me,Mt,Vn,Nn)),jn=((t,e)=>s=>{const n=t.get(s);return e(n)||e(s)})(p,je),Ln=(zn=h,Bn=ze,t=>zn.has(t)||Bn(t));var zn,Bn;const Wn=(Un=l,Gn=Be,t=>Un.has(t)||Gn(t));var Un,Gn;const Qn=((t,e)=>s=>{const n=t.get(s);return e(n)||e(s)})(p,qe),Zn=()=>(async(t,e,s,n,i,o,r,a,c,h,u,l,p,d,f,_)=>{if(t(e,e)&&t(s,s)&&t(i,i)&&t(o,o)&&t(a,a)&&t(c,c)&&t(h,h)&&t(u,u)&&t(l,l)&&t(p,p)&&t(d,d)){return(await Promise.all([t(n,n),t(r,r),t(f,f),t(_,_)])).every(t=>t)}return!1})(me,(t=>()=>{if(null===t)return!1;const e=new t(1,1,44100).createBuffer(1,1,44100);if(void 0===e.copyToChannel)return!0;const s=new Float32Array(2);try{e.copyFromChannel(s,0,0)}catch{return!1}return!0})(Re),(t=>()=>{if(null===t)return!1;if(void 0!==t.prototype&&void 0!==t.prototype.close)return!0;const e=new t,s=void 0!==e.close;try{e.close()}catch{}return s})(Pe),(t=>()=>{if(null===t)return Promise.resolve(!1);const e=new t(1,1,44100);return new Promise(t=>{let s=!0;const n=n=>{s&&(s=!1,e.startRendering(),t(n instanceof TypeError))};let i;try{i=e.decodeAudioData(null,()=>{},n)}catch(t){n(t)}void 0!==i&&i.catch(n)})})(Re),(t=>()=>{if(null===t)return!1;let e;try{e=new t({latencyHint:"balanced"})}catch{return!1}return e.close(),!0})(Pe),(t=>()=>{if(null===t)return!1;const e=new t(1,1,44100).createGain(),s=e.connect(e)===e;return e.disconnect(e),s})(Re),((t,e)=>async()=>{if(null===t)return!0;if(null===e)return!1;const s=new Blob(['class A extends AudioWorkletProcessor{process(){this.port.postMessage(0)}}registerProcessor("a",A)'],{type:"application/javascript; charset=utf-8"}),n=new e(1,128,8e3),i=URL.createObjectURL(s);let o=!1;try{await n.audioWorklet.addModule(i);const e=new t(n,"a",{numberOfOutputs:0}),s=n.createOscillator();e.port.onmessage=()=>o=!0,s.connect(e),s.start(0),await n.startRendering(),o||await new Promise(t=>setTimeout(t,5))}catch{}finally{URL.revokeObjectURL(i)}return o})(pn,Re),(t=>()=>{if(null===t)return!1;const e=new t(1,1,44100).createChannelMerger();if("max"===e.channelCountMode)return!0;try{e.channelCount=2}catch{return!0}return!1})(Re),(t=>()=>{if(null===t)return!1;const e=new t(1,1,44100);if(void 0===e.createConstantSource)return!0;return e.createConstantSource().offset.maxValue!==Number.POSITIVE_INFINITY})(Re),(t=>()=>{if(null===t)return!1;const e=new t(1,1,44100),s=e.createConvolver();s.buffer=e.createBuffer(1,1,e.sampleRate);try{s.buffer=e.createBuffer(1,1,e.sampleRate)}catch{return!1}return!0})(Re),(t=>()=>{if(null===t)return!1;const e=new t(1,1,44100).createConvolver();try{e.channelCount=1}catch{return!1}return!0})(Re),pe,(t=>()=>null!==t&&t.hasOwnProperty("isSecureContext"))(ye),(t=>()=>{if(null===t)return!1;const e=new t;try{return e.createMediaStreamSource(new MediaStream),!1}catch(t){return!0}})(Pe),(t=>()=>{if(null===t)return Promise.resolve(!1);const e=new t(1,1,44100);if(void 0===e.createStereoPanner)return Promise.resolve(!0);if(void 0===e.createConstantSource)return Promise.resolve(!0);const s=e.createConstantSource(),n=e.createStereoPanner();return s.channelCount=1,s.offset.value=1,n.channelCount=1,s.start(),s.connect(n).connect(e.destination),e.startRendering().then(t=>1!==t.getChannelData(0)[0])})(Re),de);function Xn(t,e){if(!t)throw new Error(e)}function Yn(t,e,s=1/0){if(!(e<=t&&t<=s))throw new RangeError(`Value must be within [${e}, ${s}], got: ${t}`)}function Hn(t){t.isOffline||"running"===t.state||ti('The AudioContext is "suspended". Invoke Tone.start() from a user action to start the audio.')}let $n=console;function Jn(t){$n=t}function Kn(...t){$n.log(...t)}function ti(...t){$n.warn(...t)}function ei(t){return void 0===t}function si(t){return!ei(t)}function ni(t){return"function"==typeof t}function ii(t){return"number"==typeof t}function oi(t){return"[object Object]"===Object.prototype.toString.call(t)&&t.constructor===Object}function ri(t){return"boolean"==typeof t}function ai(t){return Array.isArray(t)}function ci(t){return"string"==typeof t}function hi(t){return ci(t)&&/^([a-g]{1}(?:b|#|x|bb)?)(-?[0-9]+)/i.test(t)}const ui="object"==typeof self?self:null,li=ui&&(ui.hasOwnProperty("AudioContext")||ui.hasOwnProperty("webkitAudioContext"));function pi(t,e,s,n){var i,o=arguments.length,r=o<3?e:null===n?n=Object.getOwnPropertyDescriptor(e,s):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)r=Reflect.decorate(t,e,s,n);else for(var a=t.length-1;a>=0;a--)(i=t[a])&&(r=(o<3?i(r):o>3?i(e,s,r):i(e,s))||r);return o>3&&r&&Object.defineProperty(e,s,r),r}function di(t,e,s,n){return new(s||(s=Promise))((function(i,o){function r(t){try{c(n.next(t))}catch(t){o(t)}}function a(t){try{c(n.throw(t))}catch(t){o(t)}}function c(t){var e;t.done?i(t.value):(e=t.value,e instanceof s?e:new s((function(t){t(e)}))).then(r,a)}c((n=n.apply(t,e||[])).next())}))}Object.create;Object.create;class fi{constructor(t,e,s){this._callback=t,this._type=e,this._updateInterval=s,this._createClock()}_createWorker(){const t=new Blob([`\n\t\t\t// the initial timeout time\n\t\t\tlet timeoutTime =  ${(1e3*this._updateInterval).toFixed(1)};\n\t\t\t// onmessage callback\n\t\t\tself.onmessage = function(msg){\n\t\t\t\ttimeoutTime = parseInt(msg.data);\n\t\t\t};\n\t\t\t// the tick function which posts a message\n\t\t\t// and schedules a new tick\n\t\t\tfunction tick(){\n\t\t\t\tsetTimeout(tick, timeoutTime);\n\t\t\t\tself.postMessage('tick');\n\t\t\t}\n\t\t\t// call tick initially\n\t\t\ttick();\n\t\t\t`],{type:"text/javascript"}),e=URL.createObjectURL(t),s=new Worker(e);s.onmessage=this._callback.bind(this),this._worker=s}_createTimeout(){this._timeout=setTimeout(()=>{this._createTimeout(),this._callback()},1e3*this._updateInterval)}_createClock(){if("worker"===this._type)try{this._createWorker()}catch(t){this._type="timeout",this._createClock()}else"timeout"===this._type&&this._createTimeout()}_disposeClock(){this._timeout&&(clearTimeout(this._timeout),this._timeout=0),this._worker&&(this._worker.terminate(),this._worker.onmessage=null)}get updateInterval(){return this._updateInterval}set updateInterval(t){this._updateInterval=Math.max(t,128/44100),"worker"===this._type&&this._worker.postMessage(Math.max(1e3*t,1))}get type(){return this._type}set type(t){this._disposeClock(),this._type=t,this._createClock()}dispose(){this._disposeClock()}}function _i(t){return Wn(t)}function mi(t){return Ln(t)}function gi(t){return Qn(t)}function vi(t){return jn(t)}function yi(t){return t instanceof AudioBuffer}function xi(t,e){return"value"===t||_i(e)||mi(e)||yi(e)}function wi(t,...e){if(!e.length)return t;const s=e.shift();if(oi(t)&&oi(s))for(const e in s)xi(e,s[e])?t[e]=s[e]:oi(s[e])?(t[e]||Object.assign(t,{[e]:{}}),wi(t[e],s[e])):Object.assign(t,{[e]:s[e]});return wi(t,...e)}function bi(t,e,s=[],n){const i={},o=Array.from(e);if(oi(o[0])&&n&&!Reflect.has(o[0],n)){Object.keys(o[0]).some(e=>Reflect.has(t,e))||(wi(i,{[n]:o[0]}),s.splice(s.indexOf(n),1),o.shift())}if(1===o.length&&oi(o[0]))wi(i,o[0]);else for(let t=0;t<s.length;t++)si(o[t])&&(i[s[t]]=o[t]);return wi(t,i)}function Ti(t,e){return ei(t)?e:t}function Si(t,e){return e.forEach(e=>{Reflect.has(t,e)&&delete t[e]}),t}
 /**
  * Tone.js
@@ -80866,7 +86726,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */(this.rawContext,t,e)}addAudioWorkletModule(t,e){return di(this,void 0,void 0,(function*(){Xn(si(this.rawContext.audioWorklet),"AudioWorkletNode is only available in a secure context (https or localhost)"),this._workletModules.has(e)||this._workletModules.set(e,this.rawContext.audioWorklet.addModule(t)),yield this._workletModules.get(e)}))}workletsAreReady(){return di(this,void 0,void 0,(function*(){const t=[];this._workletModules.forEach(e=>t.push(e)),yield Promise.all(t)}))}get updateInterval(){return this._ticker.updateInterval}set updateInterval(t){this._ticker.updateInterval=t}get clockSource(){return this._ticker.type}set clockSource(t){this._ticker.type=t}get latencyHint(){return this._latencyHint}_setLatencyHint(t){let e=0;if(this._latencyHint=t,ci(t))switch(t){case"interactive":e=.1;break;case"playback":e=.5;break;case"balanced":e=.25}this.lookAhead=e,this.updateInterval=e/2}get rawContext(){return this._context}now(){return this._context.currentTime+this.lookAhead}immediate(){return this._context.currentTime}resume(){return"suspended"===this._context.state&&vi(this._context)?this._context.resume():Promise.resolve()}close(){return di(this,void 0,void 0,(function*(){var t;vi(this._context)&&(yield this._context.close()),this._initialized&&(t=this,Fi.forEach(e=>e(t)))}))}getConstant(t){if(this._constants.has(t))return this._constants.get(t);{const e=this._context.createBuffer(1,128,this._context.sampleRate),s=e.getChannelData(0);for(let e=0;e<s.length;e++)s[e]=t;const n=this._context.createBufferSource();return n.channelCount=1,n.channelCountMode="explicit",n.buffer=e,n.loop=!0,n.start(0),this._constants.set(t,n),n}}dispose(){return super.dispose(),this._ticker.dispose(),this._timeouts.dispose(),Object.keys(this._constants).map(t=>this._constants[t].disconnect()),this}_timeoutLoop(){const t=this.now();let e=this._timeouts.peek();for(;this._timeouts.length&&e&&e.time<=t;)e.callback(),this._timeouts.shift(),e=this._timeouts.peek()}setTimeout(t,e){this._timeoutIds++;const s=this.now();return this._timeouts.add({callback:t,id:this._timeoutIds,time:s+e}),this._timeoutIds}clearTimeout(t){return this._timeouts.forEach(e=>{e.id===t&&this._timeouts.remove(e)}),this}clearInterval(t){return this.clearTimeout(t)}setInterval(t,e){const s=++this._timeoutIds,n=()=>{const i=this.now();this._timeouts.add({callback:()=>{t(),n()},id:s,time:i+e})};return n(),s}}function ji(t,e){ai(e)?e.forEach(e=>ji(t,e)):Object.defineProperty(t,e,{enumerable:!0,writable:!1})}function Li(t,e){ai(e)?e.forEach(e=>Li(t,e)):Object.defineProperty(t,e,{writable:!0})}const zi=()=>{};class Bi extends ki{constructor(){super(),this.name="ToneAudioBuffer",this.onload=zi;const t=bi(Bi.getDefaults(),arguments,["url","onload","onerror"]);this.reverse=t.reverse,this.onload=t.onload,t.url&&yi(t.url)||t.url instanceof Bi?this.set(t.url):ci(t.url)&&this.load(t.url).catch(t.onerror)}static getDefaults(){return{onerror:zi,onload:zi,reverse:!1}}get sampleRate(){return this._buffer?this._buffer.sampleRate:Qi().sampleRate}set(t){return t instanceof Bi?t.loaded?this._buffer=t.get():t.onload=()=>{this.set(t),this.onload(this)}:this._buffer=t,this._reversed&&this._reverse(),this}get(){return this._buffer}load(t){return di(this,void 0,void 0,(function*(){const e=Bi.load(t).then(t=>{this.set(t),this.onload(this)});Bi.downloads.push(e);try{yield e}finally{const t=Bi.downloads.indexOf(e);Bi.downloads.splice(t,1)}return this}))}dispose(){return super.dispose(),this._buffer=void 0,this}fromArray(t){const e=ai(t)&&t[0].length>0,s=e?t.length:1,n=e?t[0].length:t.length,i=Qi(),o=i.createBuffer(s,n,i.sampleRate),r=e||1!==s?t:[t];for(let t=0;t<s;t++)o.copyToChannel(r[t],t);return this._buffer=o,this}toMono(t){if(ii(t))this.fromArray(this.toArray(t));else{let t=new Float32Array(this.length);const e=this.numberOfChannels;for(let s=0;s<e;s++){const e=this.toArray(s);for(let s=0;s<e.length;s++)t[s]+=e[s]}t=t.map(t=>t/e),this.fromArray(t)}return this}toArray(t){if(ii(t))return this.getChannelData(t);if(1===this.numberOfChannels)return this.toArray(0);{const t=[];for(let e=0;e<this.numberOfChannels;e++)t[e]=this.getChannelData(e);return t}}getChannelData(t){return this._buffer?this._buffer.getChannelData(t):new Float32Array(0)}slice(t,e=this.duration){const s=Math.floor(t*this.sampleRate),n=Math.floor(e*this.sampleRate);Xn(s<n,"The start time must be less than the end time");const i=n-s,o=Qi().createBuffer(this.numberOfChannels,i,this.sampleRate);for(let t=0;t<this.numberOfChannels;t++)o.copyToChannel(this.getChannelData(t).subarray(s,n),t);return new Bi(o)}_reverse(){if(this.loaded)for(let t=0;t<this.numberOfChannels;t++)this.getChannelData(t).reverse();return this}get loaded(){return this.length>0}get duration(){return this._buffer?this._buffer.duration:0}get length(){return this._buffer?this._buffer.length:0}get numberOfChannels(){return this._buffer?this._buffer.numberOfChannels:0}get reverse(){return this._reversed}set reverse(t){this._reversed!==t&&(this._reversed=t,this._reverse())}static fromArray(t){return(new Bi).fromArray(t)}static fromUrl(t){return di(this,void 0,void 0,(function*(){const e=new Bi;return yield e.load(t)}))}static load(t){return di(this,void 0,void 0,(function*(){const e=t.match(/\[(.+\|?)+\]$/);if(e){const s=e[1].split("|");let n=s[0];for(const t of s)if(Bi.supportsType(t)){n=t;break}t=t.replace(e[0],n)}const s=""===Bi.baseUrl||Bi.baseUrl.endsWith("/")?Bi.baseUrl:Bi.baseUrl+"/",n=yield fetch(s+t);if(!n.ok)throw new Error("could not load url: "+t);const i=yield n.arrayBuffer();return yield Qi().decodeAudioData(i)}))}static supportsType(t){const e=t.split("."),s=e[e.length-1];return""!==document.createElement("audio").canPlayType("audio/"+s)}static loaded(){return di(this,void 0,void 0,(function*(){for(yield Promise.resolve();Bi.downloads.length;)yield Bi.downloads[0]}))}}Bi.baseUrl="",Bi.downloads=[];class Wi extends Pi{constructor(){var t,e,s;super({clockSource:"offline",context:gi(arguments[0])?arguments[0]:(t=arguments[0],e=arguments[1]*arguments[2],s=arguments[2],new Pn(t,e,s)),lookAhead:0,updateInterval:gi(arguments[0])?128/arguments[0].sampleRate:128/arguments[2]}),this.name="OfflineContext",this._currentTime=0,this.isOffline=!0,this._duration=gi(arguments[0])?arguments[0].length/arguments[0].sampleRate:arguments[1]}now(){return this._currentTime}get currentTime(){return this._currentTime}_renderClock(t){return di(this,void 0,void 0,(function*(){let e=0;for(;this._duration-this._currentTime>=0;){this.emit("tick"),this._currentTime+=128/this.sampleRate,e++;const s=Math.floor(this.sampleRate/128);t&&e%s==0&&(yield new Promise(t=>setTimeout(t,1)))}}))}render(t=!0){return di(this,void 0,void 0,(function*(){yield this.workletsAreReady(),yield this._renderClock(t);const e=yield this._context.startRendering();return new Bi(e)}))}close(){return Promise.resolve()}}const Ui=new class extends Ni{constructor(){super(...arguments),this.lookAhead=0,this.latencyHint=0,this.isOffline=!1}createAnalyser(){return{}}createOscillator(){return{}}createBufferSource(){return{}}createBiquadFilter(){return{}}createBuffer(t,e,s){return{}}createChannelMerger(t){return{}}createChannelSplitter(t){return{}}createConstantSource(){return{}}createConvolver(){return{}}createDelay(t){return{}}createDynamicsCompressor(){return{}}createGain(){return{}}createIIRFilter(t,e){return{}}createPanner(){return{}}createPeriodicWave(t,e,s){return{}}createStereoPanner(){return{}}createWaveShaper(){return{}}createMediaStreamSource(t){return{}}createMediaStreamDestination(){return{}}decodeAudioData(t){return Promise.resolve({})}createAudioWorkletNode(t,e){return{}}get rawContext(){return{}}addAudioWorkletModule(t,e){return di(this,void 0,void 0,(function*(){return Promise.resolve()}))}resume(){return Promise.resolve()}setTimeout(t,e){return 0}clearTimeout(t){return this}setInterval(t,e){return 0}clearInterval(t){return this}getConstant(t){return{}}get currentTime(){return 0}get state(){return{}}get sampleRate(){return 0}get listener(){return{}}get transport(){return{}}get draw(){return{}}set draw(t){}get destination(){return{}}set destination(t){}now(){return 0}immediate(){return 0}};let Gi=Ui;function Qi(){return Gi===Ui&&li&&Zi(new Pi),Gi}function Zi(t){Gi=vi(t)?new Pi(t):gi(t)?new Wi(t):t}function Xi(){return Gi.resume()}if(ui&&!ui.TONE_SILENCE_LOGGING){let t="v";"dev"===o&&(t="");const e=` * Tone.js ${t}${o} * `;console.log("%c"+e,"background: #000; color: #fff")}function Yi(t){return Math.pow(10,t/20)}function Hi(t){return Math.log(t)/Math.LN10*20}function $i(t){return Math.pow(2,t/12)}let Ji=440;function Ki(t){return Math.round(to(t))}function to(t){return 69+12*Math.log2(t/Ji)}function eo(t){return Ji*Math.pow(2,(t-69)/12)}class so extends ki{constructor(t,e,s){super(),this.defaultUnits="s",this._val=e,this._units=s,this.context=t,this._expressions=this._getExpressions()}_getExpressions(){return{hz:{method:t=>this._frequencyToUnits(parseFloat(t)),regexp:/^(\d+(?:\.\d+)?)hz$/i},i:{method:t=>this._ticksToUnits(parseInt(t,10)),regexp:/^(\d+)i$/i},m:{method:t=>this._beatsToUnits(parseInt(t,10)*this._getTimeSignature()),regexp:/^(\d+)m$/i},n:{method:(t,e)=>{const s=parseInt(t,10),n="."===e?1.5:1;return 1===s?this._beatsToUnits(this._getTimeSignature())*n:this._beatsToUnits(4/s)*n},regexp:/^(\d+)n(\.?)$/i},number:{method:t=>this._expressions[this.defaultUnits].method.call(this,t),regexp:/^(\d+(?:\.\d+)?)$/},s:{method:t=>this._secondsToUnits(parseFloat(t)),regexp:/^(\d+(?:\.\d+)?)s$/},samples:{method:t=>parseInt(t,10)/this.context.sampleRate,regexp:/^(\d+)samples$/},t:{method:t=>{const e=parseInt(t,10);return this._beatsToUnits(8/(3*Math.floor(e)))},regexp:/^(\d+)t$/i},tr:{method:(t,e,s)=>{let n=0;return t&&"0"!==t&&(n+=this._beatsToUnits(this._getTimeSignature()*parseFloat(t))),e&&"0"!==e&&(n+=this._beatsToUnits(parseFloat(e))),s&&"0"!==s&&(n+=this._beatsToUnits(parseFloat(s)/4)),n},regexp:/^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?):?(\d+(?:\.\d+)?)?$/}}}valueOf(){if(this._val instanceof so&&this.fromType(this._val),ei(this._val))return this._noArg();if(ci(this._val)&&ei(this._units)){for(const t in this._expressions)if(this._expressions[t].regexp.test(this._val.trim())){this._units=t;break}}else if(oi(this._val)){let t=0;for(const e in this._val)if(si(this._val[e])){const s=this._val[e];t+=new this.constructor(this.context,e).valueOf()*s}return t}if(si(this._units)){const t=this._expressions[this._units],e=this._val.toString().trim().match(t.regexp);return e?t.method.apply(this,e.slice(1)):t.method.call(this,this._val)}return ci(this._val)?parseFloat(this._val):this._val}_frequencyToUnits(t){return 1/t}_beatsToUnits(t){return 60/this._getBpm()*t}_secondsToUnits(t){return t}_ticksToUnits(t){return t*this._beatsToUnits(1)/this._getPPQ()}_noArg(){return this._now()}_getBpm(){return this.context.transport.bpm.value}_getTimeSignature(){return this.context.transport.timeSignature}_getPPQ(){return this.context.transport.PPQ}fromType(t){switch(this._units=void 0,this.defaultUnits){case"s":this._val=t.toSeconds();break;case"i":this._val=t.toTicks();break;case"hz":this._val=t.toFrequency();break;case"midi":this._val=t.toMidi()}return this}toFrequency(){return 1/this.toSeconds()}toSamples(){return this.toSeconds()*this.context.sampleRate}toMilliseconds(){return 1e3*this.toSeconds()}}class no extends so{constructor(){super(...arguments),this.name="TimeClass"}_getExpressions(){return Object.assign(super._getExpressions(),{now:{method:t=>this._now()+new this.constructor(this.context,t).valueOf(),regexp:/^\+(.+)/},quantize:{method:t=>{const e=new no(this.context,t).valueOf();return this._secondsToUnits(this.context.transport.nextSubdivision(e))},regexp:/^@(.+)/}})}quantize(t,e=1){const s=new this.constructor(this.context,t).valueOf(),n=this.valueOf();return n+(Math.round(n/s)*s-n)*e}toNotation(){const t=this.toSeconds(),e=["1m"];for(let t=1;t<9;t++){const s=Math.pow(2,t);e.push(s+"n."),e.push(s+"n"),e.push(s+"t")}e.push("0");let s=e[0],n=new no(this.context,e[0]).toSeconds();return e.forEach(e=>{const i=new no(this.context,e).toSeconds();Math.abs(i-t)<Math.abs(n-t)&&(s=e,n=i)}),s}toBarsBeatsSixteenths(){const t=this._beatsToUnits(1);let e=this.valueOf()/t;e=parseFloat(e.toFixed(4));const s=Math.floor(e/this._getTimeSignature());let n=e%1*4;e=Math.floor(e)%this._getTimeSignature();const i=n.toString();i.length>3&&(n=parseFloat(parseFloat(i).toFixed(3)));return[s,e,n].join(":")}toTicks(){const t=this._beatsToUnits(1),e=this.valueOf()/t;return Math.round(e*this._getPPQ())}toSeconds(){return this.valueOf()}toMidi(){return Ki(this.toFrequency())}_now(){return this.context.now()}}function io(t,e){return new no(Qi(),t,e)}class oo extends no{constructor(){super(...arguments),this.name="Frequency",this.defaultUnits="hz"}static get A4(){return Ji}static set A4(t){!function(t){Ji=t}(t)}_getExpressions(){return Object.assign({},super._getExpressions(),{midi:{regexp:/^(\d+(?:\.\d+)?midi)/,method(t){return"midi"===this.defaultUnits?t:oo.mtof(t)}},note:{regexp:/^([a-g]{1}(?:b|#|x|bb)?)(-?[0-9]+)/i,method(t,e){const s=ro[t.toLowerCase()]+12*(parseInt(e,10)+1);return"midi"===this.defaultUnits?s:oo.mtof(s)}},tr:{regexp:/^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?):?(\d+(?:\.\d+)?)?/,method(t,e,s){let n=1;return t&&"0"!==t&&(n*=this._beatsToUnits(this._getTimeSignature()*parseFloat(t))),e&&"0"!==e&&(n*=this._beatsToUnits(parseFloat(e))),s&&"0"!==s&&(n*=this._beatsToUnits(parseFloat(s)/4)),n}}})}transpose(t){return new oo(this.context,this.valueOf()*$i(t))}harmonize(t){return t.map(t=>this.transpose(t))}toMidi(){return Ki(this.valueOf())}toNote(){const t=this.toFrequency(),e=Math.log2(t/oo.A4);let s=Math.round(12*e)+57;const n=Math.floor(s/12);n<0&&(s+=-12*n);return ao[s%12]+n.toString()}toSeconds(){return 1/super.toSeconds()}toTicks(){const t=this._beatsToUnits(1),e=this.valueOf()/t;return Math.floor(e*this._getPPQ())}_noArg(){return 0}_frequencyToUnits(t){return t}_ticksToUnits(t){return 1/(60*t/(this._getBpm()*this._getPPQ()))}_beatsToUnits(t){return 1/super._beatsToUnits(t)}_secondsToUnits(t){return 1/t}static mtof(t){return eo(t)}static ftom(t){return Ki(t)}}const ro={cbb:-2,cb:-1,c:0,"c#":1,cx:2,dbb:0,db:1,d:2,"d#":3,dx:4,ebb:2,eb:3,e:4,"e#":5,ex:6,fbb:3,fb:4,f:5,"f#":6,fx:7,gbb:5,gb:6,g:7,"g#":8,gx:9,abb:7,ab:8,a:9,"a#":10,ax:11,bbb:9,bb:10,b:11,"b#":12,bx:13},ao=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];function co(t,e){return new oo(Qi(),t,e)}class ho extends no{constructor(){super(...arguments),this.name="TransportTime"}_now(){return this.context.transport.seconds}}function uo(t,e){return new ho(Qi(),t,e)}class lo extends ki{constructor(){super();const t=bi(lo.getDefaults(),arguments,["context"]);this.defaultContext?this.context=this.defaultContext:this.context=t.context}static getDefaults(){return{context:Qi()}}now(){return this.context.currentTime+this.context.lookAhead}immediate(){return this.context.currentTime}get sampleTime(){return 1/this.context.sampleRate}get blockTime(){return 128/this.context.sampleRate}toSeconds(t){return new no(this.context,t).toSeconds()}toFrequency(t){return new oo(this.context,t).toFrequency()}toTicks(t){return new ho(this.context,t).toTicks()}_getPartialProperties(t){const e=this.get();return Object.keys(e).forEach(s=>{ei(t[s])&&delete e[s]}),e}get(){const t=this.constructor.getDefaults();return Object.keys(t).forEach(e=>{if(Reflect.has(this,e)){const s=this[e];si(s)&&si(s.value)&&si(s.setValueAtTime)?t[e]=s.value:s instanceof lo?t[e]=s._getPartialProperties(t[e]):ai(s)||ii(s)||ci(s)||ri(s)?t[e]=s:delete t[e]}}),t}set(t){return Object.keys(t).forEach(e=>{Reflect.has(this,e)&&si(this[e])&&(this[e]&&si(this[e].value)&&si(this[e].setValueAtTime)?this[e].value!==t[e]&&(this[e].value=t[e]):this[e]instanceof lo?this[e].set(t[e]):this[e]=t[e])}),this}}class po extends Ei{constructor(t="stopped"){super(),this.name="StateTimeline",this._initial=t,this.setStateAtTime(this._initial,0)}getValueAtTime(t){const e=this.get(t);return null!==e?e.state:this._initial}setStateAtTime(t,e,s){return Yn(e,0),this.add(Object.assign({},s,{state:t,time:e})),this}getLastState(t,e){for(let s=this._search(e);s>=0;s--){const e=this._timeline[s];if(e.state===t)return e}}getNextState(t,e){const s=this._search(e);if(-1!==s)for(let e=s;e<this._timeline.length;e++){const s=this._timeline[e];if(s.state===t)return s}}}class fo extends lo{constructor(){super(bi(fo.getDefaults(),arguments,["param","units","convert"])),this.name="Param",this.overridden=!1,this._minOutput=1e-7;const t=bi(fo.getDefaults(),arguments,["param","units","convert"]);for(Xn(si(t.param)&&(_i(t.param)||t.param instanceof fo),"param must be an AudioParam");!_i(t.param);)t.param=t.param._param;this._swappable=!!si(t.swappable)&&t.swappable,this._swappable?(this.input=this.context.createGain(),this._param=t.param,this.input.connect(this._param)):this._param=this.input=t.param,this._events=new Ei(1e3),this._initialValue=this._param.defaultValue,this.units=t.units,this.convert=t.convert,this._minValue=t.minValue,this._maxValue=t.maxValue,si(t.value)&&t.value!==this._toType(this._initialValue)&&this.setValueAtTime(t.value,0)}static getDefaults(){return Object.assign(lo.getDefaults(),{convert:!0,units:"number"})}get value(){const t=this.now();return this.getValueAtTime(t)}set value(t){this.cancelScheduledValues(this.now()),this.setValueAtTime(t,this.now())}get minValue(){return si(this._minValue)?this._minValue:"time"===this.units||"frequency"===this.units||"normalRange"===this.units||"positive"===this.units||"transportTime"===this.units||"ticks"===this.units||"bpm"===this.units||"hertz"===this.units||"samples"===this.units?0:"audioRange"===this.units?-1:"decibels"===this.units?-1/0:this._param.minValue}get maxValue(){return si(this._maxValue)?this._maxValue:"normalRange"===this.units||"audioRange"===this.units?1:this._param.maxValue}_is(t,e){return this.units===e}_assertRange(t){return si(this.maxValue)&&si(this.minValue)&&Yn(t,this._fromType(this.minValue),this._fromType(this.maxValue)),t}_fromType(t){return this.convert&&!this.overridden?this._is(t,"time")?this.toSeconds(t):this._is(t,"decibels")?Yi(t):this._is(t,"frequency")?this.toFrequency(t):t:this.overridden?0:t}_toType(t){return this.convert&&"decibels"===this.units?Hi(t):t}setValueAtTime(t,e){const s=this.toSeconds(e),n=this._fromType(t);return Xn(isFinite(n)&&isFinite(s),`Invalid argument(s) to setValueAtTime: ${JSON.stringify(t)}, ${JSON.stringify(e)}`),this._assertRange(n),this.log(this.units,"setValueAtTime",t,s),this._events.add({time:s,type:"setValueAtTime",value:n}),this._param.setValueAtTime(n,s),this}getValueAtTime(t){const e=Math.max(this.toSeconds(t),0),s=this._events.getAfter(e),n=this._events.get(e);let i=this._initialValue;if(null===n)i=this._initialValue;else if("setTargetAtTime"!==n.type||null!==s&&"setValueAtTime"!==s.type)if(null===s)i=n.value;else if("linearRampToValueAtTime"===s.type||"exponentialRampToValueAtTime"===s.type){let t=n.value;if("setTargetAtTime"===n.type){const e=this._events.getBefore(n.time);t=null===e?this._initialValue:e.value}i="linearRampToValueAtTime"===s.type?this._linearInterpolate(n.time,t,s.time,s.value,e):this._exponentialInterpolate(n.time,t,s.time,s.value,e)}else i=n.value;else{const t=this._events.getBefore(n.time);let s;s=null===t?this._initialValue:t.value,"setTargetAtTime"===n.type&&(i=this._exponentialApproach(n.time,s,n.value,n.constant,e))}return this._toType(i)}setRampPoint(t){t=this.toSeconds(t);let e=this.getValueAtTime(t);return this.cancelAndHoldAtTime(t),0===this._fromType(e)&&(e=this._toType(this._minOutput)),this.setValueAtTime(e,t),this}linearRampToValueAtTime(t,e){const s=this._fromType(t),n=this.toSeconds(e);return Xn(isFinite(s)&&isFinite(n),`Invalid argument(s) to linearRampToValueAtTime: ${JSON.stringify(t)}, ${JSON.stringify(e)}`),this._assertRange(s),this._events.add({time:n,type:"linearRampToValueAtTime",value:s}),this.log(this.units,"linearRampToValueAtTime",t,n),this._param.linearRampToValueAtTime(s,n),this}exponentialRampToValueAtTime(t,e){let s=this._fromType(t);s=Math.max(this._minOutput,s),this._assertRange(s);const n=this.toSeconds(e);return Xn(isFinite(s)&&isFinite(n),`Invalid argument(s) to exponentialRampToValueAtTime: ${JSON.stringify(t)}, ${JSON.stringify(e)}`),this._events.add({time:n,type:"exponentialRampToValueAtTime",value:s}),this.log(this.units,"exponentialRampToValueAtTime",t,n),this._param.exponentialRampToValueAtTime(s,n),this}exponentialRampTo(t,e,s){return s=this.toSeconds(s),this.setRampPoint(s),this.exponentialRampToValueAtTime(t,s+this.toSeconds(e)),this}linearRampTo(t,e,s){return s=this.toSeconds(s),this.setRampPoint(s),this.linearRampToValueAtTime(t,s+this.toSeconds(e)),this}targetRampTo(t,e,s){return s=this.toSeconds(s),this.setRampPoint(s),this.exponentialApproachValueAtTime(t,s,e),this}exponentialApproachValueAtTime(t,e,s){e=this.toSeconds(e),s=this.toSeconds(s);const n=Math.log(s+1)/Math.log(200);return this.setTargetAtTime(t,e,n),this.cancelAndHoldAtTime(e+.9*s),this.linearRampToValueAtTime(t,e+s),this}setTargetAtTime(t,e,s){const n=this._fromType(t);Xn(isFinite(s)&&s>0,"timeConstant must be a number greater than 0");const i=this.toSeconds(e);return this._assertRange(n),Xn(isFinite(n)&&isFinite(i),`Invalid argument(s) to setTargetAtTime: ${JSON.stringify(t)}, ${JSON.stringify(e)}`),this._events.add({constant:s,time:i,type:"setTargetAtTime",value:n}),this.log(this.units,"setTargetAtTime",t,i,s),this._param.setTargetAtTime(n,i,s),this}setValueCurveAtTime(t,e,s,n=1){s=this.toSeconds(s),e=this.toSeconds(e);const i=this._fromType(t[0])*n;this.setValueAtTime(this._toType(i),e);const o=s/(t.length-1);for(let s=1;s<t.length;s++){const i=this._fromType(t[s])*n;this.linearRampToValueAtTime(this._toType(i),e+s*o)}return this}cancelScheduledValues(t){const e=this.toSeconds(t);return Xn(isFinite(e),"Invalid argument to cancelScheduledValues: "+JSON.stringify(t)),this._events.cancel(e),this._param.cancelScheduledValues(e),this.log(this.units,"cancelScheduledValues",e),this}cancelAndHoldAtTime(t){const e=this.toSeconds(t),s=this._fromType(this.getValueAtTime(e));Xn(isFinite(e),"Invalid argument to cancelAndHoldAtTime: "+JSON.stringify(t)),this.log(this.units,"cancelAndHoldAtTime",e,"value="+s);const n=this._events.get(e),i=this._events.getAfter(e);return n&&Oi(n.time,e)?i?(this._param.cancelScheduledValues(i.time),this._events.cancel(i.time)):(this._param.cancelAndHoldAtTime(e),this._events.cancel(e+this.sampleTime)):i&&(this._param.cancelScheduledValues(i.time),this._events.cancel(i.time),"linearRampToValueAtTime"===i.type?this.linearRampToValueAtTime(this._toType(s),e):"exponentialRampToValueAtTime"===i.type&&this.exponentialRampToValueAtTime(this._toType(s),e)),this._events.add({time:e,type:"setValueAtTime",value:s}),this._param.setValueAtTime(s,e),this}rampTo(t,e=.1,s){return"frequency"===this.units||"bpm"===this.units||"decibels"===this.units?this.exponentialRampTo(t,e,s):this.linearRampTo(t,e,s),this}apply(t){const e=this.context.currentTime;t.setValueAtTime(this.getValueAtTime(e),e);const s=this._events.get(e);if(s&&"setTargetAtTime"===s.type){const n=this._events.getAfter(s.time),i=n?n.time:e+2,o=(i-e)/10;for(let s=e;s<i;s+=o)t.linearRampToValueAtTime(this.getValueAtTime(s),s)}return this._events.forEachAfter(this.context.currentTime,e=>{"cancelScheduledValues"===e.type?t.cancelScheduledValues(e.time):"setTargetAtTime"===e.type?t.setTargetAtTime(e.value,e.time,e.constant):t[e.type](e.value,e.time)}),this}setParam(t){Xn(this._swappable,"The Param must be assigned as 'swappable' in the constructor");const e=this.input;return e.disconnect(this._param),this.apply(t),this._param=t,e.connect(this._param),this}dispose(){return super.dispose(),this._events.dispose(),this}get defaultValue(){return this._toType(this._param.defaultValue)}_exponentialApproach(t,e,s,n,i){return s+(e-s)*Math.exp(-(i-t)/n)}_linearInterpolate(t,e,s,n,i){return e+(i-t)/(s-t)*(n-e)}_exponentialInterpolate(t,e,s,n,i){return e*Math.pow(n/e,(i-t)/(s-t))}}class _o extends lo{constructor(){super(...arguments),this.name="ToneAudioNode",this._internalChannels=[]}get numberOfInputs(){return si(this.input)?_i(this.input)||this.input instanceof fo?1:this.input.numberOfInputs:0}get numberOfOutputs(){return si(this.output)?this.output.numberOfOutputs:0}_isAudioNode(t){return si(t)&&(t instanceof _o||mi(t))}_getInternalNodes(){const t=this._internalChannels.slice(0);return this._isAudioNode(this.input)&&t.push(this.input),this._isAudioNode(this.output)&&this.input!==this.output&&t.push(this.output),t}_setChannelProperties(t){this._getInternalNodes().forEach(e=>{e.channelCount=t.channelCount,e.channelCountMode=t.channelCountMode,e.channelInterpretation=t.channelInterpretation})}_getChannelProperties(){const t=this._getInternalNodes();Xn(t.length>0,"ToneAudioNode does not have any internal nodes");const e=t[0];return{channelCount:e.channelCount,channelCountMode:e.channelCountMode,channelInterpretation:e.channelInterpretation}}get channelCount(){return this._getChannelProperties().channelCount}set channelCount(t){const e=this._getChannelProperties();this._setChannelProperties(Object.assign(e,{channelCount:t}))}get channelCountMode(){return this._getChannelProperties().channelCountMode}set channelCountMode(t){const e=this._getChannelProperties();this._setChannelProperties(Object.assign(e,{channelCountMode:t}))}get channelInterpretation(){return this._getChannelProperties().channelInterpretation}set channelInterpretation(t){const e=this._getChannelProperties();this._setChannelProperties(Object.assign(e,{channelInterpretation:t}))}connect(t,e=0,s=0){return go(this,t,e,s),this}toDestination(){return this.connect(this.context.destination),this}toMaster(){return ti("toMaster() has been renamed toDestination()"),this.toDestination()}disconnect(t,e=0,s=0){return vo(this,t,e,s),this}chain(...t){return mo(this,...t),this}fan(...t){return t.forEach(t=>this.connect(t)),this}dispose(){return super.dispose(),si(this.input)&&(this.input instanceof _o?this.input.dispose():mi(this.input)&&this.input.disconnect()),si(this.output)&&(this.output instanceof _o?this.output.dispose():mi(this.output)&&this.output.disconnect()),this._internalChannels=[],this}}function mo(...t){const e=t.shift();t.reduce((t,e)=>(t instanceof _o?t.connect(e):mi(t)&&go(t,e),e),e)}function go(t,e,s=0,n=0){for(Xn(si(t),"Cannot connect from undefined node"),Xn(si(e),"Cannot connect to undefined node"),(e instanceof _o||mi(e))&&Xn(e.numberOfInputs>0,"Cannot connect to node with no inputs"),Xn(t.numberOfOutputs>0,"Cannot connect from node with no outputs");e instanceof _o||e instanceof fo;)si(e.input)&&(e=e.input);for(;t instanceof _o;)si(t.output)&&(t=t.output);_i(e)?t.connect(e,s):t.connect(e,s,n)}function vo(t,e,s=0,n=0){if(si(e))for(;e instanceof _o;)e=e.input;for(;!mi(t);)si(t.output)&&(t=t.output);_i(e)?t.disconnect(e,s):mi(e)?t.disconnect(e,s,n):t.disconnect()}class yo extends _o{constructor(){super(bi(yo.getDefaults(),arguments,["gain","units"])),this.name="Gain",this._gainNode=this.context.createGain(),this.input=this._gainNode,this.output=this._gainNode;const t=bi(yo.getDefaults(),arguments,["gain","units"]);this.gain=new fo({context:this.context,convert:t.convert,param:this._gainNode.gain,units:t.units,value:t.gain,minValue:t.minValue,maxValue:t.maxValue}),ji(this,"gain")}static getDefaults(){return Object.assign(_o.getDefaults(),{convert:!0,gain:1,units:"gain"})}dispose(){return super.dispose(),this._gainNode.disconnect(),this.gain.dispose(),this}}class xo extends _o{constructor(t){super(t),this.onended=zi,this._startTime=-1,this._stopTime=-1,this._timeout=-1,this.output=new yo({context:this.context,gain:0}),this._gainNode=this.output,this.getStateAtTime=function(t){const e=this.toSeconds(t);return-1!==this._startTime&&e>=this._startTime&&(-1===this._stopTime||e<=this._stopTime)?"started":"stopped"},this._fadeIn=t.fadeIn,this._fadeOut=t.fadeOut,this._curve=t.curve,this.onended=t.onended}static getDefaults(){return Object.assign(_o.getDefaults(),{curve:"linear",fadeIn:0,fadeOut:0,onended:zi})}_startGain(t,e=1){Xn(-1===this._startTime,"Source cannot be started more than once");const s=this.toSeconds(this._fadeIn);return this._startTime=t+s,this._startTime=Math.max(this._startTime,this.context.currentTime),s>0?(this._gainNode.gain.setValueAtTime(0,t),"linear"===this._curve?this._gainNode.gain.linearRampToValueAtTime(e,t+s):this._gainNode.gain.exponentialApproachValueAtTime(e,t,s)):this._gainNode.gain.setValueAtTime(e,t),this}stop(t){return this.log("stop",t),this._stopGain(this.toSeconds(t)),this}_stopGain(t){Xn(-1!==this._startTime,"'start' must be called before 'stop'"),this.cancelStop();const e=this.toSeconds(this._fadeOut);return this._stopTime=this.toSeconds(t)+e,this._stopTime=Math.max(this._stopTime,this.context.currentTime),e>0?"linear"===this._curve?this._gainNode.gain.linearRampTo(0,e,t):this._gainNode.gain.targetRampTo(0,e,t):(this._gainNode.gain.cancelAndHoldAtTime(t),this._gainNode.gain.setValueAtTime(0,t)),this.context.clearTimeout(this._timeout),this._timeout=this.context.setTimeout(()=>{const t="exponential"===this._curve?2*e:0;this._stopSource(this.now()+t),this._onended()},this._stopTime-this.context.currentTime),this}_onended(){if(this.onended!==zi&&(this.onended(this),this.onended=zi,!this.context.isOffline)){const t=()=>this.dispose();void 0!==window.requestIdleCallback?window.requestIdleCallback(t):setTimeout(t,1e3)}}get state(){return this.getStateAtTime(this.now())}cancelStop(){return this.log("cancelStop"),Xn(-1!==this._startTime,"Source is not started"),this._gainNode.gain.cancelScheduledValues(this._startTime+this.sampleTime),this.context.clearTimeout(this._timeout),this._stopTime=-1,this}dispose(){return super.dispose(),this._gainNode.disconnect(),this}}class wo extends xo{constructor(){super(bi(wo.getDefaults(),arguments,["offset"])),this.name="ToneConstantSource",this._source=this.context.createConstantSource();const t=bi(wo.getDefaults(),arguments,["offset"]);go(this._source,this._gainNode),this.offset=new fo({context:this.context,convert:t.convert,param:this._source.offset,units:t.units,value:t.offset,minValue:t.minValue,maxValue:t.maxValue})}static getDefaults(){return Object.assign(xo.getDefaults(),{convert:!0,offset:1,units:"number"})}start(t){const e=this.toSeconds(t);return this.log("start",e),this._startGain(e),this._source.start(e),this}_stopSource(t){this._source.stop(t)}dispose(){return super.dispose(),"started"===this.state&&this.stop(),this._source.disconnect(),this.offset.dispose(),this}}class bo extends _o{constructor(){super(bi(bo.getDefaults(),arguments,["value","units"])),this.name="Signal",this.override=!0;const t=bi(bo.getDefaults(),arguments,["value","units"]);this.output=this._constantSource=new wo({context:this.context,convert:t.convert,offset:t.value,units:t.units,minValue:t.minValue,maxValue:t.maxValue}),this._constantSource.start(0),this.input=this._param=this._constantSource.offset}static getDefaults(){return Object.assign(_o.getDefaults(),{convert:!0,units:"number",value:0})}connect(t,e=0,s=0){return To(this,t,e,s),this}dispose(){return super.dispose(),this._param.dispose(),this._constantSource.dispose(),this}setValueAtTime(t,e){return this._param.setValueAtTime(t,e),this}getValueAtTime(t){return this._param.getValueAtTime(t)}setRampPoint(t){return this._param.setRampPoint(t),this}linearRampToValueAtTime(t,e){return this._param.linearRampToValueAtTime(t,e),this}exponentialRampToValueAtTime(t,e){return this._param.exponentialRampToValueAtTime(t,e),this}exponentialRampTo(t,e,s){return this._param.exponentialRampTo(t,e,s),this}linearRampTo(t,e,s){return this._param.linearRampTo(t,e,s),this}targetRampTo(t,e,s){return this._param.targetRampTo(t,e,s),this}exponentialApproachValueAtTime(t,e,s){return this._param.exponentialApproachValueAtTime(t,e,s),this}setTargetAtTime(t,e,s){return this._param.setTargetAtTime(t,e,s),this}setValueCurveAtTime(t,e,s,n){return this._param.setValueCurveAtTime(t,e,s,n),this}cancelScheduledValues(t){return this._param.cancelScheduledValues(t),this}cancelAndHoldAtTime(t){return this._param.cancelAndHoldAtTime(t),this}rampTo(t,e,s){return this._param.rampTo(t,e,s),this}get value(){return this._param.value}set value(t){this._param.value=t}get convert(){return this._param.convert}set convert(t){this._param.convert=t}get units(){return this._param.units}get overridden(){return this._param.overridden}set overridden(t){this._param.overridden=t}get maxValue(){return this._param.maxValue}get minValue(){return this._param.minValue}apply(t){return this._param.apply(t),this}}function To(t,e,s,n){(e instanceof fo||_i(e)||e instanceof bo&&e.override)&&(e.cancelScheduledValues(0),e.setValueAtTime(0,0),e instanceof bo&&(e.overridden=!0)),go(t,e,s,n)}class So extends fo{constructor(){super(bi(So.getDefaults(),arguments,["value"])),this.name="TickParam",this._events=new Ei(1/0),this._multiplier=1;const t=bi(So.getDefaults(),arguments,["value"]);this._multiplier=t.multiplier,this._events.cancel(0),this._events.add({ticks:0,time:0,type:"setValueAtTime",value:this._fromType(t.value)}),this.setValueAtTime(t.value,0)}static getDefaults(){return Object.assign(fo.getDefaults(),{multiplier:1,units:"hertz",value:1})}setTargetAtTime(t,e,s){e=this.toSeconds(e),this.setRampPoint(e);const n=this._fromType(t),i=this._events.get(e),o=Math.round(Math.max(1/s,1));for(let t=0;t<=o;t++){const o=s*t+e,r=this._exponentialApproach(i.time,i.value,n,s,o);this.linearRampToValueAtTime(this._toType(r),o)}return this}setValueAtTime(t,e){const s=this.toSeconds(e);super.setValueAtTime(t,e);const n=this._events.get(s),i=this._events.previousEvent(n),o=this._getTicksUntilEvent(i,s);return n.ticks=Math.max(o,0),this}linearRampToValueAtTime(t,e){const s=this.toSeconds(e);super.linearRampToValueAtTime(t,e);const n=this._events.get(s),i=this._events.previousEvent(n),o=this._getTicksUntilEvent(i,s);return n.ticks=Math.max(o,0),this}exponentialRampToValueAtTime(t,e){e=this.toSeconds(e);const s=this._fromType(t),n=this._events.get(e),i=Math.round(Math.max(10*(e-n.time),1)),o=(e-n.time)/i;for(let t=0;t<=i;t++){const i=o*t+n.time,r=this._exponentialInterpolate(n.time,n.value,e,s,i);this.linearRampToValueAtTime(this._toType(r),i)}return this}_getTicksUntilEvent(t,e){if(null===t)t={ticks:0,time:0,type:"setValueAtTime",value:0};else if(ei(t.ticks)){const e=this._events.previousEvent(t);t.ticks=this._getTicksUntilEvent(e,t.time)}const s=this._fromType(this.getValueAtTime(t.time));let n=this._fromType(this.getValueAtTime(e));const i=this._events.get(e);return i&&i.time===e&&"setValueAtTime"===i.type&&(n=this._fromType(this.getValueAtTime(e-this.sampleTime))),.5*(e-t.time)*(s+n)+t.ticks}getTicksAtTime(t){const e=this.toSeconds(t),s=this._events.get(e);return Math.max(this._getTicksUntilEvent(s,e),0)}getDurationOfTicks(t,e){const s=this.toSeconds(e),n=this.getTicksAtTime(e);return this.getTimeOfTick(n+t)-s}getTimeOfTick(t){const e=this._events.get(t,"ticks"),s=this._events.getAfter(t,"ticks");if(e&&e.ticks===t)return e.time;if(e&&s&&"linearRampToValueAtTime"===s.type&&e.value!==s.value){const n=this._fromType(this.getValueAtTime(e.time)),i=(this._fromType(this.getValueAtTime(s.time))-n)/(s.time-e.time),o=Math.sqrt(Math.pow(n,2)-2*i*(e.ticks-t)),r=(-n+o)/i,a=(-n-o)/i;return(r>0?r:a)+e.time}return e?0===e.value?1/0:e.time+(t-e.ticks)/e.value:t/this._initialValue}ticksToTime(t,e){return this.getDurationOfTicks(t,e)}timeToTicks(t,e){const s=this.toSeconds(e),n=this.toSeconds(t),i=this.getTicksAtTime(s);return this.getTicksAtTime(s+n)-i}_fromType(t){return"bpm"===this.units&&this.multiplier?1/(60/t/this.multiplier):super._fromType(t)}_toType(t){return"bpm"===this.units&&this.multiplier?t/this.multiplier*60:super._toType(t)}get multiplier(){return this._multiplier}set multiplier(t){const e=this.value;this._multiplier=t,this.cancelScheduledValues(0),this.setValueAtTime(e,0)}}class ko extends bo{constructor(){super(bi(ko.getDefaults(),arguments,["value"])),this.name="TickSignal";const t=bi(ko.getDefaults(),arguments,["value"]);this.input=this._param=new So({context:this.context,convert:t.convert,multiplier:t.multiplier,param:this._constantSource.offset,units:t.units,value:t.value})}static getDefaults(){return Object.assign(bo.getDefaults(),{multiplier:1,units:"hertz",value:1})}ticksToTime(t,e){return this._param.ticksToTime(t,e)}timeToTicks(t,e){return this._param.timeToTicks(t,e)}getTimeOfTick(t){return this._param.getTimeOfTick(t)}getDurationOfTicks(t,e){return this._param.getDurationOfTicks(t,e)}getTicksAtTime(t){return this._param.getTicksAtTime(t)}get multiplier(){return this._param.multiplier}set multiplier(t){this._param.multiplier=t}dispose(){return super.dispose(),this._param.dispose(),this}}class Co extends lo{constructor(){super(bi(Co.getDefaults(),arguments,["frequency"])),this.name="TickSource",this._state=new po,this._tickOffset=new Ei;const t=bi(Co.getDefaults(),arguments,["frequency"]);this.frequency=new ko({context:this.context,units:t.units,value:t.frequency}),ji(this,"frequency"),this._state.setStateAtTime("stopped",0),this.setTicksAtTime(0,0)}static getDefaults(){return Object.assign({frequency:1,units:"hertz"},lo.getDefaults())}get state(){return this.getStateAtTime(this.now())}start(t,e){const s=this.toSeconds(t);return"started"!==this._state.getValueAtTime(s)&&(this._state.setStateAtTime("started",s),si(e)&&this.setTicksAtTime(e,s)),this}stop(t){const e=this.toSeconds(t);if("stopped"===this._state.getValueAtTime(e)){const t=this._state.get(e);t&&t.time>0&&(this._tickOffset.cancel(t.time),this._state.cancel(t.time))}return this._state.cancel(e),this._state.setStateAtTime("stopped",e),this.setTicksAtTime(0,e),this}pause(t){const e=this.toSeconds(t);return"started"===this._state.getValueAtTime(e)&&this._state.setStateAtTime("paused",e),this}cancel(t){return t=this.toSeconds(t),this._state.cancel(t),this._tickOffset.cancel(t),this}getTicksAtTime(t){const e=this.toSeconds(t),s=this._state.getLastState("stopped",e),n={state:"paused",time:e};this._state.add(n);let i=s,o=0;return this._state.forEachBetween(s.time,e+this.sampleTime,t=>{let e=i.time;const s=this._tickOffset.get(t.time);s&&s.time>=i.time&&(o=s.ticks,e=s.time),"started"===i.state&&"started"!==t.state&&(o+=this.frequency.getTicksAtTime(t.time)-this.frequency.getTicksAtTime(e)),i=t}),this._state.remove(n),o}get ticks(){return this.getTicksAtTime(this.now())}set ticks(t){this.setTicksAtTime(t,this.now())}get seconds(){return this.getSecondsAtTime(this.now())}set seconds(t){const e=this.now(),s=this.frequency.timeToTicks(t,e);this.setTicksAtTime(s,e)}getSecondsAtTime(t){t=this.toSeconds(t);const e=this._state.getLastState("stopped",t),s={state:"paused",time:t};this._state.add(s);let n=e,i=0;return this._state.forEachBetween(e.time,t+this.sampleTime,t=>{let e=n.time;const s=this._tickOffset.get(t.time);s&&s.time>=n.time&&(i=s.seconds,e=s.time),"started"===n.state&&"started"!==t.state&&(i+=t.time-e),n=t}),this._state.remove(s),i}setTicksAtTime(t,e){return e=this.toSeconds(e),this._tickOffset.cancel(e),this._tickOffset.add({seconds:this.frequency.getDurationOfTicks(t,e),ticks:t,time:e}),this}getStateAtTime(t){return t=this.toSeconds(t),this._state.getValueAtTime(t)}getTimeOfTick(t,e=this.now()){const s=this._tickOffset.get(e),n=this._state.get(e),i=Math.max(s.time,n.time),o=this.frequency.getTicksAtTime(i)+t-s.ticks;return this.frequency.getTimeOfTick(o)}forEachTickBetween(t,e,s){let n=this._state.get(t);this._state.forEachBetween(t,e,e=>{n&&"started"===n.state&&"started"!==e.state&&this.forEachTickBetween(Math.max(n.time,t),e.time-this.sampleTime,s),n=e});let i=null;if(n&&"started"===n.state){const o=Math.max(n.time,t),r=this.frequency.getTicksAtTime(o),a=r-this.frequency.getTicksAtTime(n.time);let c=Math.ceil(a)-a;c=Oi(c,1)?0:c;let h=this.frequency.getTimeOfTick(r+c);for(;h<e;){try{s(h,Math.round(this.getTicksAtTime(h)))}catch(t){i=t;break}h+=this.frequency.getDurationOfTicks(1,h)}}if(i)throw i;return this}dispose(){return super.dispose(),this._state.dispose(),this._tickOffset.dispose(),this.frequency.dispose(),this}}class Ao extends lo{constructor(){super(bi(Ao.getDefaults(),arguments,["callback","frequency"])),this.name="Clock",this.callback=zi,this._lastUpdate=0,this._state=new po("stopped"),this._boundLoop=this._loop.bind(this);const t=bi(Ao.getDefaults(),arguments,["callback","frequency"]);this.callback=t.callback,this._tickSource=new Co({context:this.context,frequency:t.frequency,units:t.units}),this._lastUpdate=0,this.frequency=this._tickSource.frequency,ji(this,"frequency"),this._state.setStateAtTime("stopped",0),this.context.on("tick",this._boundLoop)}static getDefaults(){return Object.assign(lo.getDefaults(),{callback:zi,frequency:1,units:"hertz"})}get state(){return this._state.getValueAtTime(this.now())}start(t,e){Hn(this.context);const s=this.toSeconds(t);return this.log("start",s),"started"!==this._state.getValueAtTime(s)&&(this._state.setStateAtTime("started",s),this._tickSource.start(s,e),s<this._lastUpdate&&this.emit("start",s,e)),this}stop(t){const e=this.toSeconds(t);return this.log("stop",e),this._state.cancel(e),this._state.setStateAtTime("stopped",e),this._tickSource.stop(e),e<this._lastUpdate&&this.emit("stop",e),this}pause(t){const e=this.toSeconds(t);return"started"===this._state.getValueAtTime(e)&&(this._state.setStateAtTime("paused",e),this._tickSource.pause(e),e<this._lastUpdate&&this.emit("pause",e)),this}get ticks(){return Math.ceil(this.getTicksAtTime(this.now()))}set ticks(t){this._tickSource.ticks=t}get seconds(){return this._tickSource.seconds}set seconds(t){this._tickSource.seconds=t}getSecondsAtTime(t){return this._tickSource.getSecondsAtTime(t)}setTicksAtTime(t,e){return this._tickSource.setTicksAtTime(t,e),this}getTimeOfTick(t,e=this.now()){return this._tickSource.getTimeOfTick(t,e)}getTicksAtTime(t){return this._tickSource.getTicksAtTime(t)}nextTickTime(t,e){const s=this.toSeconds(e),n=this.getTicksAtTime(s);return this._tickSource.getTimeOfTick(n+t,s)}_loop(){const t=this._lastUpdate,e=this.now();this._lastUpdate=e,this.log("loop",t,e),t!==e&&(this._state.forEachBetween(t,e,t=>{switch(t.state){case"started":const e=this._tickSource.getTicksAtTime(t.time);this.emit("start",t.time,e);break;case"stopped":0!==t.time&&this.emit("stop",t.time);break;case"paused":this.emit("pause",t.time)}}),this._tickSource.forEachTickBetween(t,e,(t,e)=>{this.callback(t,e)}))}getStateAtTime(t){const e=this.toSeconds(t);return this._state.getValueAtTime(e)}dispose(){return super.dispose(),this.context.off("tick",this._boundLoop),this._tickSource.dispose(),this._state.dispose(),this}}Vi.mixin(Ao);class Do extends _o{constructor(){super(bi(Do.getDefaults(),arguments,["delayTime","maxDelay"])),this.name="Delay";const t=bi(Do.getDefaults(),arguments,["delayTime","maxDelay"]),e=this.toSeconds(t.maxDelay);this._maxDelay=Math.max(e,this.toSeconds(t.delayTime)),this._delayNode=this.input=this.output=this.context.createDelay(e),this.delayTime=new fo({context:this.context,param:this._delayNode.delayTime,units:"time",value:t.delayTime,minValue:0,maxValue:this.maxDelay}),ji(this,"delayTime")}static getDefaults(){return Object.assign(_o.getDefaults(),{delayTime:0,maxDelay:1})}get maxDelay(){return this._maxDelay}dispose(){return super.dispose(),this._delayNode.disconnect(),this.delayTime.dispose(),this}}function Oo(t,e,s=2,n=Qi().sampleRate){return di(this,void 0,void 0,(function*(){const i=Qi(),o=new Wi(s,e,n);Zi(o),yield t(o);const r=o.render();Zi(i);const a=yield r;return new Bi(a)}))}class Mo extends ki{constructor(){super(),this.name="ToneAudioBuffers",this._buffers=new Map,this._loadingCount=0;const t=bi(Mo.getDefaults(),arguments,["urls","onload","baseUrl"],"urls");this.baseUrl=t.baseUrl,Object.keys(t.urls).forEach(e=>{this._loadingCount++;const s=t.urls[e];this.add(e,s,this._bufferLoaded.bind(this,t.onload),t.onerror)})}static getDefaults(){return{baseUrl:"",onerror:zi,onload:zi,urls:{}}}has(t){return this._buffers.has(t.toString())}get(t){return Xn(this.has(t),"ToneAudioBuffers has no buffer named: "+t),this._buffers.get(t.toString())}_bufferLoaded(t){this._loadingCount--,0===this._loadingCount&&t&&t()}get loaded(){return Array.from(this._buffers).every(([t,e])=>e.loaded)}add(t,e,s=zi,n=zi){return ci(e)?this._buffers.set(t.toString(),new Bi(this.baseUrl+e,s,n)):this._buffers.set(t.toString(),new Bi(e,s,n)),this}dispose(){return super.dispose(),this._buffers.forEach(t=>t.dispose()),this._buffers.clear(),this}}class Eo extends oo{constructor(){super(...arguments),this.name="MidiClass",this.defaultUnits="midi"}_frequencyToUnits(t){return Ki(super._frequencyToUnits(t))}_ticksToUnits(t){return Ki(super._ticksToUnits(t))}_beatsToUnits(t){return Ki(super._beatsToUnits(t))}_secondsToUnits(t){return Ki(super._secondsToUnits(t))}toMidi(){return this.valueOf()}toFrequency(){return eo(this.toMidi())}transpose(t){return new Eo(this.context,this.toMidi()+t)}}function Ro(t,e){return new Eo(Qi(),t,e)}class qo extends ho{constructor(){super(...arguments),this.name="Ticks",this.defaultUnits="i"}_now(){return this.context.transport.ticks}_beatsToUnits(t){return this._getPPQ()*t}_secondsToUnits(t){return Math.floor(t/(60/this._getBpm())*this._getPPQ())}_ticksToUnits(t){return t}toTicks(){return this.valueOf()}toSeconds(){return this.valueOf()/this._getPPQ()*(60/this._getBpm())}}function Fo(t,e){return new qo(Qi(),t,e)}class Io extends lo{constructor(){super(...arguments),this.name="Draw",this.expiration=.25,this.anticipation=.008,this._events=new Ei,this._boundDrawLoop=this._drawLoop.bind(this),this._animationFrame=-1}schedule(t,e){return this._events.add({callback:t,time:this.toSeconds(e)}),1===this._events.length&&(this._animationFrame=requestAnimationFrame(this._boundDrawLoop)),this}cancel(t){return this._events.cancel(this.toSeconds(t)),this}_drawLoop(){const t=this.context.currentTime;for(;this._events.length&&this._events.peek().time-this.anticipation<=t;){const e=this._events.shift();e&&t-e.time<=this.expiration&&e.callback()}this._events.length>0&&(this._animationFrame=requestAnimationFrame(this._boundDrawLoop))}dispose(){return super.dispose(),this._events.dispose(),cancelAnimationFrame(this._animationFrame),this}}qi(t=>{t.draw=new Io({context:t})}),Ii(t=>{t.draw.dispose()});class Vo extends ki{constructor(){super(...arguments),this.name="IntervalTimeline",this._root=null,this._length=0}add(t){Xn(si(t.time),"Events must have a time property"),Xn(si(t.duration),"Events must have a duration parameter"),t.time=t.time.valueOf();let e=new No(t.time,t.time+t.duration,t);for(null===this._root?this._root=e:this._root.insert(e),this._length++;null!==e;)e.updateHeight(),e.updateMax(),this._rebalance(e),e=e.parent;return this}remove(t){if(null!==this._root){const e=[];this._root.search(t.time,e);for(const s of e)if(s.event===t){this._removeNode(s),this._length--;break}}return this}get length(){return this._length}cancel(t){return this.forEachFrom(t,t=>this.remove(t)),this}_setRoot(t){this._root=t,null!==this._root&&(this._root.parent=null)}_replaceNodeInParent(t,e){null!==t.parent?(t.isLeftChild()?t.parent.left=e:t.parent.right=e,this._rebalance(t.parent)):this._setRoot(e)}_removeNode(t){if(null===t.left&&null===t.right)this._replaceNodeInParent(t,null);else if(null===t.right)this._replaceNodeInParent(t,t.left);else if(null===t.left)this._replaceNodeInParent(t,t.right);else{let e,s=null;if(t.getBalance()>0)if(null===t.left.right)e=t.left,e.right=t.right,s=e;else{for(e=t.left.right;null!==e.right;)e=e.right;e.parent&&(e.parent.right=e.left,s=e.parent,e.left=t.left,e.right=t.right)}else if(null===t.right.left)e=t.right,e.left=t.left,s=e;else{for(e=t.right.left;null!==e.left;)e=e.left;e.parent&&(e.parent.left=e.right,s=e.parent,e.left=t.left,e.right=t.right)}null!==t.parent?t.isLeftChild()?t.parent.left=e:t.parent.right=e:this._setRoot(e),s&&this._rebalance(s)}t.dispose()}_rotateLeft(t){const e=t.parent,s=t.isLeftChild(),n=t.right;n&&(t.right=n.left,n.left=t),null!==e?s?e.left=n:e.right=n:this._setRoot(n)}_rotateRight(t){const e=t.parent,s=t.isLeftChild(),n=t.left;n&&(t.left=n.right,n.right=t),null!==e?s?e.left=n:e.right=n:this._setRoot(n)}_rebalance(t){const e=t.getBalance();e>1&&t.left?t.left.getBalance()<0?this._rotateLeft(t.left):this._rotateRight(t):e<-1&&t.right&&(t.right.getBalance()>0?this._rotateRight(t.right):this._rotateLeft(t))}get(t){if(null!==this._root){const e=[];if(this._root.search(t,e),e.length>0){let t=e[0];for(let s=1;s<e.length;s++)e[s].low>t.low&&(t=e[s]);return t.event}}return null}forEach(t){if(null!==this._root){const e=[];this._root.traverse(t=>e.push(t)),e.forEach(e=>{e.event&&t(e.event)})}return this}forEachAtTime(t,e){if(null!==this._root){const s=[];this._root.search(t,s),s.forEach(t=>{t.event&&e(t.event)})}return this}forEachFrom(t,e){if(null!==this._root){const s=[];this._root.searchAfter(t,s),s.forEach(t=>{t.event&&e(t.event)})}return this}dispose(){return super.dispose(),null!==this._root&&this._root.traverse(t=>t.dispose()),this._root=null,this}}class No{constructor(t,e,s){this._left=null,this._right=null,this.parent=null,this.height=0,this.event=s,this.low=t,this.high=e,this.max=this.high}insert(t){t.low<=this.low?null===this.left?this.left=t:this.left.insert(t):null===this.right?this.right=t:this.right.insert(t)}search(t,e){t>this.max||(null!==this.left&&this.left.search(t,e),this.low<=t&&this.high>t&&e.push(this),this.low>t||null!==this.right&&this.right.search(t,e))}searchAfter(t,e){this.low>=t&&(e.push(this),null!==this.left&&this.left.searchAfter(t,e)),null!==this.right&&this.right.searchAfter(t,e)}traverse(t){t(this),null!==this.left&&this.left.traverse(t),null!==this.right&&this.right.traverse(t)}updateHeight(){null!==this.left&&null!==this.right?this.height=Math.max(this.left.height,this.right.height)+1:null!==this.right?this.height=this.right.height+1:null!==this.left?this.height=this.left.height+1:this.height=0}updateMax(){this.max=this.high,null!==this.left&&(this.max=Math.max(this.max,this.left.max)),null!==this.right&&(this.max=Math.max(this.max,this.right.max))}getBalance(){let t=0;return null!==this.left&&null!==this.right?t=this.left.height-this.right.height:null!==this.left?t=this.left.height+1:null!==this.right&&(t=-(this.right.height+1)),t}isLeftChild(){return null!==this.parent&&this.parent.left===this}get left(){return this._left}set left(t){this._left=t,null!==t&&(t.parent=this),this.updateHeight(),this.updateMax()}get right(){return this._right}set right(t){this._right=t,null!==t&&(t.parent=this),this.updateHeight(),this.updateMax()}dispose(){this.parent=null,this._left=null,this._right=null,this.event=null}}class Po extends _o{constructor(){super(bi(Po.getDefaults(),arguments,["volume"])),this.name="Volume";const t=bi(Po.getDefaults(),arguments,["volume"]);this.input=this.output=new yo({context:this.context,gain:t.volume,units:"decibels"}),this.volume=this.output.gain,ji(this,"volume"),this._unmutedVolume=t.volume,this.mute=t.mute}static getDefaults(){return Object.assign(_o.getDefaults(),{mute:!1,volume:0})}get mute(){return this.volume.value===-1/0}set mute(t){!this.mute&&t?(this._unmutedVolume=this.volume.value,this.volume.value=-1/0):this.mute&&!t&&(this.volume.value=this._unmutedVolume)}dispose(){return super.dispose(),this.input.dispose(),this.volume.dispose(),this}}class jo extends _o{constructor(){super(bi(jo.getDefaults(),arguments)),this.name="Destination",this.input=new Po({context:this.context}),this.output=new yo({context:this.context}),this.volume=this.input.volume;const t=bi(jo.getDefaults(),arguments);mo(this.input,this.output,this.context.rawContext.destination),this.mute=t.mute,this._internalChannels=[this.input,this.context.rawContext.destination,this.output]}static getDefaults(){return Object.assign(_o.getDefaults(),{mute:!1,volume:0})}get mute(){return this.input.mute}set mute(t){this.input.mute=t}chain(...t){return this.input.disconnect(),t.unshift(this.input),t.push(this.output),mo(...t),this}get maxChannelCount(){return this.context.rawContext.destination.maxChannelCount}dispose(){return super.dispose(),this.volume.dispose(),this}}qi(t=>{t.destination=new jo({context:t})}),Ii(t=>{t.destination.dispose()});class Lo extends ki{constructor(t){super(),this.name="TimelineValue",this._timeline=new Ei({memory:10}),this._initialValue=t}set(t,e){return this._timeline.add({value:t,time:e}),this}get(t){const e=this._timeline.get(t);return e?e.value:this._initialValue}}class zo{constructor(t,e){this.id=zo._eventId++;const s=Object.assign(zo.getDefaults(),e);this.transport=t,this.callback=s.callback,this._once=s.once,this.time=s.time}static getDefaults(){return{callback:zi,once:!1,time:0}}invoke(t){this.callback&&(this.callback(t),this._once&&this.transport.clear(this.id))}dispose(){return this.callback=void 0,this}}zo._eventId=0;class Bo extends zo{constructor(t,e){super(t,e),this._currentId=-1,this._nextId=-1,this._nextTick=this.time,this._boundRestart=this._restart.bind(this);const s=Object.assign(Bo.getDefaults(),e);this.duration=new qo(t.context,s.duration).valueOf(),this._interval=new qo(t.context,s.interval).valueOf(),this._nextTick=s.time,this.transport.on("start",this._boundRestart),this.transport.on("loopStart",this._boundRestart),this.context=this.transport.context,this._restart()}static getDefaults(){return Object.assign({},zo.getDefaults(),{duration:1/0,interval:1,once:!1})}invoke(t){this._createEvents(t),super.invoke(t)}_createEvents(t){const e=this.transport.getTicksAtTime(t);e>=this.time&&e>=this._nextTick&&this._nextTick+this._interval<this.time+this.duration&&(this._nextTick+=this._interval,this._currentId=this._nextId,this._nextId=this.transport.scheduleOnce(this.invoke.bind(this),new qo(this.context,this._nextTick).toSeconds()))}_restart(t){this.transport.clear(this._currentId),this.transport.clear(this._nextId),this._nextTick=this.time;const e=this.transport.getTicksAtTime(t);e>this.time&&(this._nextTick=this.time+Math.ceil((e-this.time)/this._interval)*this._interval),this._currentId=this.transport.scheduleOnce(this.invoke.bind(this),new qo(this.context,this._nextTick).toSeconds()),this._nextTick+=this._interval,this._nextId=this.transport.scheduleOnce(this.invoke.bind(this),new qo(this.context,this._nextTick).toSeconds())}dispose(){return super.dispose(),this.transport.clear(this._currentId),this.transport.clear(this._nextId),this.transport.off("start",this._boundRestart),this.transport.off("loopStart",this._boundRestart),this}}class Wo extends lo{constructor(){super(bi(Wo.getDefaults(),arguments)),this.name="Transport",this._loop=new Lo(!1),this._loopStart=0,this._loopEnd=0,this._scheduledEvents={},this._timeline=new Ei,this._repeatedEvents=new Vo,this._syncedSignals=[],this._swingAmount=0;const t=bi(Wo.getDefaults(),arguments);this._ppq=t.ppq,this._clock=new Ao({callback:this._processTick.bind(this),context:this.context,frequency:0,units:"bpm"}),this._bindClockEvents(),this.bpm=this._clock.frequency,this._clock.frequency.multiplier=t.ppq,this.bpm.setValueAtTime(t.bpm,0),ji(this,"bpm"),this._timeSignature=t.timeSignature,this._swingTicks=t.ppq/2}static getDefaults(){return Object.assign(lo.getDefaults(),{bpm:120,loopEnd:"4m",loopStart:0,ppq:192,swing:0,swingSubdivision:"8n",timeSignature:4})}_processTick(t,e){if(this._swingAmount>0&&e%this._ppq!=0&&e%(2*this._swingTicks)!=0){const s=e%(2*this._swingTicks)/(2*this._swingTicks),n=Math.sin(s*Math.PI)*this._swingAmount;t+=new qo(this.context,2*this._swingTicks/3).toSeconds()*n}this._loop.get(t)&&e>=this._loopEnd&&(this.emit("loopEnd",t),this._clock.setTicksAtTime(this._loopStart,t),e=this._loopStart,this.emit("loopStart",t,this._clock.getSecondsAtTime(t)),this.emit("loop",t)),this._timeline.forEachAtTime(e,e=>e.invoke(t))}schedule(t,e){const s=new zo(this,{callback:t,time:new ho(this.context,e).toTicks()});return this._addEvent(s,this._timeline)}scheduleRepeat(t,e,s,n=1/0){const i=new Bo(this,{callback:t,duration:new no(this.context,n).toTicks(),interval:new no(this.context,e).toTicks(),time:new ho(this.context,s).toTicks()});return this._addEvent(i,this._repeatedEvents)}scheduleOnce(t,e){const s=new zo(this,{callback:t,once:!0,time:new ho(this.context,e).toTicks()});return this._addEvent(s,this._timeline)}clear(t){if(this._scheduledEvents.hasOwnProperty(t)){const e=this._scheduledEvents[t.toString()];e.timeline.remove(e.event),e.event.dispose(),delete this._scheduledEvents[t.toString()]}return this}_addEvent(t,e){return this._scheduledEvents[t.id.toString()]={event:t,timeline:e},e.add(t),t.id}cancel(t=0){const e=this.toTicks(t);return this._timeline.forEachFrom(e,t=>this.clear(t.id)),this._repeatedEvents.forEachFrom(e,t=>this.clear(t.id)),this}_bindClockEvents(){this._clock.on("start",(t,e)=>{e=new qo(this.context,e).toSeconds(),this.emit("start",t,e)}),this._clock.on("stop",t=>{this.emit("stop",t)}),this._clock.on("pause",t=>{this.emit("pause",t)})}get state(){return this._clock.getStateAtTime(this.now())}start(t,e){let s;return si(e)&&(s=this.toTicks(e)),this._clock.start(t,s),this}stop(t){return this._clock.stop(t),this}pause(t){return this._clock.pause(t),this}toggle(t){return t=this.toSeconds(t),"started"!==this._clock.getStateAtTime(t)?this.start(t):this.stop(t),this}get timeSignature(){return this._timeSignature}set timeSignature(t){ai(t)&&(t=t[0]/t[1]*4),this._timeSignature=t}get loopStart(){return new no(this.context,this._loopStart,"i").toSeconds()}set loopStart(t){this._loopStart=this.toTicks(t)}get loopEnd(){return new no(this.context,this._loopEnd,"i").toSeconds()}set loopEnd(t){this._loopEnd=this.toTicks(t)}get loop(){return this._loop.get(this.now())}set loop(t){this._loop.set(t,this.now())}setLoopPoints(t,e){return this.loopStart=t,this.loopEnd=e,this}get swing(){return this._swingAmount}set swing(t){this._swingAmount=t}get swingSubdivision(){return new qo(this.context,this._swingTicks).toNotation()}set swingSubdivision(t){this._swingTicks=this.toTicks(t)}get position(){const t=this.now(),e=this._clock.getTicksAtTime(t);return new qo(this.context,e).toBarsBeatsSixteenths()}set position(t){const e=this.toTicks(t);this.ticks=e}get seconds(){return this._clock.seconds}set seconds(t){const e=this.now(),s=this._clock.frequency.timeToTicks(t,e);this.ticks=s}get progress(){if(this.loop){const t=this.now();return(this._clock.getTicksAtTime(t)-this._loopStart)/(this._loopEnd-this._loopStart)}return 0}get ticks(){return this._clock.ticks}set ticks(t){if(this._clock.ticks!==t){const e=this.now();if("started"===this.state){const s=this._clock.getTicksAtTime(e),n=this._clock.getTimeOfTick(Math.ceil(s));this.emit("stop",n),this._clock.setTicksAtTime(t,n),this.emit("start",n,this._clock.getSecondsAtTime(n))}else this._clock.setTicksAtTime(t,e)}}getTicksAtTime(t){return Math.round(this._clock.getTicksAtTime(t))}getSecondsAtTime(t){return this._clock.getSecondsAtTime(t)}get PPQ(){return this._clock.frequency.multiplier}set PPQ(t){this._clock.frequency.multiplier=t}nextSubdivision(t){if(t=this.toTicks(t),"started"!==this.state)return 0;{const e=this.now(),s=t-this.getTicksAtTime(e)%t;return this._clock.nextTickTime(s,e)}}syncSignal(t,e){if(!e){const s=this.now();if(0!==t.getValueAtTime(s)){const n=1/(60/this.bpm.getValueAtTime(s)/this.PPQ);e=t.getValueAtTime(s)/n}else e=0}const s=new yo(e);return this.bpm.connect(s),s.connect(t._param),this._syncedSignals.push({initial:t.value,ratio:s,signal:t}),t.value=0,this}unsyncSignal(t){for(let e=this._syncedSignals.length-1;e>=0;e--){const s=this._syncedSignals[e];s.signal===t&&(s.ratio.dispose(),s.signal.value=s.initial,this._syncedSignals.splice(e,1))}return this}dispose(){return super.dispose(),this._clock.dispose(),Li(this,"bpm"),this._timeline.dispose(),this._repeatedEvents.dispose(),this}}Vi.mixin(Wo),qi(t=>{t.transport=new Wo({context:t})}),Ii(t=>{t.transport.dispose()});class Uo extends _o{constructor(t){super(t),this.input=void 0,this._state=new po("stopped"),this._synced=!1,this._scheduled=[],this._syncedStart=zi,this._syncedStop=zi,this._state.memory=100,this._state.increasing=!0,this._volume=this.output=new Po({context:this.context,mute:t.mute,volume:t.volume}),this.volume=this._volume.volume,ji(this,"volume"),this.onstop=t.onstop}static getDefaults(){return Object.assign(_o.getDefaults(),{mute:!1,onstop:zi,volume:0})}get state(){return this._synced?"started"===this.context.transport.state?this._state.getValueAtTime(this.context.transport.seconds):"stopped":this._state.getValueAtTime(this.now())}get mute(){return this._volume.mute}set mute(t){this._volume.mute=t}_clampToCurrentTime(t){return this._synced?t:Math.max(t,this.context.currentTime)}start(t,e,s){let n=ei(t)&&this._synced?this.context.transport.seconds:this.toSeconds(t);if(n=this._clampToCurrentTime(n),this._synced||"started"!==this._state.getValueAtTime(n))if(this.log("start",n),this._state.setStateAtTime("started",n),this._synced){const t=this._state.get(n);t&&(t.offset=this.toSeconds(Ti(e,0)),t.duration=s?this.toSeconds(s):void 0);const i=this.context.transport.schedule(t=>{this._start(t,e,s)},n);this._scheduled.push(i),"started"===this.context.transport.state&&this.context.transport.getSecondsAtTime(this.immediate())>n&&this._syncedStart(this.now(),this.context.transport.seconds)}else Hn(this.context),this._start(n,e,s);else Xn(Ci(n,this._state.get(n).time),"Start time must be strictly greater than previous start time"),this._state.cancel(n),this._state.setStateAtTime("started",n),this.log("restart",n),this.restart(n,e,s);return this}stop(t){let e=ei(t)&&this._synced?this.context.transport.seconds:this.toSeconds(t);if(e=this._clampToCurrentTime(e),"started"===this._state.getValueAtTime(e)||si(this._state.getNextState("started",e))){if(this.log("stop",e),this._synced){const t=this.context.transport.schedule(this._stop.bind(this),e);this._scheduled.push(t)}else this._stop(e);this._state.cancel(e),this._state.setStateAtTime("stopped",e)}return this}restart(t,e,s){return t=this.toSeconds(t),"started"===this._state.getValueAtTime(t)&&(this._state.cancel(t),this._restart(t,e,s)),this}sync(){return this._synced||(this._synced=!0,this._syncedStart=(t,e)=>{if(e>0){const s=this._state.get(e);if(s&&"started"===s.state&&s.time!==e){const n=e-this.toSeconds(s.time);let i;s.duration&&(i=this.toSeconds(s.duration)-n),this._start(t,this.toSeconds(s.offset)+n,i)}}},this._syncedStop=t=>{const e=this.context.transport.getSecondsAtTime(Math.max(t-this.sampleTime,0));"started"===this._state.getValueAtTime(e)&&this._stop(t)},this.context.transport.on("start",this._syncedStart),this.context.transport.on("loopStart",this._syncedStart),this.context.transport.on("stop",this._syncedStop),this.context.transport.on("pause",this._syncedStop),this.context.transport.on("loopEnd",this._syncedStop)),this}unsync(){return this._synced&&(this.context.transport.off("stop",this._syncedStop),this.context.transport.off("pause",this._syncedStop),this.context.transport.off("loopEnd",this._syncedStop),this.context.transport.off("start",this._syncedStart),this.context.transport.off("loopStart",this._syncedStart)),this._synced=!1,this._scheduled.forEach(t=>this.context.transport.clear(t)),this._scheduled=[],this._state.cancel(0),this._stop(0),this}dispose(){return super.dispose(),this.onstop=zi,this.unsync(),this._volume.dispose(),this._state.dispose(),this}}class Go extends xo{constructor(){super(bi(Go.getDefaults(),arguments,["url","onload"])),this.name="ToneBufferSource",this._source=this.context.createBufferSource(),this._internalChannels=[this._source],this._sourceStarted=!1,this._sourceStopped=!1;const t=bi(Go.getDefaults(),arguments,["url","onload"]);go(this._source,this._gainNode),this._source.onended=()=>this._stopSource(),this.playbackRate=new fo({context:this.context,param:this._source.playbackRate,units:"positive",value:t.playbackRate}),this.loop=t.loop,this.loopStart=t.loopStart,this.loopEnd=t.loopEnd,this._buffer=new Bi(t.url,t.onload,t.onerror),this._internalChannels.push(this._source)}static getDefaults(){return Object.assign(xo.getDefaults(),{url:new Bi,loop:!1,loopEnd:0,loopStart:0,onload:zi,onerror:zi,playbackRate:1})}get fadeIn(){return this._fadeIn}set fadeIn(t){this._fadeIn=t}get fadeOut(){return this._fadeOut}set fadeOut(t){this._fadeOut=t}get curve(){return this._curve}set curve(t){this._curve=t}start(t,e,s,n=1){Xn(this.buffer.loaded,"buffer is either not set or not loaded");const i=this.toSeconds(t);this._startGain(i,n),e=this.loop?Ti(e,this.loopStart):Ti(e,0);let o=Math.max(this.toSeconds(e),0);if(this.loop){const t=this.toSeconds(this.loopEnd)||this.buffer.duration,e=this.toSeconds(this.loopStart),s=t-e;Ai(o,t)&&(o=(o-e)%s+e),Oi(o,this.buffer.duration)&&(o=0)}if(this._source.buffer=this.buffer.get(),this._source.loopEnd=this.toSeconds(this.loopEnd)||this.buffer.duration,Di(o,this.buffer.duration)&&(this._sourceStarted=!0,this._source.start(i,o)),si(s)){let t=this.toSeconds(s);t=Math.max(t,0),this.stop(i+t)}return this}_stopSource(t){!this._sourceStopped&&this._sourceStarted&&(this._sourceStopped=!0,this._source.stop(this.toSeconds(t)),this._onended())}get loopStart(){return this._source.loopStart}set loopStart(t){this._source.loopStart=this.toSeconds(t)}get loopEnd(){return this._source.loopEnd}set loopEnd(t){this._source.loopEnd=this.toSeconds(t)}get buffer(){return this._buffer}set buffer(t){this._buffer.set(t)}get loop(){return this._source.loop}set loop(t){this._source.loop=t,this._sourceStarted&&this.cancelStop()}dispose(){return super.dispose(),this._source.onended=null,this._source.disconnect(),this._buffer.dispose(),this.playbackRate.dispose(),this}}class Qo extends Uo{constructor(){super(bi(Qo.getDefaults(),arguments,["type"])),this.name="Noise",this._source=null;const t=bi(Qo.getDefaults(),arguments,["type"]);this._playbackRate=t.playbackRate,this.type=t.type,this._fadeIn=t.fadeIn,this._fadeOut=t.fadeOut}static getDefaults(){return Object.assign(Uo.getDefaults(),{fadeIn:0,fadeOut:0,playbackRate:1,type:"white"})}get type(){return this._type}set type(t){if(Xn(t in Xo,"Noise: invalid type: "+t),this._type!==t&&(this._type=t,"started"===this.state)){const t=this.now();this._stop(t),this._start(t)}}get playbackRate(){return this._playbackRate}set playbackRate(t){this._playbackRate=t,this._source&&(this._source.playbackRate.value=t)}_start(t){const e=Xo[this._type];this._source=new Go({url:e,context:this.context,fadeIn:this._fadeIn,fadeOut:this._fadeOut,loop:!0,onended:()=>this.onstop(this),playbackRate:this._playbackRate}).connect(this.output),this._source.start(this.toSeconds(t),Math.random()*(e.duration-.001))}_stop(t){this._source&&(this._source.stop(this.toSeconds(t)),this._source=null)}get fadeIn(){return this._fadeIn}set fadeIn(t){this._fadeIn=t,this._source&&(this._source.fadeIn=this._fadeIn)}get fadeOut(){return this._fadeOut}set fadeOut(t){this._fadeOut=t,this._source&&(this._source.fadeOut=this._fadeOut)}_restart(t){this._stop(t),this._start(t)}dispose(){return super.dispose(),this._source&&this._source.disconnect(),this}}const Zo={brown:null,pink:null,white:null},Xo={get brown(){if(!Zo.brown){const t=[];for(let e=0;e<2;e++){const s=new Float32Array(220500);t[e]=s;let n=0;for(let t=0;t<220500;t++){const e=2*Math.random()-1;s[t]=(n+.02*e)/1.02,n=s[t],s[t]*=3.5}}Zo.brown=(new Bi).fromArray(t)}return Zo.brown},get pink(){if(!Zo.pink){const t=[];for(let e=0;e<2;e++){const s=new Float32Array(220500);let n,i,o,r,a,c,h;t[e]=s,n=i=o=r=a=c=h=0;for(let t=0;t<220500;t++){const e=2*Math.random()-1;n=.99886*n+.0555179*e,i=.99332*i+.0750759*e,o=.969*o+.153852*e,r=.8665*r+.3104856*e,a=.55*a+.5329522*e,c=-.7616*c-.016898*e,s[t]=n+i+o+r+a+c+h+.5362*e,s[t]*=.11,h=.115926*e}}Zo.pink=(new Bi).fromArray(t)}return Zo.pink},get white(){if(!Zo.white){const t=[];for(let e=0;e<2;e++){const s=new Float32Array(220500);t[e]=s;for(let t=0;t<220500;t++)s[t]=2*Math.random()-1}Zo.white=(new Bi).fromArray(t)}return Zo.white}};class Yo extends _o{constructor(){super(bi(Yo.getDefaults(),arguments,["volume"])),this.name="UserMedia";const t=bi(Yo.getDefaults(),arguments,["volume"]);this._volume=this.output=new Po({context:this.context,volume:t.volume}),this.volume=this._volume.volume,ji(this,"volume"),this.mute=t.mute}static getDefaults(){return Object.assign(_o.getDefaults(),{mute:!1,volume:0})}open(t){return di(this,void 0,void 0,(function*(){Xn(Yo.supported,"UserMedia is not supported"),"started"===this.state&&this.close();const e=yield Yo.enumerateDevices();ii(t)?this._device=e[t]:(this._device=e.find(e=>e.label===t||e.deviceId===t),!this._device&&e.length>0&&(this._device=e[0]),Xn(si(this._device),"No matching device "+t));const s={audio:{echoCancellation:!1,sampleRate:this.context.sampleRate,noiseSuppression:!1,mozNoiseSuppression:!1}};this._device&&(s.audio.deviceId=this._device.deviceId);const n=yield navigator.mediaDevices.getUserMedia(s);if(!this._stream){this._stream=n;const t=this.context.createMediaStreamSource(n);go(t,this.output),this._mediaStream=t}return this}))}close(){return this._stream&&this._mediaStream&&(this._stream.getAudioTracks().forEach(t=>{t.stop()}),this._stream=void 0,this._mediaStream.disconnect(),this._mediaStream=void 0),this._device=void 0,this}static enumerateDevices(){return di(this,void 0,void 0,(function*(){return(yield navigator.mediaDevices.enumerateDevices()).filter(t=>"audioinput"===t.kind)}))}get state(){return this._stream&&this._stream.active?"started":"stopped"}get deviceId(){return this._device?this._device.deviceId:void 0}get groupId(){return this._device?this._device.groupId:void 0}get label(){return this._device?this._device.label:void 0}get mute(){return this._volume.mute}set mute(t){this._volume.mute=t}dispose(){return super.dispose(),this.close(),this._volume.dispose(),this.volume.dispose(),this}static get supported(){return si(navigator.mediaDevices)&&si(navigator.mediaDevices.getUserMedia)}}function Ho(t,e){return di(this,void 0,void 0,(function*(){const s=e/t.context.sampleRate,n=new Wi(1,s,t.context.sampleRate);new t.constructor(Object.assign(t.get(),{frequency:2/s,detune:0,context:n})).toDestination().start(0);return(yield n.render()).getChannelData(0)}))}class $o extends xo{constructor(){super(bi($o.getDefaults(),arguments,["frequency","type"])),this.name="ToneOscillatorNode",this._oscillator=this.context.createOscillator(),this._internalChannels=[this._oscillator];const t=bi($o.getDefaults(),arguments,["frequency","type"]);go(this._oscillator,this._gainNode),this.type=t.type,this.frequency=new fo({context:this.context,param:this._oscillator.frequency,units:"frequency",value:t.frequency}),this.detune=new fo({context:this.context,param:this._oscillator.detune,units:"cents",value:t.detune}),ji(this,["frequency","detune"])}static getDefaults(){return Object.assign(xo.getDefaults(),{detune:0,frequency:440,type:"sine"})}start(t){const e=this.toSeconds(t);return this.log("start",e),this._startGain(e),this._oscillator.start(e),this}_stopSource(t){this._oscillator.stop(t)}setPeriodicWave(t){return this._oscillator.setPeriodicWave(t),this}get type(){return this._oscillator.type}set type(t){this._oscillator.type=t}dispose(){return super.dispose(),"started"===this.state&&this.stop(),this._oscillator.disconnect(),this.frequency.dispose(),this.detune.dispose(),this}}class Jo extends Uo{constructor(){super(bi(Jo.getDefaults(),arguments,["frequency","type"])),this.name="Oscillator",this._oscillator=null;const t=bi(Jo.getDefaults(),arguments,["frequency","type"]);this.frequency=new bo({context:this.context,units:"frequency",value:t.frequency}),ji(this,"frequency"),this.detune=new bo({context:this.context,units:"cents",value:t.detune}),ji(this,"detune"),this._partials=t.partials,this._partialCount=t.partialCount,this._type=t.type,t.partialCount&&"custom"!==t.type&&(this._type=this.baseType+t.partialCount.toString()),this.phase=t.phase}static getDefaults(){return Object.assign(Uo.getDefaults(),{detune:0,frequency:440,partialCount:0,partials:[],phase:0,type:"sine"})}_start(t){const e=this.toSeconds(t),s=new $o({context:this.context,onended:()=>this.onstop(this)});this._oscillator=s,this._wave?this._oscillator.setPeriodicWave(this._wave):this._oscillator.type=this._type,this._oscillator.connect(this.output),this.frequency.connect(this._oscillator.frequency),this.detune.connect(this._oscillator.detune),this._oscillator.start(e)}_stop(t){const e=this.toSeconds(t);this._oscillator&&this._oscillator.stop(e)}_restart(t){const e=this.toSeconds(t);return this.log("restart",e),this._oscillator&&this._oscillator.cancelStop(),this._state.cancel(e),this}syncFrequency(){return this.context.transport.syncSignal(this.frequency),this}unsyncFrequency(){return this.context.transport.unsyncSignal(this.frequency),this}_getCachedPeriodicWave(){if("custom"===this._type){return Jo._periodicWaveCache.find(t=>{return t.phase===this._phase&&(e=t.partials,s=this._partials,e.length===s.length&&e.every((t,e)=>s[e]===t));var e,s})}{const t=Jo._periodicWaveCache.find(t=>t.type===this._type&&t.phase===this._phase);return this._partialCount=t?t.partialCount:this._partialCount,t}}get type(){return this._type}set type(t){this._type=t;const e=-1!==["sine","square","sawtooth","triangle"].indexOf(t);if(0===this._phase&&e)this._wave=void 0,this._partialCount=0,null!==this._oscillator&&(this._oscillator.type=t);else{const e=this._getCachedPeriodicWave();if(si(e)){const{partials:t,wave:s}=e;this._wave=s,this._partials=t,null!==this._oscillator&&this._oscillator.setPeriodicWave(this._wave)}else{const[e,s]=this._getRealImaginary(t,this._phase),n=this.context.createPeriodicWave(e,s);this._wave=n,null!==this._oscillator&&this._oscillator.setPeriodicWave(this._wave),Jo._periodicWaveCache.push({imag:s,partialCount:this._partialCount,partials:this._partials,phase:this._phase,real:e,type:this._type,wave:this._wave}),Jo._periodicWaveCache.length>100&&Jo._periodicWaveCache.shift()}}}get baseType(){return this._type.replace(this.partialCount.toString(),"")}set baseType(t){this.partialCount&&"custom"!==this._type&&"custom"!==t?this.type=t+this.partialCount:this.type=t}get partialCount(){return this._partialCount}set partialCount(t){Yn(t,0);let e=this._type;const s=/^(sine|triangle|square|sawtooth)(\d+)$/.exec(this._type);if(s&&(e=s[1]),"custom"!==this._type)this.type=0===t?e:e+t.toString();else{const e=new Float32Array(t);this._partials.forEach((t,s)=>e[s]=t),this._partials=Array.from(e),this.type=this._type}}_getRealImaginary(t,e){let s=2048;const n=new Float32Array(s),i=new Float32Array(s);let o=1;if("custom"===t){if(o=this._partials.length+1,this._partialCount=this._partials.length,s=o,0===this._partials.length)return[n,i]}else{const e=/^(sine|triangle|square|sawtooth)(\d+)$/.exec(t);e?(o=parseInt(e[2],10)+1,this._partialCount=parseInt(e[2],10),t=e[1],o=Math.max(o,2),s=o):this._partialCount=0,this._partials=[]}for(let r=1;r<s;++r){const s=2/(r*Math.PI);let a;switch(t){case"sine":a=r<=o?1:0,this._partials[r-1]=a;break;case"square":a=1&r?2*s:0,this._partials[r-1]=a;break;case"sawtooth":a=s*(1&r?1:-1),this._partials[r-1]=a;break;case"triangle":a=1&r?s*s*2*(r-1>>1&1?-1:1):0,this._partials[r-1]=a;break;case"custom":a=this._partials[r-1];break;default:throw new TypeError("Oscillator: invalid type: "+t)}0!==a?(n[r]=-a*Math.sin(e*r),i[r]=a*Math.cos(e*r)):(n[r]=0,i[r]=0)}return[n,i]}_inverseFFT(t,e,s){let n=0;const i=t.length;for(let o=0;o<i;o++)n+=t[o]*Math.cos(o*s)+e[o]*Math.sin(o*s);return n}getInitialValue(){const[t,e]=this._getRealImaginary(this._type,0);let s=0;const n=2*Math.PI;for(let i=0;i<32;i++)s=Math.max(this._inverseFFT(t,e,i/32*n),s);return Mi(-this._inverseFFT(t,e,this._phase)/s,-1,1)}get partials(){return this._partials.slice(0,this.partialCount)}set partials(t){this._partials=t,this._partialCount=this._partials.length,t.length&&(this.type="custom")}get phase(){return this._phase*(180/Math.PI)}set phase(t){this._phase=t*Math.PI/180,this.type=this._type}asArray(t=1024){return di(this,void 0,void 0,(function*(){return Ho(this,t)}))}dispose(){return super.dispose(),null!==this._oscillator&&this._oscillator.dispose(),this._wave=void 0,this.frequency.dispose(),this.detune.dispose(),this}}Jo._periodicWaveCache=[];class Ko extends _o{constructor(){super(Object.assign(bi(Ko.getDefaults(),arguments,["context"])))}connect(t,e=0,s=0){return To(this,t,e,s),this}}class tr extends Ko{constructor(){super(Object.assign(bi(tr.getDefaults(),arguments,["mapping","length"]))),this.name="WaveShaper",this._shaper=this.context.createWaveShaper(),this.input=this._shaper,this.output=this._shaper;const t=bi(tr.getDefaults(),arguments,["mapping","length"]);ai(t.mapping)||t.mapping instanceof Float32Array?this.curve=Float32Array.from(t.mapping):ni(t.mapping)&&this.setMap(t.mapping,t.length)}static getDefaults(){return Object.assign(bo.getDefaults(),{length:1024})}setMap(t,e=1024){const s=new Float32Array(e);for(let n=0,i=e;n<i;n++){const e=n/(i-1)*2-1;s[n]=t(e,n)}return this.curve=s,this}get curve(){return this._shaper.curve}set curve(t){this._shaper.curve=t}get oversample(){return this._shaper.oversample}set oversample(t){Xn(["none","2x","4x"].some(e=>e.includes(t)),"oversampling must be either 'none', '2x', or '4x'"),this._shaper.oversample=t}dispose(){return super.dispose(),this._shaper.disconnect(),this}}class er extends Ko{constructor(){super(...arguments),this.name="AudioToGain",this._norm=new tr({context:this.context,mapping:t=>(t+1)/2}),this.input=this._norm,this.output=this._norm}dispose(){return super.dispose(),this._norm.dispose(),this}}class sr extends bo{constructor(){super(Object.assign(bi(sr.getDefaults(),arguments,["value"]))),this.name="Multiply",this.override=!1;const t=bi(sr.getDefaults(),arguments,["value"]);this._mult=this.input=this.output=new yo({context:this.context,minValue:t.minValue,maxValue:t.maxValue}),this.factor=this._param=this._mult.gain,this.factor.setValueAtTime(t.value,0)}static getDefaults(){return Object.assign(bo.getDefaults(),{value:0})}dispose(){return super.dispose(),this._mult.dispose(),this}}class nr extends Uo{constructor(){super(bi(nr.getDefaults(),arguments,["frequency","type","modulationType"])),this.name="AMOscillator",this._modulationScale=new er({context:this.context}),this._modulationNode=new yo({context:this.context});const t=bi(nr.getDefaults(),arguments,["frequency","type","modulationType"]);this._carrier=new Jo({context:this.context,detune:t.detune,frequency:t.frequency,onstop:()=>this.onstop(this),phase:t.phase,type:t.type}),this.frequency=this._carrier.frequency,this.detune=this._carrier.detune,this._modulator=new Jo({context:this.context,phase:t.phase,type:t.modulationType}),this.harmonicity=new sr({context:this.context,units:"positive",value:t.harmonicity}),this.frequency.chain(this.harmonicity,this._modulator.frequency),this._modulator.chain(this._modulationScale,this._modulationNode.gain),this._carrier.chain(this._modulationNode,this.output),ji(this,["frequency","detune","harmonicity"])}static getDefaults(){return Object.assign(Jo.getDefaults(),{harmonicity:1,modulationType:"square"})}_start(t){this._modulator.start(t),this._carrier.start(t)}_stop(t){this._modulator.stop(t),this._carrier.stop(t)}_restart(t){this._modulator.restart(t),this._carrier.restart(t)}get type(){return this._carrier.type}set type(t){this._carrier.type=t}get baseType(){return this._carrier.baseType}set baseType(t){this._carrier.baseType=t}get partialCount(){return this._carrier.partialCount}set partialCount(t){this._carrier.partialCount=t}get modulationType(){return this._modulator.type}set modulationType(t){this._modulator.type=t}get phase(){return this._carrier.phase}set phase(t){this._carrier.phase=t,this._modulator.phase=t}get partials(){return this._carrier.partials}set partials(t){this._carrier.partials=t}asArray(t=1024){return di(this,void 0,void 0,(function*(){return Ho(this,t)}))}dispose(){return super.dispose(),this.frequency.dispose(),this.detune.dispose(),this.harmonicity.dispose(),this._carrier.dispose(),this._modulator.dispose(),this._modulationNode.dispose(),this._modulationScale.dispose(),this}}class ir extends Uo{constructor(){super(bi(ir.getDefaults(),arguments,["frequency","type","modulationType"])),this.name="FMOscillator",this._modulationNode=new yo({context:this.context,gain:0});const t=bi(ir.getDefaults(),arguments,["frequency","type","modulationType"]);this._carrier=new Jo({context:this.context,detune:t.detune,frequency:0,onstop:()=>this.onstop(this),phase:t.phase,type:t.type}),this.detune=this._carrier.detune,this.frequency=new bo({context:this.context,units:"frequency",value:t.frequency}),this._modulator=new Jo({context:this.context,phase:t.phase,type:t.modulationType}),this.harmonicity=new sr({context:this.context,units:"positive",value:t.harmonicity}),this.modulationIndex=new sr({context:this.context,units:"positive",value:t.modulationIndex}),this.frequency.connect(this._carrier.frequency),this.frequency.chain(this.harmonicity,this._modulator.frequency),this.frequency.chain(this.modulationIndex,this._modulationNode),this._modulator.connect(this._modulationNode.gain),this._modulationNode.connect(this._carrier.frequency),this._carrier.connect(this.output),this.detune.connect(this._modulator.detune),ji(this,["modulationIndex","frequency","detune","harmonicity"])}static getDefaults(){return Object.assign(Jo.getDefaults(),{harmonicity:1,modulationIndex:2,modulationType:"square"})}_start(t){this._modulator.start(t),this._carrier.start(t)}_stop(t){this._modulator.stop(t),this._carrier.stop(t)}_restart(t){return this._modulator.restart(t),this._carrier.restart(t),this}get type(){return this._carrier.type}set type(t){this._carrier.type=t}get baseType(){return this._carrier.baseType}set baseType(t){this._carrier.baseType=t}get partialCount(){return this._carrier.partialCount}set partialCount(t){this._carrier.partialCount=t}get modulationType(){return this._modulator.type}set modulationType(t){this._modulator.type=t}get phase(){return this._carrier.phase}set phase(t){this._carrier.phase=t,this._modulator.phase=t}get partials(){return this._carrier.partials}set partials(t){this._carrier.partials=t}asArray(t=1024){return di(this,void 0,void 0,(function*(){return Ho(this,t)}))}dispose(){return super.dispose(),this.frequency.dispose(),this.harmonicity.dispose(),this._carrier.dispose(),this._modulator.dispose(),this._modulationNode.dispose(),this.modulationIndex.dispose(),this}}class or extends Uo{constructor(){super(bi(or.getDefaults(),arguments,["frequency","width"])),this.name="PulseOscillator",this._widthGate=new yo({context:this.context,gain:0}),this._thresh=new tr({context:this.context,mapping:t=>t<=0?-1:1});const t=bi(or.getDefaults(),arguments,["frequency","width"]);this.width=new bo({context:this.context,units:"audioRange",value:t.width}),this._triangle=new Jo({context:this.context,detune:t.detune,frequency:t.frequency,onstop:()=>this.onstop(this),phase:t.phase,type:"triangle"}),this.frequency=this._triangle.frequency,this.detune=this._triangle.detune,this._triangle.chain(this._thresh,this.output),this.width.chain(this._widthGate,this._thresh),ji(this,["width","frequency","detune"])}static getDefaults(){return Object.assign(Uo.getDefaults(),{detune:0,frequency:440,phase:0,type:"pulse",width:.2})}_start(t){t=this.toSeconds(t),this._triangle.start(t),this._widthGate.gain.setValueAtTime(1,t)}_stop(t){t=this.toSeconds(t),this._triangle.stop(t),this._widthGate.gain.cancelScheduledValues(t),this._widthGate.gain.setValueAtTime(0,t)}_restart(t){this._triangle.restart(t),this._widthGate.gain.cancelScheduledValues(t),this._widthGate.gain.setValueAtTime(1,t)}get phase(){return this._triangle.phase}set phase(t){this._triangle.phase=t}get type(){return"pulse"}get baseType(){return"pulse"}get partials(){return[]}get partialCount(){return 0}set carrierType(t){this._triangle.type=t}asArray(t=1024){return di(this,void 0,void 0,(function*(){return Ho(this,t)}))}dispose(){return super.dispose(),this._triangle.dispose(),this.width.dispose(),this._widthGate.dispose(),this._thresh.dispose(),this}}class rr extends Uo{constructor(){super(bi(rr.getDefaults(),arguments,["frequency","type","spread"])),this.name="FatOscillator",this._oscillators=[];const t=bi(rr.getDefaults(),arguments,["frequency","type","spread"]);this.frequency=new bo({context:this.context,units:"frequency",value:t.frequency}),this.detune=new bo({context:this.context,units:"cents",value:t.detune}),this._spread=t.spread,this._type=t.type,this._phase=t.phase,this._partials=t.partials,this._partialCount=t.partialCount,this.count=t.count,ji(this,["frequency","detune"])}static getDefaults(){return Object.assign(Jo.getDefaults(),{count:3,spread:20,type:"sawtooth"})}_start(t){t=this.toSeconds(t),this._forEach(e=>e.start(t))}_stop(t){t=this.toSeconds(t),this._forEach(e=>e.stop(t))}_restart(t){this._forEach(e=>e.restart(t))}_forEach(t){for(let e=0;e<this._oscillators.length;e++)t(this._oscillators[e],e)}get type(){return this._type}set type(t){this._type=t,this._forEach(e=>e.type=t)}get spread(){return this._spread}set spread(t){if(this._spread=t,this._oscillators.length>1){const e=-t/2,s=t/(this._oscillators.length-1);this._forEach((t,n)=>t.detune.value=e+s*n)}}get count(){return this._oscillators.length}set count(t){if(Yn(t,1),this._oscillators.length!==t){this._forEach(t=>t.dispose()),this._oscillators=[];for(let e=0;e<t;e++){const s=new Jo({context:this.context,volume:-6-1.1*t,type:this._type,phase:this._phase+e/t*360,partialCount:this._partialCount,onstop:0===e?()=>this.onstop(this):zi});"custom"===this.type&&(s.partials=this._partials),this.frequency.connect(s.frequency),this.detune.connect(s.detune),s.detune.overridden=!1,s.connect(this.output),this._oscillators[e]=s}this.spread=this._spread,"started"===this.state&&this._forEach(t=>t.start())}}get phase(){return this._phase}set phase(t){this._phase=t,this._forEach((t,e)=>t.phase=this._phase+e/this.count*360)}get baseType(){return this._oscillators[0].baseType}set baseType(t){this._forEach(e=>e.baseType=t),this._type=this._oscillators[0].type}get partials(){return this._oscillators[0].partials}set partials(t){this._partials=t,this._partialCount=this._partials.length,t.length&&(this._type="custom",this._forEach(e=>e.partials=t))}get partialCount(){return this._oscillators[0].partialCount}set partialCount(t){this._partialCount=t,this._forEach(e=>e.partialCount=t),this._type=this._oscillators[0].type}asArray(t=1024){return di(this,void 0,void 0,(function*(){return Ho(this,t)}))}dispose(){return super.dispose(),this.frequency.dispose(),this.detune.dispose(),this._forEach(t=>t.dispose()),this}}class ar extends Uo{constructor(){super(bi(ar.getDefaults(),arguments,["frequency","modulationFrequency"])),this.name="PWMOscillator",this.sourceType="pwm",this._scale=new sr({context:this.context,value:2});const t=bi(ar.getDefaults(),arguments,["frequency","modulationFrequency"]);this._pulse=new or({context:this.context,frequency:t.modulationFrequency}),this._pulse.carrierType="sine",this.modulationFrequency=this._pulse.frequency,this._modulator=new Jo({context:this.context,detune:t.detune,frequency:t.frequency,onstop:()=>this.onstop(this),phase:t.phase}),this.frequency=this._modulator.frequency,this.detune=this._modulator.detune,this._modulator.chain(this._scale,this._pulse.width),this._pulse.connect(this.output),ji(this,["modulationFrequency","frequency","detune"])}static getDefaults(){return Object.assign(Uo.getDefaults(),{detune:0,frequency:440,modulationFrequency:.4,phase:0,type:"pwm"})}_start(t){t=this.toSeconds(t),this._modulator.start(t),this._pulse.start(t)}_stop(t){t=this.toSeconds(t),this._modulator.stop(t),this._pulse.stop(t)}_restart(t){this._modulator.restart(t),this._pulse.restart(t)}get type(){return"pwm"}get baseType(){return"pwm"}get partials(){return[]}get partialCount(){return 0}get phase(){return this._modulator.phase}set phase(t){this._modulator.phase=t}asArray(t=1024){return di(this,void 0,void 0,(function*(){return Ho(this,t)}))}dispose(){return super.dispose(),this._pulse.dispose(),this._scale.dispose(),this._modulator.dispose(),this}}const cr={am:nr,fat:rr,fm:ir,oscillator:Jo,pulse:or,pwm:ar};class hr extends Uo{constructor(){super(bi(hr.getDefaults(),arguments,["frequency","type"])),this.name="OmniOscillator";const t=bi(hr.getDefaults(),arguments,["frequency","type"]);this.frequency=new bo({context:this.context,units:"frequency",value:t.frequency}),this.detune=new bo({context:this.context,units:"cents",value:t.detune}),ji(this,["frequency","detune"]),this.set(t)}static getDefaults(){return Object.assign(Jo.getDefaults(),ir.getDefaults(),nr.getDefaults(),rr.getDefaults(),or.getDefaults(),ar.getDefaults())}_start(t){this._oscillator.start(t)}_stop(t){this._oscillator.stop(t)}_restart(t){return this._oscillator.restart(t),this}get type(){let t="";return["am","fm","fat"].some(t=>this._sourceType===t)&&(t=this._sourceType),t+this._oscillator.type}set type(t){"fm"===t.substr(0,2)?(this._createNewOscillator("fm"),this._oscillator=this._oscillator,this._oscillator.type=t.substr(2)):"am"===t.substr(0,2)?(this._createNewOscillator("am"),this._oscillator=this._oscillator,this._oscillator.type=t.substr(2)):"fat"===t.substr(0,3)?(this._createNewOscillator("fat"),this._oscillator=this._oscillator,this._oscillator.type=t.substr(3)):"pwm"===t?(this._createNewOscillator("pwm"),this._oscillator=this._oscillator):"pulse"===t?this._createNewOscillator("pulse"):(this._createNewOscillator("oscillator"),this._oscillator=this._oscillator,this._oscillator.type=t)}get partials(){return this._oscillator.partials}set partials(t){this._getOscType(this._oscillator,"pulse")||this._getOscType(this._oscillator,"pwm")||(this._oscillator.partials=t)}get partialCount(){return this._oscillator.partialCount}set partialCount(t){this._getOscType(this._oscillator,"pulse")||this._getOscType(this._oscillator,"pwm")||(this._oscillator.partialCount=t)}set(t){return Reflect.has(t,"type")&&t.type&&(this.type=t.type),super.set(t),this}_createNewOscillator(t){if(t!==this._sourceType){this._sourceType=t;const e=cr[t],s=this.now();if(this._oscillator){const t=this._oscillator;t.stop(s),this.context.setTimeout(()=>t.dispose(),this.blockTime)}this._oscillator=new e({context:this.context}),this.frequency.connect(this._oscillator.frequency),this.detune.connect(this._oscillator.detune),this._oscillator.connect(this.output),this._oscillator.onstop=()=>this.onstop(this),"started"===this.state&&this._oscillator.start(s)}}get phase(){return this._oscillator.phase}set phase(t){this._oscillator.phase=t}get sourceType(){return this._sourceType}set sourceType(t){let e="sine";"pwm"!==this._oscillator.type&&"pulse"!==this._oscillator.type&&(e=this._oscillator.type),"fm"===t?this.type="fm"+e:"am"===t?this.type="am"+e:"fat"===t?this.type="fat"+e:"oscillator"===t?this.type=e:"pulse"===t?this.type="pulse":"pwm"===t&&(this.type="pwm")}_getOscType(t,e){return t instanceof cr[e]}get baseType(){return this._oscillator.baseType}set baseType(t){this._getOscType(this._oscillator,"pulse")||this._getOscType(this._oscillator,"pwm")||"pulse"===t||"pwm"===t||(this._oscillator.baseType=t)}get width(){return this._getOscType(this._oscillator,"pulse")?this._oscillator.width:void 0}get count(){return this._getOscType(this._oscillator,"fat")?this._oscillator.count:void 0}set count(t){this._getOscType(this._oscillator,"fat")&&ii(t)&&(this._oscillator.count=t)}get spread(){return this._getOscType(this._oscillator,"fat")?this._oscillator.spread:void 0}set spread(t){this._getOscType(this._oscillator,"fat")&&ii(t)&&(this._oscillator.spread=t)}get modulationType(){return this._getOscType(this._oscillator,"fm")||this._getOscType(this._oscillator,"am")?this._oscillator.modulationType:void 0}set modulationType(t){(this._getOscType(this._oscillator,"fm")||this._getOscType(this._oscillator,"am"))&&ci(t)&&(this._oscillator.modulationType=t)}get modulationIndex(){return this._getOscType(this._oscillator,"fm")?this._oscillator.modulationIndex:void 0}get harmonicity(){return this._getOscType(this._oscillator,"fm")||this._getOscType(this._oscillator,"am")?this._oscillator.harmonicity:void 0}get modulationFrequency(){return this._getOscType(this._oscillator,"pwm")?this._oscillator.modulationFrequency:void 0}asArray(t=1024){return di(this,void 0,void 0,(function*(){return Ho(this,t)}))}dispose(){return super.dispose(),this.detune.dispose(),this.frequency.dispose(),this._oscillator.dispose(),this}}class ur extends bo{constructor(){super(Object.assign(bi(ur.getDefaults(),arguments,["value"]))),this.override=!1,this.name="Add",this._sum=new yo({context:this.context}),this.input=this._sum,this.output=this._sum,this.addend=this._param,mo(this._constantSource,this._sum)}static getDefaults(){return Object.assign(bo.getDefaults(),{value:0})}dispose(){return super.dispose(),this._sum.dispose(),this}}class lr extends Ko{constructor(){super(Object.assign(bi(lr.getDefaults(),arguments,["min","max"]))),this.name="Scale";const t=bi(lr.getDefaults(),arguments,["min","max"]);this._mult=this.input=new sr({context:this.context,value:t.max-t.min}),this._add=this.output=new ur({context:this.context,value:t.min}),this._min=t.min,this._max=t.max,this.input.connect(this.output)}static getDefaults(){return Object.assign(Ko.getDefaults(),{max:1,min:0})}get min(){return this._min}set min(t){this._min=t,this._setRange()}get max(){return this._max}set max(t){this._max=t,this._setRange()}_setRange(){this._add.value=this._min,this._mult.value=this._max-this._min}dispose(){return super.dispose(),this._add.dispose(),this._mult.dispose(),this}}class pr extends Ko{constructor(){super(Object.assign(bi(pr.getDefaults(),arguments))),this.name="Zero",this._gain=new yo({context:this.context}),this.output=this._gain,this.input=void 0,go(this.context.getConstant(0),this._gain)}dispose(){return super.dispose(),vo(this.context.getConstant(0),this._gain),this}}class dr extends _o{constructor(){super(bi(dr.getDefaults(),arguments,["frequency","min","max"])),this.name="LFO",this._stoppedValue=0,this._units="number",this.convert=!0,this._fromType=fo.prototype._fromType,this._toType=fo.prototype._toType,this._is=fo.prototype._is,this._clampValue=fo.prototype._clampValue;const t=bi(dr.getDefaults(),arguments,["frequency","min","max"]);this._oscillator=new Jo({context:this.context,frequency:t.frequency,type:t.type}),this.frequency=this._oscillator.frequency,this._amplitudeGain=new yo({context:this.context,gain:t.amplitude,units:"normalRange"}),this.amplitude=this._amplitudeGain.gain,this._stoppedSignal=new bo({context:this.context,units:"audioRange",value:0}),this._zeros=new pr({context:this.context}),this._a2g=new er({context:this.context}),this._scaler=this.output=new lr({context:this.context,max:t.max,min:t.min}),this.units=t.units,this.min=t.min,this.max=t.max,this._oscillator.chain(this._a2g,this._amplitudeGain,this._scaler),this._zeros.connect(this._a2g),this._stoppedSignal.connect(this._a2g),ji(this,["amplitude","frequency"]),this.phase=t.phase}static getDefaults(){return Object.assign(_o.getDefaults(),{amplitude:1,frequency:"4n",max:1,min:0,phase:0,type:"sine",units:"number"})}start(t){return t=this.toSeconds(t),this._stoppedSignal.setValueAtTime(0,t),this._oscillator.start(t),this}stop(t){return t=this.toSeconds(t),this._stoppedSignal.setValueAtTime(this._stoppedValue,t),this._oscillator.stop(t),this}sync(){return this._oscillator.sync(),this._oscillator.syncFrequency(),this}unsync(){return this._oscillator.unsync(),this._oscillator.unsyncFrequency(),this}get min(){return this._toType(this._scaler.min)}set min(t){t=this._fromType(t),this._scaler.min=t}get max(){return this._toType(this._scaler.max)}set max(t){t=this._fromType(t),this._scaler.max=t}get type(){return this._oscillator.type}set type(t){this._oscillator.type=t,this._stoppedValue=this._oscillator.getInitialValue(),this._stoppedSignal.value=this._stoppedValue}get phase(){return this._oscillator.phase}set phase(t){this._oscillator.phase=t,this._stoppedValue=this._oscillator.getInitialValue(),this._stoppedSignal.value=this._stoppedValue}get units(){return this._units}set units(t){const e=this.min,s=this.max;this._units=t,this.min=e,this.max=s}get state(){return this._oscillator.state}connect(t,e,s){return(t instanceof fo||t instanceof bo)&&(this.convert=t.convert,this.units=t.units),To(this,t,e,s),this}dispose(){return super.dispose(),this._oscillator.dispose(),this._stoppedSignal.dispose(),this._zeros.dispose(),this._scaler.dispose(),this._a2g.dispose(),this._amplitudeGain.dispose(),this.amplitude.dispose(),this}}function fr(t,e=1/0){const s=new WeakMap;return function(n,i){Reflect.defineProperty(n,i,{configurable:!0,enumerable:!0,get:function(){return s.get(this)},set:function(n){Yn(n,t,e),s.set(this,n)}})}}function _r(t,e=1/0){const s=new WeakMap;return function(n,i){Reflect.defineProperty(n,i,{configurable:!0,enumerable:!0,get:function(){return s.get(this)},set:function(n){Yn(this.toSeconds(n),t,e),s.set(this,n)}})}}class mr extends Uo{constructor(){super(bi(mr.getDefaults(),arguments,["url","onload"])),this.name="Player",this._activeSources=new Set;const t=bi(mr.getDefaults(),arguments,["url","onload"]);this._buffer=new Bi({onload:this._onload.bind(this,t.onload),onerror:t.onerror,reverse:t.reverse,url:t.url}),this.autostart=t.autostart,this._loop=t.loop,this._loopStart=t.loopStart,this._loopEnd=t.loopEnd,this._playbackRate=t.playbackRate,this.fadeIn=t.fadeIn,this.fadeOut=t.fadeOut}static getDefaults(){return Object.assign(Uo.getDefaults(),{autostart:!1,fadeIn:0,fadeOut:0,loop:!1,loopEnd:0,loopStart:0,onload:zi,onerror:zi,playbackRate:1,reverse:!1})}load(t){return di(this,void 0,void 0,(function*(){return yield this._buffer.load(t),this._onload(),this}))}_onload(t=zi){t(),this.autostart&&this.start()}_onSourceEnd(t){this.onstop(this),this._activeSources.delete(t),0!==this._activeSources.size||this._synced||"started"!==this._state.getValueAtTime(this.now())||(this._state.cancel(this.now()),this._state.setStateAtTime("stopped",this.now()))}start(t,e,s){return super.start(t,e,s),this}_start(t,e,s){e=this._loop?Ti(e,this._loopStart):Ti(e,0);let n=this.toSeconds(e);this._synced&&(n*=this._playbackRate);const i=s;s=Ti(s,Math.max(this._buffer.duration-n,0));let o=this.toSeconds(s);o/=this._playbackRate,t=this.toSeconds(t);const r=new Go({url:this._buffer,context:this.context,fadeIn:this.fadeIn,fadeOut:this.fadeOut,loop:this._loop,loopEnd:this._loopEnd,loopStart:this._loopStart,onended:this._onSourceEnd.bind(this),playbackRate:this._playbackRate}).connect(this.output);this._loop||this._synced||(this._state.cancel(t+o),this._state.setStateAtTime("stopped",t+o,{implicitEnd:!0})),this._activeSources.add(r),this._loop&&ei(i)?r.start(t,n):r.start(t,n,o-this.toSeconds(this.fadeOut))}_stop(t){const e=this.toSeconds(t);this._activeSources.forEach(t=>t.stop(e))}restart(t,e,s){return super.restart(t,e,s),this}_restart(t,e,s){this._stop(t),this._start(t,e,s)}seek(t,e){const s=this.toSeconds(e);if("started"===this._state.getValueAtTime(s)){const e=this.toSeconds(t);this._stop(s),this._start(s,e)}return this}setLoopPoints(t,e){return this.loopStart=t,this.loopEnd=e,this}get loopStart(){return this._loopStart}set loopStart(t){this._loopStart=t,this.buffer.loaded&&Yn(this.toSeconds(t),0,this.buffer.duration),this._activeSources.forEach(e=>{e.loopStart=t})}get loopEnd(){return this._loopEnd}set loopEnd(t){this._loopEnd=t,this.buffer.loaded&&Yn(this.toSeconds(t),0,this.buffer.duration),this._activeSources.forEach(e=>{e.loopEnd=t})}get buffer(){return this._buffer}set buffer(t){this._buffer.set(t)}get loop(){return this._loop}set loop(t){if(this._loop!==t&&(this._loop=t,this._activeSources.forEach(e=>{e.loop=t}),t)){const t=this._state.getNextState("stopped",this.now());t&&this._state.cancel(t.time)}}get playbackRate(){return this._playbackRate}set playbackRate(t){this._playbackRate=t;const e=this.now(),s=this._state.getNextState("stopped",e);s&&s.implicitEnd&&(this._state.cancel(s.time),this._activeSources.forEach(t=>t.cancelStop())),this._activeSources.forEach(s=>{s.playbackRate.setValueAtTime(t,e)})}get reverse(){return this._buffer.reverse}set reverse(t){this._buffer.reverse=t}get loaded(){return this._buffer.loaded}dispose(){return super.dispose(),this._activeSources.forEach(t=>t.dispose()),this._activeSources.clear(),this._buffer.dispose(),this}}pi([_r(0)],mr.prototype,"fadeIn",void 0),pi([_r(0)],mr.prototype,"fadeOut",void 0);class gr extends _o{constructor(){super(bi(gr.getDefaults(),arguments,["urls","onload"],"urls")),this.name="Players",this.input=void 0,this._players=new Map;const t=bi(gr.getDefaults(),arguments,["urls","onload"],"urls");this._volume=this.output=new Po({context:this.context,volume:t.volume}),this.volume=this._volume.volume,ji(this,"volume"),this._buffers=new Mo({urls:t.urls,onload:t.onload,baseUrl:t.baseUrl,onerror:t.onerror}),this.mute=t.mute,this._fadeIn=t.fadeIn,this._fadeOut=t.fadeOut}static getDefaults(){return Object.assign(Uo.getDefaults(),{baseUrl:"",fadeIn:0,fadeOut:0,mute:!1,onload:zi,onerror:zi,urls:{},volume:0})}get mute(){return this._volume.mute}set mute(t){this._volume.mute=t}get fadeIn(){return this._fadeIn}set fadeIn(t){this._fadeIn=t,this._players.forEach(e=>{e.fadeIn=t})}get fadeOut(){return this._fadeOut}set fadeOut(t){this._fadeOut=t,this._players.forEach(e=>{e.fadeOut=t})}get state(){return Array.from(this._players).some(([t,e])=>"started"===e.state)?"started":"stopped"}has(t){return this._buffers.has(t)}player(t){if(Xn(this.has(t),`No Player with the name ${t} exists on this object`),!this._players.has(t)){const e=new mr({context:this.context,fadeIn:this._fadeIn,fadeOut:this._fadeOut,url:this._buffers.get(t)}).connect(this.output);this._players.set(t,e)}return this._players.get(t)}get loaded(){return this._buffers.loaded}add(t,e,s){return Xn(!this._buffers.has(t),"A buffer with that name already exists on this object"),this._buffers.add(t,e,s),this}stopAll(t){return this._players.forEach(e=>e.stop(t)),this}dispose(){return super.dispose(),this._volume.dispose(),this.volume.dispose(),this._players.forEach(t=>t.dispose()),this._buffers.dispose(),this}}class vr extends Uo{constructor(){super(bi(vr.getDefaults(),arguments,["url","onload"])),this.name="GrainPlayer",this._loopStart=0,this._loopEnd=0,this._activeSources=[];const t=bi(vr.getDefaults(),arguments,["url","onload"]);this.buffer=new Bi({onload:t.onload,onerror:t.onerror,reverse:t.reverse,url:t.url}),this._clock=new Ao({context:this.context,callback:this._tick.bind(this),frequency:1/t.grainSize}),this._playbackRate=t.playbackRate,this._grainSize=t.grainSize,this._overlap=t.overlap,this.detune=t.detune,this.overlap=t.overlap,this.loop=t.loop,this.playbackRate=t.playbackRate,this.grainSize=t.grainSize,this.loopStart=t.loopStart,this.loopEnd=t.loopEnd,this.reverse=t.reverse,this._clock.on("stop",this._onstop.bind(this))}static getDefaults(){return Object.assign(Uo.getDefaults(),{onload:zi,onerror:zi,overlap:.1,grainSize:.2,playbackRate:1,detune:0,loop:!1,loopStart:0,loopEnd:0,reverse:!1})}_start(t,e,s){e=Ti(e,0),e=this.toSeconds(e),t=this.toSeconds(t);const n=1/this._clock.frequency.getValueAtTime(t);this._clock.start(t,e/n),s&&this.stop(t+this.toSeconds(s))}restart(t,e,s){return super.restart(t,e,s),this}_restart(t,e,s){this._stop(t),this._start(t,e,s)}_stop(t){this._clock.stop(t)}_onstop(t){this._activeSources.forEach(e=>{e.fadeOut=0,e.stop(t)}),this.onstop(this)}_tick(t){const e=this._clock.getTicksAtTime(t),s=e*this._grainSize;if(this.log("offset",s),!this.loop&&s>this.buffer.duration)return void this.stop(t);const n=s<this._overlap?0:this._overlap,i=new Go({context:this.context,url:this.buffer,fadeIn:n,fadeOut:this._overlap,loop:this.loop,loopStart:this._loopStart,loopEnd:this._loopEnd,playbackRate:$i(this.detune/100)}).connect(this.output);i.start(t,this._grainSize*e),i.stop(t+this._grainSize/this.playbackRate),this._activeSources.push(i),i.onended=()=>{const t=this._activeSources.indexOf(i);-1!==t&&this._activeSources.splice(t,1)}}get playbackRate(){return this._playbackRate}set playbackRate(t){Yn(t,.001),this._playbackRate=t,this.grainSize=this._grainSize}get loopStart(){return this._loopStart}set loopStart(t){this.buffer.loaded&&Yn(this.toSeconds(t),0,this.buffer.duration),this._loopStart=this.toSeconds(t)}get loopEnd(){return this._loopEnd}set loopEnd(t){this.buffer.loaded&&Yn(this.toSeconds(t),0,this.buffer.duration),this._loopEnd=this.toSeconds(t)}get reverse(){return this.buffer.reverse}set reverse(t){this.buffer.reverse=t}get grainSize(){return this._grainSize}set grainSize(t){this._grainSize=this.toSeconds(t),this._clock.frequency.setValueAtTime(this._playbackRate/this._grainSize,this.now())}get overlap(){return this._overlap}set overlap(t){const e=this.toSeconds(t);Yn(e,0),this._overlap=e}get loaded(){return this.buffer.loaded}dispose(){return super.dispose(),this.buffer.dispose(),this._clock.dispose(),this._activeSources.forEach(t=>t.dispose()),this}}class yr extends Ko{constructor(){super(...arguments),this.name="Abs",this._abs=new tr({context:this.context,mapping:t=>Math.abs(t)<.001?0:Math.abs(t)}),this.input=this._abs,this.output=this._abs}dispose(){return super.dispose(),this._abs.dispose(),this}}class xr extends Ko{constructor(){super(...arguments),this.name="GainToAudio",this._norm=new tr({context:this.context,mapping:t=>2*Math.abs(t)-1}),this.input=this._norm,this.output=this._norm}dispose(){return super.dispose(),this._norm.dispose(),this}}class wr extends Ko{constructor(){super(...arguments),this.name="Negate",this._multiply=new sr({context:this.context,value:-1}),this.input=this._multiply,this.output=this._multiply}dispose(){return super.dispose(),this._multiply.dispose(),this}}class br extends bo{constructor(){super(Object.assign(bi(br.getDefaults(),arguments,["value"]))),this.override=!1,this.name="Subtract",this._sum=new yo({context:this.context}),this.input=this._sum,this.output=this._sum,this._neg=new wr({context:this.context}),this.subtrahend=this._param,mo(this._constantSource,this._neg,this._sum)}static getDefaults(){return Object.assign(bo.getDefaults(),{value:0})}dispose(){return super.dispose(),this._neg.dispose(),this._sum.dispose(),this}}class Tr extends Ko{constructor(){super(Object.assign(bi(Tr.getDefaults(),arguments))),this.name="GreaterThanZero",this._thresh=this.output=new tr({context:this.context,length:127,mapping:t=>t<=0?0:1}),this._scale=this.input=new sr({context:this.context,value:1e4}),this._scale.connect(this._thresh)}dispose(){return super.dispose(),this._scale.dispose(),this._thresh.dispose(),this}}class Sr extends bo{constructor(){super(Object.assign(bi(Sr.getDefaults(),arguments,["value"]))),this.name="GreaterThan",this.override=!1;const t=bi(Sr.getDefaults(),arguments,["value"]);this._subtract=this.input=new br({context:this.context,value:t.value}),this._gtz=this.output=new Tr({context:this.context}),this.comparator=this._param=this._subtract.subtrahend,ji(this,"comparator"),this._subtract.connect(this._gtz)}static getDefaults(){return Object.assign(bo.getDefaults(),{value:0})}dispose(){return super.dispose(),this._gtz.dispose(),this._subtract.dispose(),this.comparator.dispose(),this}}class kr extends Ko{constructor(){super(Object.assign(bi(kr.getDefaults(),arguments,["value"]))),this.name="Pow";const t=bi(kr.getDefaults(),arguments,["value"]);this._exponentScaler=this.input=this.output=new tr({context:this.context,mapping:this._expFunc(t.value),length:8192}),this._exponent=t.value}static getDefaults(){return Object.assign(Ko.getDefaults(),{value:1})}_expFunc(t){return e=>Math.pow(Math.abs(e),t)}get value(){return this._exponent}set value(t){this._exponent=t,this._exponentScaler.setMap(this._expFunc(this._exponent))}dispose(){return super.dispose(),this._exponentScaler.dispose(),this}}class Cr extends lr{constructor(){super(Object.assign(bi(Cr.getDefaults(),arguments,["min","max","exponent"]))),this.name="ScaleExp";const t=bi(Cr.getDefaults(),arguments,["min","max","exponent"]);this.input=this._exp=new kr({context:this.context,value:t.exponent}),this._exp.connect(this._mult)}static getDefaults(){return Object.assign(lr.getDefaults(),{exponent:1})}get exponent(){return this._exp.value}set exponent(t){this._exp.value=t}dispose(){return super.dispose(),this._exp.dispose(),this}}class Ar extends bo{constructor(){super(bi(bo.getDefaults(),arguments,["value","units"])),this.name="SyncedSignal",this.override=!1;const t=bi(bo.getDefaults(),arguments,["value","units"]);this._lastVal=t.value,this._synced=this.context.transport.scheduleRepeat(this._onTick.bind(this),"1i"),this._syncedCallback=this._anchorValue.bind(this),this.context.transport.on("start",this._syncedCallback),this.context.transport.on("pause",this._syncedCallback),this.context.transport.on("stop",this._syncedCallback),this._constantSource.disconnect(),this._constantSource.stop(0),this._constantSource=this.output=new wo({context:this.context,offset:t.value,units:t.units}).start(0),this.setValueAtTime(t.value,0)}_onTick(t){const e=super.getValueAtTime(this.context.transport.seconds);this._lastVal!==e&&(this._lastVal=e,this._constantSource.offset.setValueAtTime(e,t))}_anchorValue(t){const e=super.getValueAtTime(this.context.transport.seconds);this._lastVal=e,this._constantSource.offset.cancelAndHoldAtTime(t),this._constantSource.offset.setValueAtTime(e,t)}getValueAtTime(t){const e=new ho(this.context,t).toSeconds();return super.getValueAtTime(e)}setValueAtTime(t,e){const s=new ho(this.context,e).toSeconds();return super.setValueAtTime(t,s),this}linearRampToValueAtTime(t,e){const s=new ho(this.context,e).toSeconds();return super.linearRampToValueAtTime(t,s),this}exponentialRampToValueAtTime(t,e){const s=new ho(this.context,e).toSeconds();return super.exponentialRampToValueAtTime(t,s),this}setTargetAtTime(t,e,s){const n=new ho(this.context,e).toSeconds();return super.setTargetAtTime(t,n,s),this}cancelScheduledValues(t){const e=new ho(this.context,t).toSeconds();return super.cancelScheduledValues(e),this}setValueCurveAtTime(t,e,s,n){const i=new ho(this.context,e).toSeconds();return s=this.toSeconds(s),super.setValueCurveAtTime(t,i,s,n),this}cancelAndHoldAtTime(t){const e=new ho(this.context,t).toSeconds();return super.cancelAndHoldAtTime(e),this}setRampPoint(t){const e=new ho(this.context,t).toSeconds();return super.setRampPoint(e),this}exponentialRampTo(t,e,s){const n=new ho(this.context,s).toSeconds();return super.exponentialRampTo(t,e,n),this}linearRampTo(t,e,s){const n=new ho(this.context,s).toSeconds();return super.linearRampTo(t,e,n),this}targetRampTo(t,e,s){const n=new ho(this.context,s).toSeconds();return super.targetRampTo(t,e,n),this}dispose(){return super.dispose(),this.context.transport.clear(this._synced),this.context.transport.off("start",this._syncedCallback),this.context.transport.off("pause",this._syncedCallback),this.context.transport.off("stop",this._syncedCallback),this._constantSource.dispose(),this}}class Dr extends _o{constructor(){super(bi(Dr.getDefaults(),arguments,["attack","decay","sustain","release"])),this.name="Envelope",this._sig=new bo({context:this.context,value:0}),this.output=this._sig,this.input=void 0;const t=bi(Dr.getDefaults(),arguments,["attack","decay","sustain","release"]);this.attack=t.attack,this.decay=t.decay,this.sustain=t.sustain,this.release=t.release,this.attackCurve=t.attackCurve,this.releaseCurve=t.releaseCurve,this.decayCurve=t.decayCurve}static getDefaults(){return Object.assign(_o.getDefaults(),{attack:.01,attackCurve:"linear",decay:.1,decayCurve:"exponential",release:1,releaseCurve:"exponential",sustain:.5})}get value(){return this.getValueAtTime(this.now())}_getCurve(t,e){if(ci(t))return t;{let s;for(s in Or)if(Or[s][e]===t)return s;return t}}_setCurve(t,e,s){if(ci(s)&&Reflect.has(Or,s)){const n=Or[s];oi(n)?"_decayCurve"!==t&&(this[t]=n[e]):this[t]=n}else{if(!ai(s)||"_decayCurve"===t)throw new Error("Envelope: invalid curve: "+s);this[t]=s}}get attackCurve(){return this._getCurve(this._attackCurve,"In")}set attackCurve(t){this._setCurve("_attackCurve","In",t)}get releaseCurve(){return this._getCurve(this._releaseCurve,"Out")}set releaseCurve(t){this._setCurve("_releaseCurve","Out",t)}get decayCurve(){return this._decayCurve}set decayCurve(t){Xn(["linear","exponential"].some(e=>e===t),"Invalid envelope curve: "+t),this._decayCurve=t}triggerAttack(t,e=1){this.log("triggerAttack",t,e),t=this.toSeconds(t);let s=this.toSeconds(this.attack);const n=this.toSeconds(this.decay),i=this.getValueAtTime(t);if(i>0){s=(1-i)/(1/s)}if(s<this.sampleTime)this._sig.cancelScheduledValues(t),this._sig.setValueAtTime(e,t);else if("linear"===this._attackCurve)this._sig.linearRampTo(e,s,t);else if("exponential"===this._attackCurve)this._sig.targetRampTo(e,s,t);else{this._sig.cancelAndHoldAtTime(t);let n=this._attackCurve;for(let t=1;t<n.length;t++)if(n[t-1]<=i&&i<=n[t]){n=this._attackCurve.slice(t),n[0]=i;break}this._sig.setValueCurveAtTime(n,t,s,e)}if(n&&this.sustain<1){const i=e*this.sustain,o=t+s;this.log("decay",o),"linear"===this._decayCurve?this._sig.linearRampToValueAtTime(i,n+o):this._sig.exponentialApproachValueAtTime(i,o,n)}return this}triggerRelease(t){this.log("triggerRelease",t),t=this.toSeconds(t);const e=this.getValueAtTime(t);if(e>0){const s=this.toSeconds(this.release);s<this.sampleTime?this._sig.setValueAtTime(0,t):"linear"===this._releaseCurve?this._sig.linearRampTo(0,s,t):"exponential"===this._releaseCurve?this._sig.targetRampTo(0,s,t):(Xn(ai(this._releaseCurve),"releaseCurve must be either 'linear', 'exponential' or an array"),this._sig.cancelAndHoldAtTime(t),this._sig.setValueCurveAtTime(this._releaseCurve,t,s,e))}return this}getValueAtTime(t){return this._sig.getValueAtTime(t)}triggerAttackRelease(t,e,s=1){return e=this.toSeconds(e),this.triggerAttack(e,s),this.triggerRelease(e+this.toSeconds(t)),this}cancel(t){return this._sig.cancelScheduledValues(this.toSeconds(t)),this}connect(t,e=0,s=0){return To(this,t,e,s),this}asArray(t=1024){return di(this,void 0,void 0,(function*(){const e=t/this.context.sampleRate,s=new Wi(1,e,this.context.sampleRate),n=this.toSeconds(this.attack)+this.toSeconds(this.decay),i=n+this.toSeconds(this.release),o=.1*i,r=i+o,a=new this.constructor(Object.assign(this.get(),{attack:e*this.toSeconds(this.attack)/r,decay:e*this.toSeconds(this.decay)/r,release:e*this.toSeconds(this.release)/r,context:s}));a._sig.toDestination(),a.triggerAttackRelease(e*(n+o)/r,0);return(yield s.render()).getChannelData(0)}))}dispose(){return super.dispose(),this._sig.dispose(),this}}pi([_r(0)],Dr.prototype,"attack",void 0),pi([_r(0)],Dr.prototype,"decay",void 0),pi([fr(0,1)],Dr.prototype,"sustain",void 0),pi([_r(0)],Dr.prototype,"release",void 0);const Or=(()=>{let t,e;const s=[];for(t=0;t<128;t++)s[t]=Math.sin(t/127*(Math.PI/2));const n=[];for(t=0;t<127;t++){e=t/127;const s=Math.sin(e*(2*Math.PI)*6.4-Math.PI/2)+1;n[t]=s/10+.83*e}n[127]=1;const i=[];for(t=0;t<128;t++)i[t]=Math.ceil(t/127*5)/5;const o=[];for(t=0;t<128;t++)e=t/127,o[t]=.5*(1-Math.cos(Math.PI*e));const r=[];for(t=0;t<128;t++){e=t/127;const s=4*Math.pow(e,3)+.2,n=Math.cos(s*Math.PI*2*e);r[t]=Math.abs(n*(1-e))}function a(t){const e=new Array(t.length);for(let s=0;s<t.length;s++)e[s]=1-t[s];return e}return{bounce:{In:a(r),Out:r},cosine:{In:s,Out:(c=s,c.slice(0).reverse())},exponential:"exponential",linear:"linear",ripple:{In:n,Out:a(n)},sine:{In:o,Out:a(o)},step:{In:i,Out:a(i)}};var c})();class Mr extends _o{constructor(){super(bi(Mr.getDefaults(),arguments)),this._scheduledEvents=[],this._synced=!1,this._original_triggerAttack=this.triggerAttack,this._original_triggerRelease=this.triggerRelease;const t=bi(Mr.getDefaults(),arguments);this._volume=this.output=new Po({context:this.context,volume:t.volume}),this.volume=this._volume.volume,ji(this,"volume")}static getDefaults(){return Object.assign(_o.getDefaults(),{volume:0})}sync(){return this._syncState()&&(this._syncMethod("triggerAttack",1),this._syncMethod("triggerRelease",0)),this}_syncState(){let t=!1;return this._synced||(this._synced=!0,t=!0),t}_syncMethod(t,e){const s=this["_original_"+t]=this[t];this[t]=(...t)=>{const n=t[e],i=this.context.transport.schedule(n=>{t[e]=n,s.apply(this,t)},n);this._scheduledEvents.push(i)}}unsync(){return this._scheduledEvents.forEach(t=>this.context.transport.clear(t)),this._scheduledEvents=[],this._synced&&(this._synced=!1,this.triggerAttack=this._original_triggerAttack,this.triggerRelease=this._original_triggerRelease),this}triggerAttackRelease(t,e,s,n){const i=this.toSeconds(s),o=this.toSeconds(e);return this.triggerAttack(t,i,n),this.triggerRelease(i+o),this}dispose(){return super.dispose(),this._volume.dispose(),this.unsync(),this._scheduledEvents=[],this}}class Er extends Mr{constructor(){super(bi(Er.getDefaults(),arguments));const t=bi(Er.getDefaults(),arguments);this.portamento=t.portamento,this.onsilence=t.onsilence}static getDefaults(){return Object.assign(Mr.getDefaults(),{detune:0,onsilence:zi,portamento:0})}triggerAttack(t,e,s=1){this.log("triggerAttack",t,e,s);const n=this.toSeconds(e);return this._triggerEnvelopeAttack(n,s),this.setNote(t,n),this}triggerRelease(t){this.log("triggerRelease",t);const e=this.toSeconds(t);return this._triggerEnvelopeRelease(e),this}setNote(t,e){const s=this.toSeconds(e),n=t instanceof oo?t.toFrequency():t;if(this.portamento>0&&this.getLevelAtTime(s)>.05){const t=this.toSeconds(this.portamento);this.frequency.exponentialRampTo(n,t,s)}else this.frequency.setValueAtTime(n,s);return this}}pi([_r(0)],Er.prototype,"portamento",void 0);class Rr extends Dr{constructor(){super(bi(Rr.getDefaults(),arguments,["attack","decay","sustain","release"])),this.name="AmplitudeEnvelope",this._gainNode=new yo({context:this.context,gain:0}),this.output=this._gainNode,this.input=this._gainNode,this._sig.connect(this._gainNode.gain),this.output=this._gainNode,this.input=this._gainNode}dispose(){return super.dispose(),this._gainNode.dispose(),this}}class qr extends Er{constructor(){super(bi(qr.getDefaults(),arguments)),this.name="Synth";const t=bi(qr.getDefaults(),arguments);this.oscillator=new hr(Object.assign({context:this.context,detune:t.detune,onstop:()=>this.onsilence(this)},t.oscillator)),this.frequency=this.oscillator.frequency,this.detune=this.oscillator.detune,this.envelope=new Rr(Object.assign({context:this.context},t.envelope)),this.oscillator.chain(this.envelope,this.output),ji(this,["oscillator","frequency","detune","envelope"])}static getDefaults(){return Object.assign(Er.getDefaults(),{envelope:Object.assign(Si(Dr.getDefaults(),Object.keys(_o.getDefaults())),{attack:.005,decay:.1,release:1,sustain:.3}),oscillator:Object.assign(Si(hr.getDefaults(),[...Object.keys(Uo.getDefaults()),"frequency","detune"]),{type:"triangle"})})}_triggerEnvelopeAttack(t,e){if(this.envelope.triggerAttack(t,e),this.oscillator.start(t),0===this.envelope.sustain){const e=this.toSeconds(this.envelope.attack),s=this.toSeconds(this.envelope.decay);this.oscillator.stop(t+e+s)}}_triggerEnvelopeRelease(t){this.envelope.triggerRelease(t),this.oscillator.stop(t+this.toSeconds(this.envelope.release))}getLevelAtTime(t){return t=this.toSeconds(t),this.envelope.getValueAtTime(t)}dispose(){return super.dispose(),this.oscillator.dispose(),this.envelope.dispose(),this}}class Fr extends Er{constructor(){super(bi(Fr.getDefaults(),arguments)),this.name="ModulationSynth";const t=bi(Fr.getDefaults(),arguments);this._carrier=new qr({context:this.context,oscillator:t.oscillator,envelope:t.envelope,onsilence:()=>this.onsilence(this),volume:-10}),this._modulator=new qr({context:this.context,oscillator:t.modulation,envelope:t.modulationEnvelope,volume:-10}),this.oscillator=this._carrier.oscillator,this.envelope=this._carrier.envelope,this.modulation=this._modulator.oscillator,this.modulationEnvelope=this._modulator.envelope,this.frequency=new bo({context:this.context,units:"frequency"}),this.detune=new bo({context:this.context,value:t.detune,units:"cents"}),this.harmonicity=new sr({context:this.context,value:t.harmonicity,minValue:0}),this._modulationNode=new yo({context:this.context,gain:0}),ji(this,["frequency","harmonicity","oscillator","envelope","modulation","modulationEnvelope","detune"])}static getDefaults(){return Object.assign(Er.getDefaults(),{harmonicity:3,oscillator:Object.assign(Si(hr.getDefaults(),[...Object.keys(Uo.getDefaults()),"frequency","detune"]),{type:"sine"}),envelope:Object.assign(Si(Dr.getDefaults(),Object.keys(_o.getDefaults())),{attack:.01,decay:.01,sustain:1,release:.5}),modulation:Object.assign(Si(hr.getDefaults(),[...Object.keys(Uo.getDefaults()),"frequency","detune"]),{type:"square"}),modulationEnvelope:Object.assign(Si(Dr.getDefaults(),Object.keys(_o.getDefaults())),{attack:.5,decay:0,sustain:1,release:.5})})}_triggerEnvelopeAttack(t,e){this._carrier._triggerEnvelopeAttack(t,e),this._modulator._triggerEnvelopeAttack(t,e)}_triggerEnvelopeRelease(t){return this._carrier._triggerEnvelopeRelease(t),this._modulator._triggerEnvelopeRelease(t),this}getLevelAtTime(t){return t=this.toSeconds(t),this.envelope.getValueAtTime(t)}dispose(){return super.dispose(),this._carrier.dispose(),this._modulator.dispose(),this.frequency.dispose(),this.detune.dispose(),this.harmonicity.dispose(),this._modulationNode.dispose(),this}}class Ir extends Fr{constructor(){super(bi(Ir.getDefaults(),arguments)),this.name="AMSynth",this._modulationScale=new er({context:this.context}),this.frequency.connect(this._carrier.frequency),this.frequency.chain(this.harmonicity,this._modulator.frequency),this.detune.fan(this._carrier.detune,this._modulator.detune),this._modulator.chain(this._modulationScale,this._modulationNode.gain),this._carrier.chain(this._modulationNode,this.output)}dispose(){return super.dispose(),this._modulationScale.dispose(),this}}class Vr extends _o{constructor(){super(bi(Vr.getDefaults(),arguments,["frequency","type"])),this.name="BiquadFilter";const t=bi(Vr.getDefaults(),arguments,["frequency","type"]);this._filter=this.context.createBiquadFilter(),this.input=this.output=this._filter,this.Q=new fo({context:this.context,units:"number",value:t.Q,param:this._filter.Q}),this.frequency=new fo({context:this.context,units:"frequency",value:t.frequency,param:this._filter.frequency}),this.detune=new fo({context:this.context,units:"cents",value:t.detune,param:this._filter.detune}),this.gain=new fo({context:this.context,units:"gain",value:t.gain,param:this._filter.gain}),this.type=t.type}static getDefaults(){return Object.assign(_o.getDefaults(),{Q:1,type:"lowpass",frequency:350,detune:0,gain:0})}get type(){return this._filter.type}set type(t){Xn(-1!==["lowpass","highpass","bandpass","lowshelf","highshelf","notch","allpass","peaking"].indexOf(t),"Invalid filter type: "+t),this._filter.type=t}getFrequencyResponse(t=128){const e=new Float32Array(t);for(let s=0;s<t;s++){const n=19980*Math.pow(s/t,2)+20;e[s]=n}const s=new Float32Array(t),n=new Float32Array(t),i=this.context.createBiquadFilter();return i.type=this.type,i.Q.value=this.Q.value,i.frequency.value=this.frequency.value,i.gain.value=this.gain.value,i.getFrequencyResponse(e,s,n),s}dispose(){return super.dispose(),this._filter.disconnect(),this.Q.dispose(),this.frequency.dispose(),this.gain.dispose(),this.detune.dispose(),this}}class Nr extends _o{constructor(){super(bi(Nr.getDefaults(),arguments,["frequency","type","rolloff"])),this.name="Filter",this.input=new yo({context:this.context}),this.output=new yo({context:this.context}),this._filters=[];const t=bi(Nr.getDefaults(),arguments,["frequency","type","rolloff"]);this._filters=[],this.Q=new bo({context:this.context,units:"positive",value:t.Q}),this.frequency=new bo({context:this.context,units:"frequency",value:t.frequency}),this.detune=new bo({context:this.context,units:"cents",value:t.detune}),this.gain=new bo({context:this.context,units:"decibels",value:t.gain}),this._type=t.type,this.rolloff=t.rolloff,ji(this,["detune","frequency","gain","Q"])}static getDefaults(){return Object.assign(_o.getDefaults(),{Q:1,detune:0,frequency:350,gain:0,rolloff:-12,type:"lowpass"})}get type(){return this._type}set type(t){Xn(-1!==["lowpass","highpass","bandpass","lowshelf","highshelf","notch","allpass","peaking"].indexOf(t),"Invalid filter type: "+t),this._type=t,this._filters.forEach(e=>e.type=t)}get rolloff(){return this._rolloff}set rolloff(t){const e=ii(t)?t:parseInt(t,10),s=[-12,-24,-48,-96];let n=s.indexOf(e);Xn(-1!==n,"rolloff can only be "+s.join(", ")),n+=1,this._rolloff=e,this.input.disconnect(),this._filters.forEach(t=>t.disconnect()),this._filters=new Array(n);for(let t=0;t<n;t++){const e=new Vr({context:this.context});e.type=this._type,this.frequency.connect(e.frequency),this.detune.connect(e.detune),this.Q.connect(e.Q),this.gain.connect(e.gain),this._filters[t]=e}this._internalChannels=this._filters,mo(this.input,...this._internalChannels,this.output)}getFrequencyResponse(t=128){const e=new Vr({frequency:this.frequency.value,gain:this.gain.value,Q:this.Q.value,type:this._type,detune:this.detune.value}),s=new Float32Array(t).map(()=>1);return this._filters.forEach(()=>{e.getFrequencyResponse(t).forEach((t,e)=>s[e]*=t)}),e.dispose(),s}dispose(){return super.dispose(),this._filters.forEach(t=>{t.dispose()}),Li(this,["detune","frequency","gain","Q"]),this.frequency.dispose(),this.Q.dispose(),this.detune.dispose(),this.gain.dispose(),this}}class Pr extends Dr{constructor(){super(bi(Pr.getDefaults(),arguments,["attack","decay","sustain","release"])),this.name="FrequencyEnvelope";const t=bi(Pr.getDefaults(),arguments,["attack","decay","sustain","release"]);this._octaves=t.octaves,this._baseFrequency=this.toFrequency(t.baseFrequency),this._exponent=this.input=new kr({context:this.context,value:t.exponent}),this._scale=this.output=new lr({context:this.context,min:this._baseFrequency,max:this._baseFrequency*Math.pow(2,this._octaves)}),this._sig.chain(this._exponent,this._scale)}static getDefaults(){return Object.assign(Dr.getDefaults(),{baseFrequency:200,exponent:1,octaves:4})}get baseFrequency(){return this._baseFrequency}set baseFrequency(t){const e=this.toFrequency(t);Yn(e,0),this._baseFrequency=e,this._scale.min=this._baseFrequency,this.octaves=this._octaves}get octaves(){return this._octaves}set octaves(t){Yn(t,0),this._octaves=t,this._scale.max=this._baseFrequency*Math.pow(2,t)}get exponent(){return this._exponent.value}set exponent(t){this._exponent.value=t}dispose(){return super.dispose(),this._exponent.dispose(),this._scale.dispose(),this}}class jr extends Er{constructor(){super(bi(jr.getDefaults(),arguments)),this.name="MonoSynth";const t=bi(jr.getDefaults(),arguments);this.oscillator=new hr(Object.assign(t.oscillator,{context:this.context,detune:t.detune,onstop:()=>this.onsilence(this)})),this.frequency=this.oscillator.frequency,this.detune=this.oscillator.detune,this.filter=new Nr(Object.assign(t.filter,{context:this.context})),this.filterEnvelope=new Pr(Object.assign(t.filterEnvelope,{context:this.context})),this.envelope=new Rr(Object.assign(t.envelope,{context:this.context})),this.oscillator.chain(this.filter,this.envelope,this.output),this.filterEnvelope.connect(this.filter.frequency),ji(this,["oscillator","frequency","detune","filter","filterEnvelope","envelope"])}static getDefaults(){return Object.assign(Er.getDefaults(),{envelope:Object.assign(Si(Dr.getDefaults(),Object.keys(_o.getDefaults())),{attack:.005,decay:.1,release:1,sustain:.9}),filter:Object.assign(Si(Nr.getDefaults(),Object.keys(_o.getDefaults())),{Q:1,rolloff:-12,type:"lowpass"}),filterEnvelope:Object.assign(Si(Pr.getDefaults(),Object.keys(_o.getDefaults())),{attack:.6,baseFrequency:200,decay:.2,exponent:2,octaves:3,release:2,sustain:.5}),oscillator:Object.assign(Si(hr.getDefaults(),Object.keys(Uo.getDefaults())),{type:"sawtooth"})})}_triggerEnvelopeAttack(t,e=1){if(this.envelope.triggerAttack(t,e),this.filterEnvelope.triggerAttack(t),this.oscillator.start(t),0===this.envelope.sustain){const e=this.toSeconds(this.envelope.attack),s=this.toSeconds(this.envelope.decay);this.oscillator.stop(t+e+s)}}_triggerEnvelopeRelease(t){this.envelope.triggerRelease(t),this.filterEnvelope.triggerRelease(t),this.oscillator.stop(t+this.toSeconds(this.envelope.release))}getLevelAtTime(t){return t=this.toSeconds(t),this.envelope.getValueAtTime(t)}dispose(){return super.dispose(),this.oscillator.dispose(),this.envelope.dispose(),this.filterEnvelope.dispose(),this.filter.dispose(),this}}class Lr extends Er{constructor(){super(bi(Lr.getDefaults(),arguments)),this.name="DuoSynth";const t=bi(Lr.getDefaults(),arguments);this.voice0=new jr(Object.assign(t.voice0,{context:this.context,onsilence:()=>this.onsilence(this)})),this.voice1=new jr(Object.assign(t.voice1,{context:this.context})),this.harmonicity=new sr({context:this.context,units:"positive",value:t.harmonicity}),this._vibrato=new dr({frequency:t.vibratoRate,context:this.context,min:-50,max:50}),this._vibrato.start(),this.vibratoRate=this._vibrato.frequency,this._vibratoGain=new yo({context:this.context,units:"normalRange",gain:t.vibratoAmount}),this.vibratoAmount=this._vibratoGain.gain,this.frequency=new bo({context:this.context,units:"frequency",value:440}),this.detune=new bo({context:this.context,units:"cents",value:t.detune}),this.frequency.connect(this.voice0.frequency),this.frequency.chain(this.harmonicity,this.voice1.frequency),this._vibrato.connect(this._vibratoGain),this._vibratoGain.fan(this.voice0.detune,this.voice1.detune),this.detune.fan(this.voice0.detune,this.voice1.detune),this.voice0.connect(this.output),this.voice1.connect(this.output),ji(this,["voice0","voice1","frequency","vibratoAmount","vibratoRate"])}getLevelAtTime(t){return t=this.toSeconds(t),this.voice0.envelope.getValueAtTime(t)+this.voice1.envelope.getValueAtTime(t)}static getDefaults(){return wi(Er.getDefaults(),{vibratoAmount:.5,vibratoRate:5,harmonicity:1.5,voice0:wi(Si(jr.getDefaults(),Object.keys(Er.getDefaults())),{filterEnvelope:{attack:.01,decay:0,sustain:1,release:.5},envelope:{attack:.01,decay:0,sustain:1,release:.5}}),voice1:wi(Si(jr.getDefaults(),Object.keys(Er.getDefaults())),{filterEnvelope:{attack:.01,decay:0,sustain:1,release:.5},envelope:{attack:.01,decay:0,sustain:1,release:.5}})})}_triggerEnvelopeAttack(t,e){this.voice0._triggerEnvelopeAttack(t,e),this.voice1._triggerEnvelopeAttack(t,e)}_triggerEnvelopeRelease(t){return this.voice0._triggerEnvelopeRelease(t),this.voice1._triggerEnvelopeRelease(t),this}dispose(){return super.dispose(),this.voice0.dispose(),this.voice1.dispose(),this.frequency.dispose(),this.detune.dispose(),this._vibrato.dispose(),this.vibratoRate.dispose(),this._vibratoGain.dispose(),this.harmonicity.dispose(),this}}class zr extends Fr{constructor(){super(bi(zr.getDefaults(),arguments)),this.name="FMSynth";const t=bi(zr.getDefaults(),arguments);this.modulationIndex=new sr({context:this.context,value:t.modulationIndex}),this.frequency.connect(this._carrier.frequency),this.frequency.chain(this.harmonicity,this._modulator.frequency),this.frequency.chain(this.modulationIndex,this._modulationNode),this.detune.fan(this._carrier.detune,this._modulator.detune),this._modulator.connect(this._modulationNode.gain),this._modulationNode.connect(this._carrier.frequency),this._carrier.connect(this.output)}static getDefaults(){return Object.assign(Fr.getDefaults(),{modulationIndex:10})}dispose(){return super.dispose(),this.modulationIndex.dispose(),this}}const Br=[1,1.483,1.932,2.546,2.63,3.897];class Wr extends Er{constructor(){super(bi(Wr.getDefaults(),arguments)),this.name="MetalSynth",this._oscillators=[],this._freqMultipliers=[];const t=bi(Wr.getDefaults(),arguments);this.detune=new bo({context:this.context,units:"cents",value:t.detune}),this.frequency=new bo({context:this.context,units:"frequency"}),this._amplitude=new yo({context:this.context,gain:0}).connect(this.output),this._highpass=new Nr({Q:0,context:this.context,type:"highpass"}).connect(this._amplitude);for(let e=0;e<Br.length;e++){const s=new ir({context:this.context,harmonicity:t.harmonicity,modulationIndex:t.modulationIndex,modulationType:"square",onstop:0===e?()=>this.onsilence(this):zi,type:"square"});s.connect(this._highpass),this._oscillators[e]=s;const n=new sr({context:this.context,value:Br[e]});this._freqMultipliers[e]=n,this.frequency.chain(n,s.frequency),this.detune.connect(s.detune)}this._filterFreqScaler=new lr({context:this.context,max:7e3,min:this.toFrequency(t.resonance)}),this.envelope=new Dr({attack:t.envelope.attack,attackCurve:"linear",context:this.context,decay:t.envelope.decay,release:t.envelope.release,sustain:0}),this.envelope.chain(this._filterFreqScaler,this._highpass.frequency),this.envelope.connect(this._amplitude.gain),this._octaves=t.octaves,this.octaves=t.octaves}static getDefaults(){return wi(Er.getDefaults(),{envelope:Object.assign(Si(Dr.getDefaults(),Object.keys(_o.getDefaults())),{attack:.001,decay:1.4,release:.2}),harmonicity:5.1,modulationIndex:32,octaves:1.5,resonance:4e3})}_triggerEnvelopeAttack(t,e=1){return this.envelope.triggerAttack(t,e),this._oscillators.forEach(e=>e.start(t)),0===this.envelope.sustain&&this._oscillators.forEach(e=>{e.stop(t+this.toSeconds(this.envelope.attack)+this.toSeconds(this.envelope.decay))}),this}_triggerEnvelopeRelease(t){return this.envelope.triggerRelease(t),this._oscillators.forEach(e=>e.stop(t+this.toSeconds(this.envelope.release))),this}getLevelAtTime(t){return t=this.toSeconds(t),this.envelope.getValueAtTime(t)}get modulationIndex(){return this._oscillators[0].modulationIndex.value}set modulationIndex(t){this._oscillators.forEach(e=>e.modulationIndex.value=t)}get harmonicity(){return this._oscillators[0].harmonicity.value}set harmonicity(t){this._oscillators.forEach(e=>e.harmonicity.value=t)}get resonance(){return this._filterFreqScaler.min}set resonance(t){this._filterFreqScaler.min=this.toFrequency(t),this.octaves=this._octaves}get octaves(){return this._octaves}set octaves(t){this._octaves=t,this._filterFreqScaler.max=this._filterFreqScaler.min*Math.pow(2,t)}dispose(){return super.dispose(),this._oscillators.forEach(t=>t.dispose()),this._freqMultipliers.forEach(t=>t.dispose()),this.frequency.dispose(),this.detune.dispose(),this._filterFreqScaler.dispose(),this._amplitude.dispose(),this.envelope.dispose(),this._highpass.dispose(),this}}class Ur extends qr{constructor(){super(bi(Ur.getDefaults(),arguments)),this.name="MembraneSynth",this.portamento=0;const t=bi(Ur.getDefaults(),arguments);this.pitchDecay=t.pitchDecay,this.octaves=t.octaves,ji(this,["oscillator","envelope"])}static getDefaults(){return wi(Er.getDefaults(),qr.getDefaults(),{envelope:{attack:.001,attackCurve:"exponential",decay:.4,release:1.4,sustain:.01},octaves:10,oscillator:{type:"sine"},pitchDecay:.05})}setNote(t,e){const s=this.toSeconds(e),n=this.toFrequency(t instanceof oo?t.toFrequency():t),i=n*this.octaves;return this.oscillator.frequency.setValueAtTime(i,s),this.oscillator.frequency.exponentialRampToValueAtTime(n,s+this.toSeconds(this.pitchDecay)),this}dispose(){return super.dispose(),this}}pi([fr(0)],Ur.prototype,"octaves",void 0),pi([_r(0)],Ur.prototype,"pitchDecay",void 0);class Gr extends Mr{constructor(){super(bi(Gr.getDefaults(),arguments)),this.name="NoiseSynth";const t=bi(Gr.getDefaults(),arguments);this.noise=new Qo(Object.assign({context:this.context},t.noise)),this.envelope=new Rr(Object.assign({context:this.context},t.envelope)),this.noise.chain(this.envelope,this.output)}static getDefaults(){return Object.assign(Mr.getDefaults(),{envelope:Object.assign(Si(Dr.getDefaults(),Object.keys(_o.getDefaults())),{decay:.1,sustain:0}),noise:Object.assign(Si(Qo.getDefaults(),Object.keys(Uo.getDefaults())),{type:"white"})})}triggerAttack(t,e=1){return t=this.toSeconds(t),this.envelope.triggerAttack(t,e),this.noise.start(t),0===this.envelope.sustain&&this.noise.stop(t+this.toSeconds(this.envelope.attack)+this.toSeconds(this.envelope.decay)),this}triggerRelease(t){return t=this.toSeconds(t),this.envelope.triggerRelease(t),this.noise.stop(t+this.toSeconds(this.envelope.release)),this}sync(){return this._syncState()&&(this._syncMethod("triggerAttack",0),this._syncMethod("triggerRelease",0)),this}triggerAttackRelease(t,e,s=1){return e=this.toSeconds(e),t=this.toSeconds(t),this.triggerAttack(e,s),this.triggerRelease(e+t),this}dispose(){return super.dispose(),this.noise.dispose(),this.envelope.dispose(),this}}const Qr=new Set;function Zr(t){Qr.add(t)}function Xr(t,e){const s=`registerProcessor("${t}", ${e})`;Qr.add(s)}class Yr extends _o{constructor(t){super(t),this.name="ToneAudioWorklet",this.workletOptions={},this.onprocessorerror=zi;const e=URL.createObjectURL(new Blob([Array.from(Qr).join("\n")],{type:"text/javascript"})),s=this._audioWorkletName();this._dummyGain=this.context.createGain(),this._dummyParam=this._dummyGain.gain,this.context.addAudioWorkletModule(e,s).then(()=>{this.disposed||(this._worklet=this.context.createAudioWorkletNode(s,this.workletOptions),this._worklet.onprocessorerror=this.onprocessorerror.bind(this),this.onReady(this._worklet))})}dispose(){return super.dispose(),this._dummyGain.disconnect(),this._worklet&&(this._worklet.port.postMessage("dispose"),this._worklet.disconnect()),this}}Zr('\n\t/**\n\t * The base AudioWorkletProcessor for use in Tone.js. Works with the [[ToneAudioWorklet]]. \n\t */\n\tclass ToneAudioWorkletProcessor extends AudioWorkletProcessor {\n\n\t\tconstructor(options) {\n\t\t\t\n\t\t\tsuper(options);\n\t\t\t/**\n\t\t\t * If the processor was disposed or not. Keep alive until it\'s disposed.\n\t\t\t */\n\t\t\tthis.disposed = false;\n\t\t   \t/** \n\t\t\t * The number of samples in the processing block\n\t\t\t */\n\t\t\tthis.blockSize = 128;\n\t\t\t/**\n\t\t\t * the sample rate\n\t\t\t */\n\t\t\tthis.sampleRate = sampleRate;\n\n\t\t\tthis.port.onmessage = (event) => {\n\t\t\t\t// when it receives a dispose \n\t\t\t\tif (event.data === "dispose") {\n\t\t\t\t\tthis.disposed = true;\n\t\t\t\t}\n\t\t\t};\n\t\t}\n\t}\n');Zr("\n\t/**\n\t * Abstract class for a single input/output processor. \n\t * has a 'generate' function which processes one sample at a time\n\t */\n\tclass SingleIOProcessor extends ToneAudioWorkletProcessor {\n\n\t\tconstructor(options) {\n\t\t\tsuper(Object.assign(options, {\n\t\t\t\tnumberOfInputs: 1,\n\t\t\t\tnumberOfOutputs: 1\n\t\t\t}));\n\t\t\t/**\n\t\t\t * Holds the name of the parameter and a single value of that\n\t\t\t * parameter at the current sample\n\t\t\t * @type { [name: string]: number }\n\t\t\t */\n\t\t\tthis.params = {}\n\t\t}\n\n\t\t/**\n\t\t * Generate an output sample from the input sample and parameters\n\t\t * @abstract\n\t\t * @param input number\n\t\t * @param channel number\n\t\t * @param parameters { [name: string]: number }\n\t\t * @returns number\n\t\t */\n\t\tgenerate(){}\n\n\t\t/**\n\t\t * Update the private params object with the \n\t\t * values of the parameters at the given index\n\t\t * @param parameters { [name: string]: Float32Array },\n\t\t * @param index number\n\t\t */\n\t\tupdateParams(parameters, index) {\n\t\t\tfor (const paramName in parameters) {\n\t\t\t\tconst param = parameters[paramName];\n\t\t\t\tif (param.length > 1) {\n\t\t\t\t\tthis.params[paramName] = parameters[paramName][index];\n\t\t\t\t} else {\n\t\t\t\t\tthis.params[paramName] = parameters[paramName][0];\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\t\t/**\n\t\t * Process a single frame of the audio\n\t\t * @param inputs Float32Array[][]\n\t\t * @param outputs Float32Array[][]\n\t\t */\n\t\tprocess(inputs, outputs, parameters) {\n\t\t\tconst input = inputs[0];\n\t\t\tconst output = outputs[0];\n\t\t\t// get the parameter values\n\t\t\tconst channelCount = Math.max(input && input.length || 0, output.length);\n\t\t\tfor (let sample = 0; sample < this.blockSize; sample++) {\n\t\t\t\tthis.updateParams(parameters, sample);\n\t\t\t\tfor (let channel = 0; channel < channelCount; channel++) {\n\t\t\t\t\tconst inputSample = input && input.length ? input[channel][sample] : 0;\n\t\t\t\t\toutput[channel][sample] = this.generate(inputSample, channel, this.params);\n\t\t\t\t}\n\t\t\t}\n\t\t\treturn !this.disposed;\n\t\t}\n\t};\n");Zr("\n\t/**\n\t * A multichannel buffer for use within an AudioWorkletProcessor as a delay line\n\t */\n\tclass DelayLine {\n\t\t\n\t\tconstructor(size, channels) {\n\t\t\tthis.buffer = [];\n\t\t\tthis.writeHead = []\n\t\t\tthis.size = size;\n\n\t\t\t// create the empty channels\n\t\t\tfor (let i = 0; i < channels; i++) {\n\t\t\t\tthis.buffer[i] = new Float32Array(this.size);\n\t\t\t\tthis.writeHead[i] = 0;\n\t\t\t}\n\t\t}\n\n\t\t/**\n\t\t * Push a value onto the end\n\t\t * @param channel number\n\t\t * @param value number\n\t\t */\n\t\tpush(channel, value) {\n\t\t\tthis.writeHead[channel] += 1;\n\t\t\tif (this.writeHead[channel] > this.size) {\n\t\t\t\tthis.writeHead[channel] = 0;\n\t\t\t}\n\t\t\tthis.buffer[channel][this.writeHead[channel]] = value;\n\t\t}\n\n\t\t/**\n\t\t * Get the recorded value of the channel given the delay\n\t\t * @param channel number\n\t\t * @param delay number delay samples\n\t\t */\n\t\tget(channel, delay) {\n\t\t\tlet readHead = this.writeHead[channel] - Math.floor(delay);\n\t\t\tif (readHead < 0) {\n\t\t\t\treadHead += this.size;\n\t\t\t}\n\t\t\treturn this.buffer[channel][readHead];\n\t\t}\n\t}\n");Xr("feedback-comb-filter",'\n\tclass FeedbackCombFilterWorklet extends SingleIOProcessor {\n\n\t\tconstructor(options) {\n\t\t\tsuper(options);\n\t\t\tthis.delayLine = new DelayLine(this.sampleRate, options.channelCount || 2);\n\t\t}\n\n\t\tstatic get parameterDescriptors() {\n\t\t\treturn [{\n\t\t\t\tname: "delayTime",\n\t\t\t\tdefaultValue: 0.1,\n\t\t\t\tminValue: 0,\n\t\t\t\tmaxValue: 1,\n\t\t\t\tautomationRate: "k-rate"\n\t\t\t}, {\n\t\t\t\tname: "feedback",\n\t\t\t\tdefaultValue: 0.5,\n\t\t\t\tminValue: 0,\n\t\t\t\tmaxValue: 0.9999,\n\t\t\t\tautomationRate: "k-rate"\n\t\t\t}];\n\t\t}\n\n\t\tgenerate(input, channel, parameters) {\n\t\t\tconst delayedSample = this.delayLine.get(channel, parameters.delayTime * this.sampleRate);\n\t\t\tthis.delayLine.push(channel, input + delayedSample * parameters.feedback);\n\t\t\treturn delayedSample;\n\t\t}\n\t}\n');class Hr extends Yr{constructor(){super(bi(Hr.getDefaults(),arguments,["delayTime","resonance"])),this.name="FeedbackCombFilter";const t=bi(Hr.getDefaults(),arguments,["delayTime","resonance"]);this.input=new yo({context:this.context}),this.output=new yo({context:this.context}),this.delayTime=new fo({context:this.context,value:t.delayTime,units:"time",minValue:0,maxValue:1,param:this._dummyParam,swappable:!0}),this.resonance=new fo({context:this.context,value:t.resonance,units:"normalRange",param:this._dummyParam,swappable:!0}),ji(this,["resonance","delayTime"])}_audioWorkletName(){return"feedback-comb-filter"}static getDefaults(){return Object.assign(_o.getDefaults(),{delayTime:.1,resonance:.5})}onReady(t){mo(this.input,t,this.output);const e=t.parameters.get("delayTime");this.delayTime.setParam(e);const s=t.parameters.get("feedback");this.resonance.setParam(s)}dispose(){return super.dispose(),this.input.dispose(),this.output.dispose(),this.delayTime.dispose(),this.resonance.dispose(),this}}class $r extends _o{constructor(){super(bi($r.getDefaults(),arguments,["frequency","type"])),this.name="OnePoleFilter";const t=bi($r.getDefaults(),arguments,["frequency","type"]);this._frequency=t.frequency,this._type=t.type,this.input=new yo({context:this.context}),this.output=new yo({context:this.context}),this._createFilter()}static getDefaults(){return Object.assign(_o.getDefaults(),{frequency:880,type:"lowpass"})}_createFilter(){const t=this._filter,e=this.toFrequency(this._frequency),s=1/(2*Math.PI*e);if("lowpass"===this._type){const t=1/(s*this.context.sampleRate),e=t-1;this._filter=this.context.createIIRFilter([t,0],[1,e])}else{const t=1/(s*this.context.sampleRate)-1;this._filter=this.context.createIIRFilter([1,-1],[1,t])}this.input.chain(this._filter,this.output),t&&this.context.setTimeout(()=>{this.disposed||(this.input.disconnect(t),t.disconnect())},this.blockTime)}get frequency(){return this._frequency}set frequency(t){this._frequency=t,this._createFilter()}get type(){return this._type}set type(t){this._type=t,this._createFilter()}getFrequencyResponse(t=128){const e=new Float32Array(t);for(let s=0;s<t;s++){const n=19980*Math.pow(s/t,2)+20;e[s]=n}const s=new Float32Array(t),n=new Float32Array(t);return this._filter.getFrequencyResponse(e,s,n),s}dispose(){return super.dispose(),this.input.dispose(),this.output.dispose(),this._filter.disconnect(),this}}class Jr extends _o{constructor(){super(bi(Jr.getDefaults(),arguments,["delayTime","resonance","dampening"])),this.name="LowpassCombFilter";const t=bi(Jr.getDefaults(),arguments,["delayTime","resonance","dampening"]);this._combFilter=this.output=new Hr({context:this.context,delayTime:t.delayTime,resonance:t.resonance}),this.delayTime=this._combFilter.delayTime,this.resonance=this._combFilter.resonance,this._lowpass=this.input=new $r({context:this.context,frequency:t.dampening,type:"lowpass"}),this._lowpass.connect(this._combFilter)}static getDefaults(){return Object.assign(_o.getDefaults(),{dampening:3e3,delayTime:.1,resonance:.5})}get dampening(){return this._lowpass.frequency}set dampening(t){this._lowpass.frequency=t}dispose(){return super.dispose(),this._combFilter.dispose(),this._lowpass.dispose(),this}}class Kr extends Mr{constructor(){super(bi(Kr.getDefaults(),arguments)),this.name="PluckSynth";const t=bi(Kr.getDefaults(),arguments);this._noise=new Qo({context:this.context,type:"pink"}),this.attackNoise=t.attackNoise,this._lfcf=new Jr({context:this.context,dampening:t.dampening,resonance:t.resonance}),this.resonance=t.resonance,this.release=t.release,this._noise.connect(this._lfcf),this._lfcf.connect(this.output)}static getDefaults(){return wi(Mr.getDefaults(),{attackNoise:1,dampening:4e3,resonance:.7,release:1})}get dampening(){return this._lfcf.dampening}set dampening(t){this._lfcf.dampening=t}triggerAttack(t,e){const s=this.toFrequency(t);e=this.toSeconds(e);const n=1/s;return this._lfcf.delayTime.setValueAtTime(n,e),this._noise.start(e),this._noise.stop(e+n*this.attackNoise),this._lfcf.resonance.cancelScheduledValues(e),this._lfcf.resonance.setValueAtTime(this.resonance,e),this}triggerRelease(t){return this._lfcf.resonance.linearRampTo(0,this.release,t),this}dispose(){return super.dispose(),this._noise.dispose(),this._lfcf.dispose(),this}}class ta extends Mr{constructor(){super(bi(ta.getDefaults(),arguments,["voice","options"])),this.name="PolySynth",this._availableVoices=[],this._activeVoices=[],this._voices=[],this._gcTimeout=-1,this._averageActiveVoices=0;const t=bi(ta.getDefaults(),arguments,["voice","options"]);Xn(!ii(t.voice),"DEPRECATED: The polyphony count is no longer the first argument.");const e=t.voice.getDefaults();this.options=Object.assign(e,t.options),this.voice=t.voice,this.maxPolyphony=t.maxPolyphony,this._dummyVoice=this._getNextAvailableVoice();const s=this._voices.indexOf(this._dummyVoice);this._voices.splice(s,1),this._gcTimeout=this.context.setInterval(this._collectGarbage.bind(this),1)}static getDefaults(){return Object.assign(Mr.getDefaults(),{maxPolyphony:32,options:{},voice:qr})}get activeVoices(){return this._activeVoices.length}_makeVoiceAvailable(t){this._availableVoices.push(t);const e=this._activeVoices.findIndex(e=>e.voice===t);this._activeVoices.splice(e,1)}_getNextAvailableVoice(){if(this._availableVoices.length)return this._availableVoices.shift();if(this._voices.length<this.maxPolyphony){const t=new this.voice(Object.assign(this.options,{context:this.context,onsilence:this._makeVoiceAvailable.bind(this)}));return t.connect(this.output),this._voices.push(t),t}ti("Max polyphony exceeded. Note dropped.")}_collectGarbage(){if(this._averageActiveVoices=Math.max(.95*this._averageActiveVoices,this.activeVoices),this._availableVoices.length&&this._voices.length>Math.ceil(this._averageActiveVoices+1)){const t=this._availableVoices.shift(),e=this._voices.indexOf(t);this._voices.splice(e,1),this.context.isOffline||t.dispose()}}_triggerAttack(t,e,s){t.forEach(t=>{const n=new Eo(this.context,t).toMidi(),i=this._getNextAvailableVoice();i&&(i.triggerAttack(t,e,s),this._activeVoices.push({midi:n,voice:i,released:!1}),this.log("triggerAttack",t,e))})}_triggerRelease(t,e){t.forEach(t=>{const s=new Eo(this.context,t).toMidi(),n=this._activeVoices.find(({midi:t,released:e})=>t===s&&!e);n&&(n.voice.triggerRelease(e),n.released=!0,this.log("triggerRelease",t,e))})}_scheduleEvent(t,e,s,n){Xn(!this.disposed,"Synth was already disposed"),s<=this.now()?"attack"===t?this._triggerAttack(e,s,n):this._triggerRelease(e,s):this.context.setTimeout(()=>{this._scheduleEvent(t,e,s,n)},s-this.now())}triggerAttack(t,e,s){Array.isArray(t)||(t=[t]);const n=this.toSeconds(e);return this._scheduleEvent("attack",t,n,s),this}triggerRelease(t,e){Array.isArray(t)||(t=[t]);const s=this.toSeconds(e);return this._scheduleEvent("release",t,s),this}triggerAttackRelease(t,e,s,n){const i=this.toSeconds(s);if(this.triggerAttack(t,i,n),ai(e)){Xn(ai(t),"If the duration is an array, the notes must also be an array"),t=t;for(let s=0;s<t.length;s++){const n=e[Math.min(s,e.length-1)],o=this.toSeconds(n);Xn(o>0,"The duration must be greater than 0"),this.triggerRelease(t[s],i+o)}}else{const s=this.toSeconds(e);Xn(s>0,"The duration must be greater than 0"),this.triggerRelease(t,i+s)}return this}sync(){return this._syncState()&&(this._syncMethod("triggerAttack",1),this._syncMethod("triggerRelease",1)),this}set(t){const e=Si(t,["onsilence","context"]);return this.options=wi(this.options,e),this._voices.forEach(t=>t.set(e)),this._dummyVoice.set(e),this}get(){return this._dummyVoice.get()}releaseAll(t){const e=this.toSeconds(t);return this._activeVoices.forEach(({voice:t})=>{t.triggerRelease(e)}),this}dispose(){return super.dispose(),this._dummyVoice.dispose(),this._voices.forEach(t=>t.dispose()),this._activeVoices=[],this._availableVoices=[],this.context.clearInterval(this._gcTimeout),this}}class ea extends Mr{constructor(){super(bi(ea.getDefaults(),arguments,["urls","onload","baseUrl"],"urls")),this.name="Sampler",this._activeSources=new Map;const t=bi(ea.getDefaults(),arguments,["urls","onload","baseUrl"],"urls"),e={};Object.keys(t.urls).forEach(s=>{const n=parseInt(s,10);if(Xn(hi(s)||ii(n)&&isFinite(n),"url key is neither a note or midi pitch: "+s),hi(s)){const n=new oo(this.context,s).toMidi();e[n]=t.urls[s]}else ii(n)&&isFinite(n)&&(e[n]=t.urls[n])}),this._buffers=new Mo({urls:e,onload:t.onload,baseUrl:t.baseUrl,onerror:t.onerror}),this.attack=t.attack,this.release=t.release,this.curve=t.curve,this._buffers.loaded&&Promise.resolve().then(t.onload)}static getDefaults(){return Object.assign(Mr.getDefaults(),{attack:0,baseUrl:"",curve:"exponential",onload:zi,onerror:zi,release:.1,urls:{}})}_findClosest(t){let e=0;for(;e<96;){if(this._buffers.has(t+e))return-e;if(this._buffers.has(t-e))return e;e++}throw new Error("No available buffers for note: "+t)}triggerAttack(t,e,s=1){return this.log("triggerAttack",t,e,s),Array.isArray(t)||(t=[t]),t.forEach(t=>{const n=to(new oo(this.context,t).toFrequency()),i=Math.round(n),o=n-i,r=this._findClosest(i),a=i-r,c=this._buffers.get(a),h=$i(r+o),u=new Go({url:c,context:this.context,curve:this.curve,fadeIn:this.attack,fadeOut:this.release,playbackRate:h}).connect(this.output);u.start(e,0,c.duration/h,s),ai(this._activeSources.get(i))||this._activeSources.set(i,[]),this._activeSources.get(i).push(u),u.onended=()=>{if(this._activeSources&&this._activeSources.has(i)){const t=this._activeSources.get(i),e=t.indexOf(u);-1!==e&&t.splice(e,1)}}}),this}triggerRelease(t,e){return this.log("triggerRelease",t,e),Array.isArray(t)||(t=[t]),t.forEach(t=>{const s=new oo(this.context,t).toMidi();if(this._activeSources.has(s)&&this._activeSources.get(s).length){const t=this._activeSources.get(s);e=this.toSeconds(e),t.forEach(t=>{t.stop(e)}),this._activeSources.set(s,[])}}),this}releaseAll(t){const e=this.toSeconds(t);return this._activeSources.forEach(t=>{for(;t.length;){t.shift().stop(e)}}),this}sync(){return this._syncState()&&(this._syncMethod("triggerAttack",1),this._syncMethod("triggerRelease",1)),this}triggerAttackRelease(t,e,s,n=1){const i=this.toSeconds(s);return this.triggerAttack(t,i,n),ai(e)?(Xn(ai(t),"notes must be an array when duration is array"),t.forEach((t,s)=>{const n=e[Math.min(s,e.length-1)];this.triggerRelease(t,i+this.toSeconds(n))})):this.triggerRelease(t,i+this.toSeconds(e)),this}add(t,e,s){if(Xn(hi(t)||isFinite(t),"note must be a pitch or midi: "+t),hi(t)){const n=new oo(this.context,t).toMidi();this._buffers.add(n,e,s)}else this._buffers.add(t,e,s);return this}get loaded(){return this._buffers.loaded}dispose(){return super.dispose(),this._buffers.dispose(),this._activeSources.forEach(t=>{t.forEach(t=>t.dispose())}),this._activeSources.clear(),this}}pi([_r(0)],ea.prototype,"attack",void 0),pi([_r(0)],ea.prototype,"release",void 0);class sa extends lo{constructor(){super(bi(sa.getDefaults(),arguments,["callback","value"])),this.name="ToneEvent",this._state=new po("stopped"),this._startOffset=0;const t=bi(sa.getDefaults(),arguments,["callback","value"]);this._loop=t.loop,this.callback=t.callback,this.value=t.value,this._loopStart=this.toTicks(t.loopStart),this._loopEnd=this.toTicks(t.loopEnd),this._playbackRate=t.playbackRate,this._probability=t.probability,this._humanize=t.humanize,this.mute=t.mute,this._playbackRate=t.playbackRate,this._state.increasing=!0,this._rescheduleEvents()}static getDefaults(){return Object.assign(lo.getDefaults(),{callback:zi,humanize:!1,loop:!1,loopEnd:"1m",loopStart:0,mute:!1,playbackRate:1,probability:1,value:null})}_rescheduleEvents(t=-1){this._state.forEachFrom(t,t=>{let e;if("started"===t.state){-1!==t.id&&this.context.transport.clear(t.id);const s=t.time+Math.round(this.startOffset/this._playbackRate);if(!0===this._loop||ii(this._loop)&&this._loop>1){e=1/0,ii(this._loop)&&(e=this._loop*this._getLoopDuration());const n=this._state.getAfter(s);null!==n&&(e=Math.min(e,n.time-s)),e!==1/0&&(this._state.setStateAtTime("stopped",s+e+1,{id:-1}),e=new qo(this.context,e));const i=new qo(this.context,this._getLoopDuration());t.id=this.context.transport.scheduleRepeat(this._tick.bind(this),i,new qo(this.context,s),e)}else t.id=this.context.transport.schedule(this._tick.bind(this),new qo(this.context,s))}})}get state(){return this._state.getValueAtTime(this.context.transport.ticks)}get startOffset(){return this._startOffset}set startOffset(t){this._startOffset=t}get probability(){return this._probability}set probability(t){this._probability=t}get humanize(){return this._humanize}set humanize(t){this._humanize=t}start(t){const e=this.toTicks(t);return"stopped"===this._state.getValueAtTime(e)&&(this._state.add({id:-1,state:"started",time:e}),this._rescheduleEvents(e)),this}stop(t){this.cancel(t);const e=this.toTicks(t);if("started"===this._state.getValueAtTime(e)){this._state.setStateAtTime("stopped",e,{id:-1});const t=this._state.getBefore(e);let s=e;null!==t&&(s=t.time),this._rescheduleEvents(s)}return this}cancel(t){t=Ti(t,-1/0);const e=this.toTicks(t);return this._state.forEachFrom(e,t=>{this.context.transport.clear(t.id)}),this._state.cancel(e),this}_tick(t){const e=this.context.transport.getTicksAtTime(t);if(!this.mute&&"started"===this._state.getValueAtTime(e)){if(this.probability<1&&Math.random()>this.probability)return;if(this.humanize){let e=.02;ri(this.humanize)||(e=this.toSeconds(this.humanize)),t+=(2*Math.random()-1)*e}this.callback(t,this.value)}}_getLoopDuration(){return Math.round((this._loopEnd-this._loopStart)/this._playbackRate)}get loop(){return this._loop}set loop(t){this._loop=t,this._rescheduleEvents()}get playbackRate(){return this._playbackRate}set playbackRate(t){this._playbackRate=t,this._rescheduleEvents()}get loopEnd(){return new qo(this.context,this._loopEnd).toSeconds()}set loopEnd(t){this._loopEnd=this.toTicks(t),this._loop&&this._rescheduleEvents()}get loopStart(){return new qo(this.context,this._loopStart).toSeconds()}set loopStart(t){this._loopStart=this.toTicks(t),this._loop&&this._rescheduleEvents()}get progress(){if(this._loop){const t=this.context.transport.ticks,e=this._state.get(t);if(null!==e&&"started"===e.state){const s=this._getLoopDuration();return(t-e.time)%s/s}return 0}return 0}dispose(){return super.dispose(),this.cancel(),this._state.dispose(),this}}class na extends lo{constructor(){super(bi(na.getDefaults(),arguments,["callback","interval"])),this.name="Loop";const t=bi(na.getDefaults(),arguments,["callback","interval"]);this._event=new sa({context:this.context,callback:this._tick.bind(this),loop:!0,loopEnd:t.interval,playbackRate:t.playbackRate,probability:t.probability}),this.callback=t.callback,this.iterations=t.iterations}static getDefaults(){return Object.assign(lo.getDefaults(),{interval:"4n",callback:zi,playbackRate:1,iterations:1/0,probability:1,mute:!1,humanize:!1})}start(t){return this._event.start(t),this}stop(t){return this._event.stop(t),this}cancel(t){return this._event.cancel(t),this}_tick(t){this.callback(t)}get state(){return this._event.state}get progress(){return this._event.progress}get interval(){return this._event.loopEnd}set interval(t){this._event.loopEnd=t}get playbackRate(){return this._event.playbackRate}set playbackRate(t){this._event.playbackRate=t}get humanize(){return this._event.humanize}set humanize(t){this._event.humanize=t}get probability(){return this._event.probability}set probability(t){this._event.probability=t}get mute(){return this._event.mute}set mute(t){this._event.mute=t}get iterations(){return!0===this._event.loop?1/0:this._event.loop}set iterations(t){this._event.loop=t===1/0||t}dispose(){return super.dispose(),this._event.dispose(),this}}class ia extends sa{constructor(){super(bi(ia.getDefaults(),arguments,["callback","events"])),this.name="Part",this._state=new po("stopped"),this._events=new Set;const t=bi(ia.getDefaults(),arguments,["callback","events"]);this._state.increasing=!0,t.events.forEach(t=>{ai(t)?this.add(t[0],t[1]):this.add(t)})}static getDefaults(){return Object.assign(sa.getDefaults(),{events:[]})}start(t,e){const s=this.toTicks(t);if("started"!==this._state.getValueAtTime(s)){e=Ti(e,this._loop?this._loopStart:0),e=this._loop?Ti(e,this._loopStart):Ti(e,0);const t=this.toTicks(e);this._state.add({id:-1,offset:t,state:"started",time:s}),this._forEach(e=>{this._startNote(e,s,t)})}return this}_startNote(t,e,s){e-=s,this._loop?t.startOffset>=this._loopStart&&t.startOffset<this._loopEnd?(t.startOffset<s&&(e+=this._getLoopDuration()),t.start(new qo(this.context,e))):t.startOffset<this._loopStart&&t.startOffset>=s&&(t.loop=!1,t.start(new qo(this.context,e))):t.startOffset>=s&&t.start(new qo(this.context,e))}get startOffset(){return this._startOffset}set startOffset(t){this._startOffset=t,this._forEach(t=>{t.startOffset+=this._startOffset})}stop(t){const e=this.toTicks(t);return this._state.cancel(e),this._state.setStateAtTime("stopped",e),this._forEach(e=>{e.stop(t)}),this}at(t,e){const s=new ho(this.context,t).toTicks(),n=new qo(this.context,1).toSeconds(),i=this._events.values();let o=i.next();for(;!o.done;){const t=o.value;if(Math.abs(s-t.startOffset)<n)return si(e)&&(t.value=e),t;o=i.next()}return si(e)?(this.add(t,e),this.at(t)):null}add(t,e){t instanceof Object&&Reflect.has(t,"time")&&(t=(e=t).time);const s=this.toTicks(t);let n;return e instanceof sa?(n=e,n.callback=this._tick.bind(this)):n=new sa({callback:this._tick.bind(this),context:this.context,value:e}),n.startOffset=s,n.set({humanize:this.humanize,loop:this.loop,loopEnd:this.loopEnd,loopStart:this.loopStart,playbackRate:this.playbackRate,probability:this.probability}),this._events.add(n),this._restartEvent(n),this}_restartEvent(t){this._state.forEach(e=>{"started"===e.state?this._startNote(t,e.time,e.offset):t.stop(new qo(this.context,e.time))})}remove(t,e){return oi(t)&&t.hasOwnProperty("time")&&(t=(e=t).time),t=this.toTicks(t),this._events.forEach(s=>{s.startOffset===t&&(ei(e)||si(e)&&s.value===e)&&(this._events.delete(s),s.dispose())}),this}clear(){return this._forEach(t=>t.dispose()),this._events.clear(),this}cancel(t){return this._forEach(e=>e.cancel(t)),this._state.cancel(this.toTicks(t)),this}_forEach(t){return this._events&&this._events.forEach(e=>{e instanceof ia?e._forEach(t):t(e)}),this}_setAll(t,e){this._forEach(s=>{s[t]=e})}_tick(t,e){this.mute||this.callback(t,e)}_testLoopBoundries(t){this._loop&&(t.startOffset<this._loopStart||t.startOffset>=this._loopEnd)?t.cancel(0):"stopped"===t.state&&this._restartEvent(t)}get probability(){return this._probability}set probability(t){this._probability=t,this._setAll("probability",t)}get humanize(){return this._humanize}set humanize(t){this._humanize=t,this._setAll("humanize",t)}get loop(){return this._loop}set loop(t){this._loop=t,this._forEach(e=>{e.loopStart=this.loopStart,e.loopEnd=this.loopEnd,e.loop=t,this._testLoopBoundries(e)})}get loopEnd(){return new qo(this.context,this._loopEnd).toSeconds()}set loopEnd(t){this._loopEnd=this.toTicks(t),this._loop&&this._forEach(e=>{e.loopEnd=t,this._testLoopBoundries(e)})}get loopStart(){return new qo(this.context,this._loopStart).toSeconds()}set loopStart(t){this._loopStart=this.toTicks(t),this._loop&&this._forEach(t=>{t.loopStart=this.loopStart,this._testLoopBoundries(t)})}get playbackRate(){return this._playbackRate}set playbackRate(t){this._playbackRate=t,this._setAll("playbackRate",t)}get length(){return this._events.size}dispose(){return super.dispose(),this.clear(),this}}function*oa(t){let e=0;for(;e<t.length;)e=ca(e,t),yield t[e],e++}function*ra(t){let e=t.length-1;for(;e>=0;)e=ca(e,t),yield t[e],e--}function*aa(t,e){for(;;)yield*e(t)}function ca(t,e){return Mi(t,0,e.length-1)}function*ha(t,e){let s=e?0:t.length-1;for(;;)s=ca(s,t),yield t[s],e?(s++,s>=t.length-1&&(e=!1)):(s--,s<=0&&(e=!0))}function*ua(t){let e=0,s=0;for(;e<t.length;)e=ca(e,t),yield t[e],s++,e+=s%2?2:-1}function*la(t){let e=t.length-1,s=0;for(;e>=0;)e=ca(e,t),yield t[e],s++,e+=s%2?-2:1}function*pa(t){const e=[];for(let s=0;s<t.length;s++)e.push(s);for(;e.length>0;){const s=ca(e.splice(Math.floor(e.length*Math.random()),1)[0],t);yield t[s]}}function*da(t,e="up",s=0){switch(Xn(t.length>0,"The array must have more than one value in it"),e){case"up":yield*aa(t,oa);case"down":yield*aa(t,ra);case"upDown":yield*ha(t,!0);case"downUp":yield*ha(t,!1);case"alternateUp":yield*aa(t,ua);case"alternateDown":yield*aa(t,la);case"random":yield*function*(t){for(;;){const e=Math.floor(Math.random()*t.length);yield t[e]}}(t);case"randomOnce":yield*aa(t,pa);case"randomWalk":yield*function*(t){let e=Math.floor(Math.random()*t.length);for(;;)0===e?e++:e===t.length-1||Math.random()<.5?e--:e++,yield t[e]}(t)}}class fa extends na{constructor(){super(bi(fa.getDefaults(),arguments,["callback","values","pattern"])),this.name="Pattern";const t=bi(fa.getDefaults(),arguments,["callback","values","pattern"]);this.callback=t.callback,this._values=t.values,this._pattern=da(t.values,t.pattern),this._type=t.pattern}static getDefaults(){return Object.assign(na.getDefaults(),{pattern:"up",values:[],callback:zi})}_tick(t){const e=this._pattern.next();this._value=e.value,this.callback(t,this._value)}get values(){return this._values}set values(t){this._values=t,this.pattern=this._type}get value(){return this._value}get pattern(){return this._type}set pattern(t){this._type=t,this._pattern=da(this._values,this._type)}}class _a extends sa{constructor(){super(bi(_a.getDefaults(),arguments,["callback","events","subdivision"])),this.name="Sequence",this._part=new ia({callback:this._seqCallback.bind(this),context:this.context}),this._events=[],this._eventsArray=[];const t=bi(_a.getDefaults(),arguments,["callback","events","subdivision"]);this._subdivision=this.toTicks(t.subdivision),this.events=t.events,this.loop=t.loop,this.loopStart=t.loopStart,this.loopEnd=t.loopEnd,this.playbackRate=t.playbackRate,this.probability=t.probability,this.humanize=t.humanize,this.mute=t.mute,this.playbackRate=t.playbackRate}static getDefaults(){return Object.assign(Si(sa.getDefaults(),["value"]),{events:[],loop:!0,loopEnd:0,loopStart:0,subdivision:"8n"})}_seqCallback(t,e){null!==e&&this.callback(t,e)}get events(){return this._events}set events(t){this.clear(),this._eventsArray=t,this._events=this._createSequence(this._eventsArray),this._eventsUpdated()}start(t,e){return this._part.start(t,e?this._indexTime(e):e),this}stop(t){return this._part.stop(t),this}get subdivision(){return new qo(this.context,this._subdivision).toSeconds()}_createSequence(t){return new Proxy(t,{get:(t,e)=>t[e],set:(t,e,s)=>(ci(e)&&isFinite(parseInt(e,10))&&ai(s)?t[e]=this._createSequence(s):t[e]=s,this._eventsUpdated(),!0)})}_eventsUpdated(){this._part.clear(),this._rescheduleSequence(this._eventsArray,this._subdivision,this.startOffset),this.loopEnd=this.loopEnd}_rescheduleSequence(t,e,s){t.forEach((t,n)=>{const i=n*e+s;if(ai(t))this._rescheduleSequence(t,e/t.length,i);else{const e=new qo(this.context,i,"i").toSeconds();this._part.add(e,t)}})}_indexTime(t){return new qo(this.context,t*this._subdivision+this.startOffset).toSeconds()}clear(){return this._part.clear(),this}dispose(){return super.dispose(),this._part.dispose(),this}get loop(){return this._part.loop}set loop(t){this._part.loop=t}get loopStart(){return this._loopStart}set loopStart(t){this._loopStart=t,this._part.loopStart=this._indexTime(t)}get loopEnd(){return this._loopEnd}set loopEnd(t){this._loopEnd=t,this._part.loopEnd=0===t?this._indexTime(this._eventsArray.length):this._indexTime(t)}get startOffset(){return this._part.startOffset}set startOffset(t){this._part.startOffset=t}get playbackRate(){return this._part.playbackRate}set playbackRate(t){this._part.playbackRate=t}get probability(){return this._part.probability}set probability(t){this._part.probability=t}get progress(){return this._part.progress}get humanize(){return this._part.humanize}set humanize(t){this._part.humanize=t}get length(){return this._part.length}}class ma extends _o{constructor(){super(Object.assign(bi(ma.getDefaults(),arguments,["fade"]))),this.name="CrossFade",this._panner=this.context.createStereoPanner(),this._split=this.context.createChannelSplitter(2),this._g2a=new xr({context:this.context}),this.a=new yo({context:this.context,gain:0}),this.b=new yo({context:this.context,gain:0}),this.output=new yo({context:this.context}),this._internalChannels=[this.a,this.b];const t=bi(ma.getDefaults(),arguments,["fade"]);this.fade=new bo({context:this.context,units:"normalRange",value:t.fade}),ji(this,"fade"),this.context.getConstant(1).connect(this._panner),this._panner.connect(this._split),this._panner.channelCount=1,this._panner.channelCountMode="explicit",go(this._split,this.a.gain,0),go(this._split,this.b.gain,1),this.fade.chain(this._g2a,this._panner.pan),this.a.connect(this.output),this.b.connect(this.output)}static getDefaults(){return Object.assign(_o.getDefaults(),{fade:.5})}dispose(){return super.dispose(),this.a.dispose(),this.b.dispose(),this.output.dispose(),this.fade.dispose(),this._g2a.dispose(),this._panner.disconnect(),this._split.disconnect(),this}}class ga extends _o{constructor(t){super(t),this.name="Effect",this._dryWet=new ma({context:this.context}),this.wet=this._dryWet.fade,this.effectSend=new yo({context:this.context}),this.effectReturn=new yo({context:this.context}),this.input=new yo({context:this.context}),this.output=this._dryWet,this.input.fan(this._dryWet.a,this.effectSend),this.effectReturn.connect(this._dryWet.b),this.wet.setValueAtTime(t.wet,0),this._internalChannels=[this.effectReturn,this.effectSend],ji(this,"wet")}static getDefaults(){return Object.assign(_o.getDefaults(),{wet:1})}connectEffect(t){return this._internalChannels.push(t),this.effectSend.chain(t,this.effectReturn),this}dispose(){return super.dispose(),this._dryWet.dispose(),this.effectSend.dispose(),this.effectReturn.dispose(),this.wet.dispose(),this}}class va extends ga{constructor(t){super(t),this.name="LFOEffect",this._lfo=new dr({context:this.context,frequency:t.frequency,amplitude:t.depth}),this.depth=this._lfo.amplitude,this.frequency=this._lfo.frequency,this.type=t.type,ji(this,["frequency","depth"])}static getDefaults(){return Object.assign(ga.getDefaults(),{frequency:1,type:"sine",depth:1})}start(t){return this._lfo.start(t),this}stop(t){return this._lfo.stop(t),this}sync(){return this._lfo.sync(),this}unsync(){return this._lfo.unsync(),this}get type(){return this._lfo.type}set type(t){this._lfo.type=t}dispose(){return super.dispose(),this._lfo.dispose(),this.frequency.dispose(),this.depth.dispose(),this}}class ya extends va{constructor(){super(bi(ya.getDefaults(),arguments,["frequency","baseFrequency","octaves"])),this.name="AutoFilter";const t=bi(ya.getDefaults(),arguments,["frequency","baseFrequency","octaves"]);this.filter=new Nr(Object.assign(t.filter,{context:this.context})),this.connectEffect(this.filter),this._lfo.connect(this.filter.frequency),this.octaves=t.octaves,this.baseFrequency=t.baseFrequency}static getDefaults(){return Object.assign(va.getDefaults(),{baseFrequency:200,octaves:2.6,filter:{type:"lowpass",rolloff:-12,Q:1}})}get baseFrequency(){return this._lfo.min}set baseFrequency(t){this._lfo.min=this.toFrequency(t),this.octaves=this._octaves}get octaves(){return this._octaves}set octaves(t){this._octaves=t,this._lfo.max=this._lfo.min*Math.pow(2,t)}dispose(){return super.dispose(),this.filter.dispose(),this}}class xa extends _o{constructor(){super(Object.assign(bi(xa.getDefaults(),arguments,["pan"]))),this.name="Panner",this._panner=this.context.createStereoPanner(),this.input=this._panner,this.output=this._panner;const t=bi(xa.getDefaults(),arguments,["pan"]);this.pan=new fo({context:this.context,param:this._panner.pan,value:t.pan,minValue:-1,maxValue:1}),this._panner.channelCount=t.channelCount,this._panner.channelCountMode="explicit",ji(this,"pan")}static getDefaults(){return Object.assign(_o.getDefaults(),{pan:0,channelCount:1})}dispose(){return super.dispose(),this._panner.disconnect(),this.pan.dispose(),this}}class wa extends va{constructor(){super(bi(wa.getDefaults(),arguments,["frequency"])),this.name="AutoPanner";const t=bi(wa.getDefaults(),arguments,["frequency"]);this._panner=new xa({context:this.context,channelCount:t.channelCount}),this.connectEffect(this._panner),this._lfo.connect(this._panner.pan),this._lfo.min=-1,this._lfo.max=1}static getDefaults(){return Object.assign(va.getDefaults(),{channelCount:1})}dispose(){return super.dispose(),this._panner.dispose(),this}}class ba extends _o{constructor(){super(bi(ba.getDefaults(),arguments,["smoothing"])),this.name="Follower";const t=bi(ba.getDefaults(),arguments,["smoothing"]);this._abs=this.input=new yr({context:this.context}),this._lowpass=this.output=new $r({context:this.context,frequency:1/this.toSeconds(t.smoothing),type:"lowpass"}),this._abs.connect(this._lowpass),this._smoothing=t.smoothing}static getDefaults(){return Object.assign(_o.getDefaults(),{smoothing:.05})}get smoothing(){return this._smoothing}set smoothing(t){this._smoothing=t,this._lowpass.frequency=1/this.toSeconds(this.smoothing)}dispose(){return super.dispose(),this._abs.dispose(),this._lowpass.dispose(),this}}class Ta extends ga{constructor(){super(bi(Ta.getDefaults(),arguments,["baseFrequency","octaves","sensitivity"])),this.name="AutoWah";const t=bi(Ta.getDefaults(),arguments,["baseFrequency","octaves","sensitivity"]);this._follower=new ba({context:this.context,smoothing:t.follower}),this._sweepRange=new Cr({context:this.context,min:0,max:1,exponent:.5}),this._baseFrequency=this.toFrequency(t.baseFrequency),this._octaves=t.octaves,this._inputBoost=new yo({context:this.context}),this._bandpass=new Nr({context:this.context,rolloff:-48,frequency:0,Q:t.Q}),this._peaking=new Nr({context:this.context,type:"peaking"}),this._peaking.gain.value=t.gain,this.gain=this._peaking.gain,this.Q=this._bandpass.Q,this.effectSend.chain(this._inputBoost,this._follower,this._sweepRange),this._sweepRange.connect(this._bandpass.frequency),this._sweepRange.connect(this._peaking.frequency),this.effectSend.chain(this._bandpass,this._peaking,this.effectReturn),this._setSweepRange(),this.sensitivity=t.sensitivity,ji(this,["gain","Q"])}static getDefaults(){return Object.assign(ga.getDefaults(),{baseFrequency:100,octaves:6,sensitivity:0,Q:2,gain:2,follower:.2})}get octaves(){return this._octaves}set octaves(t){this._octaves=t,this._setSweepRange()}get follower(){return this._follower.smoothing}set follower(t){this._follower.smoothing=t}get baseFrequency(){return this._baseFrequency}set baseFrequency(t){this._baseFrequency=this.toFrequency(t),this._setSweepRange()}get sensitivity(){return Hi(1/this._inputBoost.gain.value)}set sensitivity(t){this._inputBoost.gain.value=1/Yi(t)}_setSweepRange(){this._sweepRange.min=this._baseFrequency,this._sweepRange.max=Math.min(this._baseFrequency*Math.pow(2,this._octaves),this.context.sampleRate/2)}dispose(){return super.dispose(),this._follower.dispose(),this._sweepRange.dispose(),this._bandpass.dispose(),this._peaking.dispose(),this._inputBoost.dispose(),this}}Xr("bit-crusher","\n\tclass BitCrusherWorklet extends SingleIOProcessor {\n\n\t\tstatic get parameterDescriptors() {\n\t\t\treturn [{\n\t\t\t\tname: \"bits\",\n\t\t\t\tdefaultValue: 12,\n\t\t\t\tminValue: 1,\n\t\t\t\tmaxValue: 16,\n\t\t\t\tautomationRate: 'k-rate'\n\t\t\t}];\n\t\t}\n\n\t\tgenerate(input, _channel, parameters) {\n\t\t\tconst step = Math.pow(0.5, parameters.bits - 1);\n\t\t\tconst val = step * Math.floor(input / step + 0.5);\n\t\t\treturn val;\n\t\t}\n\t}\n");class Sa extends ga{constructor(){super(bi(Sa.getDefaults(),arguments,["bits"])),this.name="BitCrusher";const t=bi(Sa.getDefaults(),arguments,["bits"]);this._bitCrusherWorklet=new ka({context:this.context,bits:t.bits}),this.connectEffect(this._bitCrusherWorklet),this.bits=this._bitCrusherWorklet.bits}static getDefaults(){return Object.assign(ga.getDefaults(),{bits:4})}dispose(){return super.dispose(),this._bitCrusherWorklet.dispose(),this}}class ka extends Yr{constructor(){super(bi(ka.getDefaults(),arguments)),this.name="BitCrusherWorklet";const t=bi(ka.getDefaults(),arguments);this.input=new yo({context:this.context}),this.output=new yo({context:this.context}),this.bits=new fo({context:this.context,value:t.bits,units:"positive",minValue:1,maxValue:16,param:this._dummyParam,swappable:!0})}static getDefaults(){return Object.assign(Yr.getDefaults(),{bits:12})}_audioWorkletName(){return"bit-crusher"}onReady(t){mo(this.input,t,this.output);const e=t.parameters.get("bits");this.bits.setParam(e)}dispose(){return super.dispose(),this.input.dispose(),this.output.dispose(),this.bits.dispose(),this}}class Ca extends ga{constructor(){super(bi(Ca.getDefaults(),arguments,["order"])),this.name="Chebyshev";const t=bi(Ca.getDefaults(),arguments,["order"]);this._shaper=new tr({context:this.context,length:4096}),this._order=t.order,this.connectEffect(this._shaper),this.order=t.order,this.oversample=t.oversample}static getDefaults(){return Object.assign(ga.getDefaults(),{order:1,oversample:"none"})}_getCoefficient(t,e,s){return s.has(e)||(0===e?s.set(e,0):1===e?s.set(e,t):s.set(e,2*t*this._getCoefficient(t,e-1,s)-this._getCoefficient(t,e-2,s))),s.get(e)}get order(){return this._order}set order(t){this._order=t,this._shaper.setMap(e=>this._getCoefficient(e,t,new Map))}get oversample(){return this._shaper.oversample}set oversample(t){this._shaper.oversample=t}dispose(){return super.dispose(),this._shaper.dispose(),this}}class Aa extends _o{constructor(){super(bi(Aa.getDefaults(),arguments,["channels"])),this.name="Split";const t=bi(Aa.getDefaults(),arguments,["channels"]);this._splitter=this.input=this.output=this.context.createChannelSplitter(t.channels),this._internalChannels=[this._splitter]}static getDefaults(){return Object.assign(_o.getDefaults(),{channels:2})}dispose(){return super.dispose(),this._splitter.disconnect(),this}}class Da extends _o{constructor(){super(bi(Da.getDefaults(),arguments,["channels"])),this.name="Merge";const t=bi(Da.getDefaults(),arguments,["channels"]);this._merger=this.output=this.input=this.context.createChannelMerger(t.channels)}static getDefaults(){return Object.assign(_o.getDefaults(),{channels:2})}dispose(){return super.dispose(),this._merger.disconnect(),this}}class Oa extends _o{constructor(t){super(t),this.name="StereoEffect",this.input=new yo({context:this.context}),this.input.channelCount=2,this.input.channelCountMode="explicit",this._dryWet=this.output=new ma({context:this.context,fade:t.wet}),this.wet=this._dryWet.fade,this._split=new Aa({context:this.context,channels:2}),this._merge=new Da({context:this.context,channels:2}),this.input.connect(this._split),this.input.connect(this._dryWet.a),this._merge.connect(this._dryWet.b),ji(this,["wet"])}connectEffectLeft(...t){this._split.connect(t[0],0,0),mo(...t),go(t[t.length-1],this._merge,0,0)}connectEffectRight(...t){this._split.connect(t[0],1,0),mo(...t),go(t[t.length-1],this._merge,0,1)}static getDefaults(){return Object.assign(_o.getDefaults(),{wet:1})}dispose(){return super.dispose(),this._dryWet.dispose(),this._split.dispose(),this._merge.dispose(),this}}class Ma extends Oa{constructor(t){super(t),this.feedback=new bo({context:this.context,value:t.feedback,units:"normalRange"}),this._feedbackL=new yo({context:this.context}),this._feedbackR=new yo({context:this.context}),this._feedbackSplit=new Aa({context:this.context,channels:2}),this._feedbackMerge=new Da({context:this.context,channels:2}),this._merge.connect(this._feedbackSplit),this._feedbackMerge.connect(this._split),this._feedbackSplit.connect(this._feedbackL,0,0),this._feedbackL.connect(this._feedbackMerge,0,0),this._feedbackSplit.connect(this._feedbackR,1,0),this._feedbackR.connect(this._feedbackMerge,0,1),this.feedback.fan(this._feedbackL.gain,this._feedbackR.gain),ji(this,["feedback"])}static getDefaults(){return Object.assign(Oa.getDefaults(),{feedback:.5})}dispose(){return super.dispose(),this.feedback.dispose(),this._feedbackL.dispose(),this._feedbackR.dispose(),this._feedbackSplit.dispose(),this._feedbackMerge.dispose(),this}}class Ea extends Ma{constructor(){super(bi(Ea.getDefaults(),arguments,["frequency","delayTime","depth"])),this.name="Chorus";const t=bi(Ea.getDefaults(),arguments,["frequency","delayTime","depth"]);this._depth=t.depth,this._delayTime=t.delayTime/1e3,this._lfoL=new dr({context:this.context,frequency:t.frequency,min:0,max:1}),this._lfoR=new dr({context:this.context,frequency:t.frequency,min:0,max:1,phase:180}),this._delayNodeL=new Do({context:this.context}),this._delayNodeR=new Do({context:this.context}),this.frequency=this._lfoL.frequency,ji(this,["frequency"]),this._lfoL.frequency.connect(this._lfoR.frequency),this.connectEffectLeft(this._delayNodeL),this.connectEffectRight(this._delayNodeR),this._lfoL.connect(this._delayNodeL.delayTime),this._lfoR.connect(this._delayNodeR.delayTime),this.depth=this._depth,this.type=t.type,this.spread=t.spread}static getDefaults(){return Object.assign(Ma.getDefaults(),{frequency:1.5,delayTime:3.5,depth:.7,type:"sine",spread:180,feedback:0,wet:.5})}get depth(){return this._depth}set depth(t){this._depth=t;const e=this._delayTime*t;this._lfoL.min=Math.max(this._delayTime-e,0),this._lfoL.max=this._delayTime+e,this._lfoR.min=Math.max(this._delayTime-e,0),this._lfoR.max=this._delayTime+e}get delayTime(){return 1e3*this._delayTime}set delayTime(t){this._delayTime=t/1e3,this.depth=this._depth}get type(){return this._lfoL.type}set type(t){this._lfoL.type=t,this._lfoR.type=t}get spread(){return this._lfoR.phase-this._lfoL.phase}set spread(t){this._lfoL.phase=90-t/2,this._lfoR.phase=t/2+90}start(t){return this._lfoL.start(t),this._lfoR.start(t),this}stop(t){return this._lfoL.stop(t),this._lfoR.stop(t),this}sync(){return this._lfoL.sync(),this._lfoR.sync(),this}unsync(){return this._lfoL.unsync(),this._lfoR.unsync(),this}dispose(){return super.dispose(),this._lfoL.dispose(),this._lfoR.dispose(),this._delayNodeL.dispose(),this._delayNodeR.dispose(),this.frequency.dispose(),this}}class Ra extends ga{constructor(){super(bi(Ra.getDefaults(),arguments,["distortion"])),this.name="Distortion";const t=bi(Ra.getDefaults(),arguments,["distortion"]);this._shaper=new tr({context:this.context,length:4096}),this._distortion=t.distortion,this.connectEffect(this._shaper),this.distortion=t.distortion,this.oversample=t.oversample}static getDefaults(){return Object.assign(ga.getDefaults(),{distortion:.4,oversample:"none"})}get distortion(){return this._distortion}set distortion(t){this._distortion=t;const e=100*t,s=Math.PI/180;this._shaper.setMap(t=>Math.abs(t)<.001?0:(3+e)*t*20*s/(Math.PI+e*Math.abs(t)))}get oversample(){return this._shaper.oversample}set oversample(t){this._shaper.oversample=t}dispose(){return super.dispose(),this._shaper.dispose(),this}}class qa extends ga{constructor(t){super(t),this.name="FeedbackEffect",this._feedbackGain=new yo({context:this.context,gain:t.feedback,units:"normalRange"}),this.feedback=this._feedbackGain.gain,ji(this,"feedback"),this.effectReturn.chain(this._feedbackGain,this.effectSend)}static getDefaults(){return Object.assign(ga.getDefaults(),{feedback:.125})}dispose(){return super.dispose(),this._feedbackGain.dispose(),this.feedback.dispose(),this}}class Fa extends qa{constructor(){super(bi(Fa.getDefaults(),arguments,["delayTime","feedback"])),this.name="FeedbackDelay";const t=bi(Fa.getDefaults(),arguments,["delayTime","feedback"]);this._delayNode=new Do({context:this.context,delayTime:t.delayTime,maxDelay:t.maxDelay}),this.delayTime=this._delayNode.delayTime,this.connectEffect(this._delayNode),ji(this,"delayTime")}static getDefaults(){return Object.assign(qa.getDefaults(),{delayTime:.25,maxDelay:1})}dispose(){return super.dispose(),this._delayNode.dispose(),this.delayTime.dispose(),this}}class Ia extends _o{constructor(t){super(t),this.name="PhaseShiftAllpass",this.input=new yo({context:this.context}),this.output=new yo({context:this.context}),this.offset90=new yo({context:this.context});this._bank0=this._createAllPassFilterBank([.6923878,.9360654322959,.988229522686,.9987488452737]),this._bank1=this._createAllPassFilterBank([.4021921162426,.856171088242,.9722909545651,.9952884791278]),this._oneSampleDelay=this.context.createIIRFilter([0,1],[1,0]),mo(this.input,...this._bank0,this._oneSampleDelay,this.output),mo(this.input,...this._bank1,this.offset90)}_createAllPassFilterBank(t){return t.map(t=>{const e=[[t*t,0,-1],[1,0,-t*t]];return this.context.createIIRFilter(e[0],e[1])})}dispose(){return super.dispose(),this.input.dispose(),this.output.dispose(),this.offset90.dispose(),this._bank0.forEach(t=>t.disconnect()),this._bank1.forEach(t=>t.disconnect()),this._oneSampleDelay.disconnect(),this}}class Va extends ga{constructor(){super(bi(Va.getDefaults(),arguments,["frequency"])),this.name="FrequencyShifter";const t=bi(Va.getDefaults(),arguments,["frequency"]);this.frequency=new bo({context:this.context,units:"frequency",value:t.frequency,minValue:-this.context.sampleRate/2,maxValue:this.context.sampleRate/2}),this._sine=new $o({context:this.context,type:"sine"}),this._cosine=new Jo({context:this.context,phase:-90,type:"sine"}),this._sineMultiply=new sr({context:this.context}),this._cosineMultiply=new sr({context:this.context}),this._negate=new wr({context:this.context}),this._add=new ur({context:this.context}),this._phaseShifter=new Ia({context:this.context}),this.effectSend.connect(this._phaseShifter),this.frequency.fan(this._sine.frequency,this._cosine.frequency),this._phaseShifter.offset90.connect(this._cosineMultiply),this._cosine.connect(this._cosineMultiply.factor),this._phaseShifter.connect(this._sineMultiply),this._sine.connect(this._sineMultiply.factor),this._sineMultiply.connect(this._negate),this._cosineMultiply.connect(this._add),this._negate.connect(this._add.addend),this._add.connect(this.effectReturn);const e=this.immediate();this._sine.start(e),this._cosine.start(e)}static getDefaults(){return Object.assign(ga.getDefaults(),{frequency:0})}dispose(){return super.dispose(),this.frequency.dispose(),this._add.dispose(),this._cosine.dispose(),this._cosineMultiply.dispose(),this._negate.dispose(),this._phaseShifter.dispose(),this._sine.dispose(),this._sineMultiply.dispose(),this}}const Na=[1557/44100,1617/44100,1491/44100,1422/44100,1277/44100,1356/44100,1188/44100,1116/44100],Pa=[225,556,441,341];class ja extends Oa{constructor(){super(bi(ja.getDefaults(),arguments,["roomSize","dampening"])),this.name="Freeverb",this._combFilters=[],this._allpassFiltersL=[],this._allpassFiltersR=[];const t=bi(ja.getDefaults(),arguments,["roomSize","dampening"]);this.roomSize=new bo({context:this.context,value:t.roomSize,units:"normalRange"}),this._allpassFiltersL=Pa.map(t=>{const e=this.context.createBiquadFilter();return e.type="allpass",e.frequency.value=t,e}),this._allpassFiltersR=Pa.map(t=>{const e=this.context.createBiquadFilter();return e.type="allpass",e.frequency.value=t,e}),this._combFilters=Na.map((e,s)=>{const n=new Jr({context:this.context,dampening:t.dampening,delayTime:e});return s<Na.length/2?this.connectEffectLeft(n,...this._allpassFiltersL):this.connectEffectRight(n,...this._allpassFiltersR),this.roomSize.connect(n.resonance),n}),ji(this,["roomSize"])}static getDefaults(){return Object.assign(Oa.getDefaults(),{roomSize:.7,dampening:3e3})}get dampening(){return this._combFilters[0].dampening}set dampening(t){this._combFilters.forEach(e=>e.dampening=t)}dispose(){return super.dispose(),this._allpassFiltersL.forEach(t=>t.disconnect()),this._allpassFiltersR.forEach(t=>t.disconnect()),this._combFilters.forEach(t=>t.dispose()),this.roomSize.dispose(),this}}const La=[.06748,.06404,.08212,.09004],za=[.773,.802,.753,.733],Ba=[347,113,37];class Wa extends Oa{constructor(){super(bi(Wa.getDefaults(),arguments,["roomSize"])),this.name="JCReverb",this._allpassFilters=[],this._feedbackCombFilters=[];const t=bi(Wa.getDefaults(),arguments,["roomSize"]);this.roomSize=new bo({context:this.context,value:t.roomSize,units:"normalRange"}),this._scaleRoomSize=new lr({context:this.context,min:-.733,max:.197}),this._allpassFilters=Ba.map(t=>{const e=this.context.createBiquadFilter();return e.type="allpass",e.frequency.value=t,e}),this._feedbackCombFilters=La.map((t,e)=>{const s=new Hr({context:this.context,delayTime:t});return this._scaleRoomSize.connect(s.resonance),s.resonance.value=za[e],e<La.length/2?this.connectEffectLeft(...this._allpassFilters,s):this.connectEffectRight(...this._allpassFilters,s),s}),this.roomSize.connect(this._scaleRoomSize),ji(this,["roomSize"])}static getDefaults(){return Object.assign(Oa.getDefaults(),{roomSize:.5})}dispose(){return super.dispose(),this._allpassFilters.forEach(t=>t.disconnect()),this._feedbackCombFilters.forEach(t=>t.dispose()),this.roomSize.dispose(),this._scaleRoomSize.dispose(),this}}class Ua extends Ma{constructor(t){super(t),this._feedbackL.disconnect(),this._feedbackL.connect(this._feedbackMerge,0,1),this._feedbackR.disconnect(),this._feedbackR.connect(this._feedbackMerge,0,0),ji(this,["feedback"])}}class Ga extends Ua{constructor(){super(bi(Ga.getDefaults(),arguments,["delayTime","feedback"])),this.name="PingPongDelay";const t=bi(Ga.getDefaults(),arguments,["delayTime","feedback"]);this._leftDelay=new Do({context:this.context,maxDelay:t.maxDelay}),this._rightDelay=new Do({context:this.context,maxDelay:t.maxDelay}),this._rightPreDelay=new Do({context:this.context,maxDelay:t.maxDelay}),this.delayTime=new bo({context:this.context,units:"time",value:t.delayTime}),this.connectEffectLeft(this._leftDelay),this.connectEffectRight(this._rightPreDelay,this._rightDelay),this.delayTime.fan(this._leftDelay.delayTime,this._rightDelay.delayTime,this._rightPreDelay.delayTime),this._feedbackL.disconnect(),this._feedbackL.connect(this._rightDelay),ji(this,["delayTime"])}static getDefaults(){return Object.assign(Ua.getDefaults(),{delayTime:.25,maxDelay:1})}dispose(){return super.dispose(),this._leftDelay.dispose(),this._rightDelay.dispose(),this._rightPreDelay.dispose(),this.delayTime.dispose(),this}}class Qa extends qa{constructor(){super(bi(Qa.getDefaults(),arguments,["pitch"])),this.name="PitchShift";const t=bi(Qa.getDefaults(),arguments,["pitch"]);this._frequency=new bo({context:this.context}),this._delayA=new Do({maxDelay:1,context:this.context}),this._lfoA=new dr({context:this.context,min:0,max:.1,type:"sawtooth"}).connect(this._delayA.delayTime),this._delayB=new Do({maxDelay:1,context:this.context}),this._lfoB=new dr({context:this.context,min:0,max:.1,type:"sawtooth",phase:180}).connect(this._delayB.delayTime),this._crossFade=new ma({context:this.context}),this._crossFadeLFO=new dr({context:this.context,min:0,max:1,type:"triangle",phase:90}).connect(this._crossFade.fade),this._feedbackDelay=new Do({delayTime:t.delayTime,context:this.context}),this.delayTime=this._feedbackDelay.delayTime,ji(this,"delayTime"),this._pitch=t.pitch,this._windowSize=t.windowSize,this._delayA.connect(this._crossFade.a),this._delayB.connect(this._crossFade.b),this._frequency.fan(this._lfoA.frequency,this._lfoB.frequency,this._crossFadeLFO.frequency),this.effectSend.fan(this._delayA,this._delayB),this._crossFade.chain(this._feedbackDelay,this.effectReturn);const e=this.now();this._lfoA.start(e),this._lfoB.start(e),this._crossFadeLFO.start(e),this.windowSize=this._windowSize}static getDefaults(){return Object.assign(qa.getDefaults(),{pitch:0,windowSize:.1,delayTime:0,feedback:0})}get pitch(){return this._pitch}set pitch(t){this._pitch=t;let e=0;t<0?(this._lfoA.min=0,this._lfoA.max=this._windowSize,this._lfoB.min=0,this._lfoB.max=this._windowSize,e=$i(t-1)+1):(this._lfoA.min=this._windowSize,this._lfoA.max=0,this._lfoB.min=this._windowSize,this._lfoB.max=0,e=$i(t)-1),this._frequency.value=e*(1.2/this._windowSize)}get windowSize(){return this._windowSize}set windowSize(t){this._windowSize=this.toSeconds(t),this.pitch=this._pitch}dispose(){return super.dispose(),this._frequency.dispose(),this._delayA.dispose(),this._delayB.dispose(),this._lfoA.dispose(),this._lfoB.dispose(),this._crossFade.dispose(),this._crossFadeLFO.dispose(),this._feedbackDelay.dispose(),this}}class Za extends Oa{constructor(){super(bi(Za.getDefaults(),arguments,["frequency","octaves","baseFrequency"])),this.name="Phaser";const t=bi(Za.getDefaults(),arguments,["frequency","octaves","baseFrequency"]);this._lfoL=new dr({context:this.context,frequency:t.frequency,min:0,max:1}),this._lfoR=new dr({context:this.context,frequency:t.frequency,min:0,max:1,phase:180}),this._baseFrequency=this.toFrequency(t.baseFrequency),this._octaves=t.octaves,this.Q=new bo({context:this.context,value:t.Q,units:"positive"}),this._filtersL=this._makeFilters(t.stages,this._lfoL),this._filtersR=this._makeFilters(t.stages,this._lfoR),this.frequency=this._lfoL.frequency,this.frequency.value=t.frequency,this.connectEffectLeft(...this._filtersL),this.connectEffectRight(...this._filtersR),this._lfoL.frequency.connect(this._lfoR.frequency),this.baseFrequency=t.baseFrequency,this.octaves=t.octaves,this._lfoL.start(),this._lfoR.start(),ji(this,["frequency","Q"])}static getDefaults(){return Object.assign(Oa.getDefaults(),{frequency:.5,octaves:3,stages:10,Q:10,baseFrequency:350})}_makeFilters(t,e){const s=[];for(let n=0;n<t;n++){const t=this.context.createBiquadFilter();t.type="allpass",this.Q.connect(t.Q),e.connect(t.frequency),s.push(t)}return s}get octaves(){return this._octaves}set octaves(t){this._octaves=t;const e=this._baseFrequency*Math.pow(2,t);this._lfoL.max=e,this._lfoR.max=e}get baseFrequency(){return this._baseFrequency}set baseFrequency(t){this._baseFrequency=this.toFrequency(t),this._lfoL.min=this._baseFrequency,this._lfoR.min=this._baseFrequency,this.octaves=this._octaves}dispose(){return super.dispose(),this.Q.dispose(),this._lfoL.dispose(),this._lfoR.dispose(),this._filtersL.forEach(t=>t.disconnect()),this._filtersR.forEach(t=>t.disconnect()),this.frequency.dispose(),this}}class Xa extends ga{constructor(){super(bi(Xa.getDefaults(),arguments,["decay"])),this.name="Reverb",this._convolver=this.context.createConvolver(),this.ready=Promise.resolve();const t=bi(Xa.getDefaults(),arguments,["decay"]);this._decay=t.decay,this._preDelay=t.preDelay,this.generate(),this.connectEffect(this._convolver)}static getDefaults(){return Object.assign(ga.getDefaults(),{decay:1.5,preDelay:.01})}get decay(){return this._decay}set decay(t){Yn(t=this.toSeconds(t),.001),this._decay=t,this.generate()}get preDelay(){return this._preDelay}set preDelay(t){Yn(t=this.toSeconds(t),0),this._preDelay=t,this.generate()}generate(){return di(this,void 0,void 0,(function*(){const t=this.ready,e=new Wi(2,this._decay+this._preDelay,this.context.sampleRate),s=new Qo({context:e}),n=new Qo({context:e}),i=new Da({context:e});s.connect(i,0,0),n.connect(i,0,1);const o=new yo({context:e}).toDestination();i.connect(o),s.start(0),n.start(0),o.gain.setValueAtTime(0,0),o.gain.setValueAtTime(1,this._preDelay),o.gain.exponentialApproachValueAtTime(0,this._preDelay,this.decay);const r=e.render();return this.ready=r.then(zi),yield t,this._convolver.buffer=(yield r).get(),this}))}dispose(){return super.dispose(),this._convolver.disconnect(),this}}class Ya extends _o{constructor(){super(bi(Ya.getDefaults(),arguments)),this.name="MidSideSplit",this._split=this.input=new Aa({channels:2,context:this.context}),this._midAdd=new ur({context:this.context}),this.mid=new sr({context:this.context,value:Math.SQRT1_2}),this._sideSubtract=new br({context:this.context}),this.side=new sr({context:this.context,value:Math.SQRT1_2}),this._split.connect(this._midAdd,0),this._split.connect(this._midAdd.addend,1),this._split.connect(this._sideSubtract,0),this._split.connect(this._sideSubtract.subtrahend,1),this._midAdd.connect(this.mid),this._sideSubtract.connect(this.side)}dispose(){return super.dispose(),this.mid.dispose(),this.side.dispose(),this._midAdd.dispose(),this._sideSubtract.dispose(),this._split.dispose(),this}}class Ha extends _o{constructor(){super(bi(Ha.getDefaults(),arguments)),this.name="MidSideMerge",this.mid=new yo({context:this.context}),this.side=new yo({context:this.context}),this._left=new ur({context:this.context}),this._leftMult=new sr({context:this.context,value:Math.SQRT1_2}),this._right=new br({context:this.context}),this._rightMult=new sr({context:this.context,value:Math.SQRT1_2}),this._merge=this.output=new Da({context:this.context}),this.mid.fan(this._left),this.side.connect(this._left.addend),this.mid.connect(this._right),this.side.connect(this._right.subtrahend),this._left.connect(this._leftMult),this._right.connect(this._rightMult),this._leftMult.connect(this._merge,0,0),this._rightMult.connect(this._merge,0,1)}dispose(){return super.dispose(),this.mid.dispose(),this.side.dispose(),this._leftMult.dispose(),this._rightMult.dispose(),this._left.dispose(),this._right.dispose(),this}}class $a extends ga{constructor(t){super(t),this.name="MidSideEffect",this._midSideMerge=new Ha({context:this.context}),this._midSideSplit=new Ya({context:this.context}),this._midSend=this._midSideSplit.mid,this._sideSend=this._midSideSplit.side,this._midReturn=this._midSideMerge.mid,this._sideReturn=this._midSideMerge.side,this.effectSend.connect(this._midSideSplit),this._midSideMerge.connect(this.effectReturn)}connectEffectMid(...t){this._midSend.chain(...t,this._midReturn)}connectEffectSide(...t){this._sideSend.chain(...t,this._sideReturn)}dispose(){return super.dispose(),this._midSideSplit.dispose(),this._midSideMerge.dispose(),this._midSend.dispose(),this._sideSend.dispose(),this._midReturn.dispose(),this._sideReturn.dispose(),this}}class Ja extends $a{constructor(){super(bi(Ja.getDefaults(),arguments,["width"])),this.name="StereoWidener";const t=bi(Ja.getDefaults(),arguments,["width"]);this.width=new bo({context:this.context,value:t.width,units:"normalRange"}),ji(this,["width"]),this._twoTimesWidthMid=new sr({context:this.context,value:2}),this._twoTimesWidthSide=new sr({context:this.context,value:2}),this._midMult=new sr({context:this.context}),this._twoTimesWidthMid.connect(this._midMult.factor),this.connectEffectMid(this._midMult),this._oneMinusWidth=new br({context:this.context}),this._oneMinusWidth.connect(this._twoTimesWidthMid),go(this.context.getConstant(1),this._oneMinusWidth),this.width.connect(this._oneMinusWidth.subtrahend),this._sideMult=new sr({context:this.context}),this.width.connect(this._twoTimesWidthSide),this._twoTimesWidthSide.connect(this._sideMult.factor),this.connectEffectSide(this._sideMult)}static getDefaults(){return Object.assign($a.getDefaults(),{width:.5})}dispose(){return super.dispose(),this.width.dispose(),this._midMult.dispose(),this._sideMult.dispose(),this._twoTimesWidthMid.dispose(),this._twoTimesWidthSide.dispose(),this._oneMinusWidth.dispose(),this}}class Ka extends Oa{constructor(){super(bi(Ka.getDefaults(),arguments,["frequency","depth"])),this.name="Tremolo";const t=bi(Ka.getDefaults(),arguments,["frequency","depth"]);this._lfoL=new dr({context:this.context,type:t.type,min:1,max:0}),this._lfoR=new dr({context:this.context,type:t.type,min:1,max:0}),this._amplitudeL=new yo({context:this.context}),this._amplitudeR=new yo({context:this.context}),this.frequency=new bo({context:this.context,value:t.frequency,units:"frequency"}),this.depth=new bo({context:this.context,value:t.depth,units:"normalRange"}),ji(this,["frequency","depth"]),this.connectEffectLeft(this._amplitudeL),this.connectEffectRight(this._amplitudeR),this._lfoL.connect(this._amplitudeL.gain),this._lfoR.connect(this._amplitudeR.gain),this.frequency.fan(this._lfoL.frequency,this._lfoR.frequency),this.depth.fan(this._lfoR.amplitude,this._lfoL.amplitude),this.spread=t.spread}static getDefaults(){return Object.assign(Oa.getDefaults(),{frequency:10,type:"sine",depth:.5,spread:180})}start(t){return this._lfoL.start(t),this._lfoR.start(t),this}stop(t){return this._lfoL.stop(t),this._lfoR.stop(t),this}sync(){return this._lfoL.sync(),this._lfoR.sync(),this.context.transport.syncSignal(this.frequency),this}unsync(){return this._lfoL.unsync(),this._lfoR.unsync(),this.context.transport.unsyncSignal(this.frequency),this}get type(){return this._lfoL.type}set type(t){this._lfoL.type=t,this._lfoR.type=t}get spread(){return this._lfoR.phase-this._lfoL.phase}set spread(t){this._lfoL.phase=90-t/2,this._lfoR.phase=t/2+90}dispose(){return super.dispose(),this._lfoL.dispose(),this._lfoR.dispose(),this._amplitudeL.dispose(),this._amplitudeR.dispose(),this.frequency.dispose(),this.depth.dispose(),this}}class tc extends ga{constructor(){super(bi(tc.getDefaults(),arguments,["frequency","depth"])),this.name="Vibrato";const t=bi(tc.getDefaults(),arguments,["frequency","depth"]);this._delayNode=new Do({context:this.context,delayTime:0,maxDelay:t.maxDelay}),this._lfo=new dr({context:this.context,type:t.type,min:0,max:t.maxDelay,frequency:t.frequency,phase:-90}).start().connect(this._delayNode.delayTime),this.frequency=this._lfo.frequency,this.depth=this._lfo.amplitude,this.depth.value=t.depth,ji(this,["frequency","depth"]),this.effectSend.chain(this._delayNode,this.effectReturn)}static getDefaults(){return Object.assign(ga.getDefaults(),{maxDelay:.005,frequency:5,depth:.1,type:"sine"})}get type(){return this._lfo.type}set type(t){this._lfo.type=t}dispose(){return super.dispose(),this._delayNode.dispose(),this._lfo.dispose(),this.frequency.dispose(),this.depth.dispose(),this}}class ec extends _o{constructor(){super(bi(ec.getDefaults(),arguments,["type","size"])),this.name="Analyser",this._analysers=[],this._buffers=[];const t=bi(ec.getDefaults(),arguments,["type","size"]);this.input=this.output=this._gain=new yo({context:this.context}),this._split=new Aa({context:this.context,channels:t.channels}),this.input.connect(this._split),Yn(t.channels,1);for(let e=0;e<t.channels;e++)this._analysers[e]=this.context.createAnalyser(),this._split.connect(this._analysers[e],e,0);this.size=t.size,this.type=t.type}static getDefaults(){return Object.assign(_o.getDefaults(),{size:1024,smoothing:.8,type:"fft",channels:1})}getValue(){return this._analysers.forEach((t,e)=>{const s=this._buffers[e];"fft"===this._type?t.getFloatFrequencyData(s):"waveform"===this._type&&t.getFloatTimeDomainData(s)}),1===this.channels?this._buffers[0]:this._buffers}get size(){return this._analysers[0].frequencyBinCount}set size(t){this._analysers.forEach((e,s)=>{e.fftSize=2*t,this._buffers[s]=new Float32Array(t)})}get channels(){return this._analysers.length}get type(){return this._type}set type(t){Xn("waveform"===t||"fft"===t,"Analyser: invalid type: "+t),this._type=t}get smoothing(){return this._analysers[0].smoothingTimeConstant}set smoothing(t){this._analysers.forEach(e=>e.smoothingTimeConstant=t)}dispose(){return super.dispose(),this._analysers.forEach(t=>t.disconnect()),this._split.dispose(),this._gain.dispose(),this}}class sc extends _o{constructor(){super(bi(sc.getDefaults(),arguments)),this.name="MeterBase",this.input=this.output=this._analyser=new ec({context:this.context,size:256,type:"waveform"})}dispose(){return super.dispose(),this._analyser.dispose(),this}}class nc extends sc{constructor(){super(bi(nc.getDefaults(),arguments,["smoothing"])),this.name="Meter",this._rms=0;const t=bi(nc.getDefaults(),arguments,["smoothing"]);this.input=this.output=this._analyser=new ec({context:this.context,size:256,type:"waveform",channels:t.channels}),this.smoothing=t.smoothing,this.normalRange=t.normalRange}static getDefaults(){return Object.assign(sc.getDefaults(),{smoothing:.8,normalRange:!1,channels:1})}getLevel(){return ti("'getLevel' has been changed to 'getValue'"),this.getValue()}getValue(){const t=this._analyser.getValue(),e=(1===this.channels?[t]:t).map(t=>{const e=t.reduce((t,e)=>t+e*e,0),s=Math.sqrt(e/t.length);return this._rms=Math.max(s,this._rms*this.smoothing),this.normalRange?this._rms:Hi(this._rms)});return 1===this.channels?e[0]:e}get channels(){return this._analyser.channels}dispose(){return super.dispose(),this._analyser.dispose(),this}}class ic extends sc{constructor(){super(bi(ic.getDefaults(),arguments,["size"])),this.name="FFT";const t=bi(ic.getDefaults(),arguments,["size"]);this.normalRange=t.normalRange,this._analyser.type="fft",this.size=t.size}static getDefaults(){return Object.assign(_o.getDefaults(),{normalRange:!1,size:1024,smoothing:.8})}getValue(){return this._analyser.getValue().map(t=>this.normalRange?Yi(t):t)}get size(){return this._analyser.size}set size(t){this._analyser.size=t}get smoothing(){return this._analyser.smoothing}set smoothing(t){this._analyser.smoothing=t}getFrequencyOfIndex(t){return Xn(0<=t&&t<this.size,"index must be greater than or equal to 0 and less than "+this.size),t*this.context.sampleRate/(2*this.size)}}class oc extends sc{constructor(){super(bi(oc.getDefaults(),arguments)),this.name="DCMeter",this._analyser.type="waveform",this._analyser.size=256}getValue(){return this._analyser.getValue()[0]}}class rc extends sc{constructor(){super(bi(rc.getDefaults(),arguments,["size"])),this.name="Waveform";const t=bi(rc.getDefaults(),arguments,["size"]);this._analyser.type="waveform",this.size=t.size}static getDefaults(){return Object.assign(sc.getDefaults(),{size:1024})}getValue(){return this._analyser.getValue()}get size(){return this._analyser.size}set size(t){this._analyser.size=t}}class ac extends _o{constructor(){super(bi(ac.getDefaults(),arguments,["solo"])),this.name="Solo";const t=bi(ac.getDefaults(),arguments,["solo"]);this.input=this.output=new yo({context:this.context}),ac._allSolos.has(this.context)||ac._allSolos.set(this.context,new Set),ac._allSolos.get(this.context).add(this),this.solo=t.solo}static getDefaults(){return Object.assign(_o.getDefaults(),{solo:!1})}get solo(){return this._isSoloed()}set solo(t){t?this._addSolo():this._removeSolo(),ac._allSolos.get(this.context).forEach(t=>t._updateSolo())}get muted(){return 0===this.input.gain.value}_addSolo(){ac._soloed.has(this.context)||ac._soloed.set(this.context,new Set),ac._soloed.get(this.context).add(this)}_removeSolo(){ac._soloed.has(this.context)&&ac._soloed.get(this.context).delete(this)}_isSoloed(){return ac._soloed.has(this.context)&&ac._soloed.get(this.context).has(this)}_noSolos(){return!ac._soloed.has(this.context)||ac._soloed.has(this.context)&&0===ac._soloed.get(this.context).size}_updateSolo(){this._isSoloed()||this._noSolos()?this.input.gain.value=1:this.input.gain.value=0}dispose(){return super.dispose(),ac._allSolos.get(this.context).delete(this),this._removeSolo(),this}}ac._allSolos=new Map,ac._soloed=new Map;class cc extends _o{constructor(){super(bi(cc.getDefaults(),arguments,["pan","volume"])),this.name="PanVol";const t=bi(cc.getDefaults(),arguments,["pan","volume"]);this._panner=this.input=new xa({context:this.context,pan:t.pan,channelCount:t.channelCount}),this.pan=this._panner.pan,this._volume=this.output=new Po({context:this.context,volume:t.volume}),this.volume=this._volume.volume,this._panner.connect(this._volume),this.mute=t.mute,ji(this,["pan","volume"])}static getDefaults(){return Object.assign(_o.getDefaults(),{mute:!1,pan:0,volume:0,channelCount:1})}get mute(){return this._volume.mute}set mute(t){this._volume.mute=t}dispose(){return super.dispose(),this._panner.dispose(),this.pan.dispose(),this._volume.dispose(),this.volume.dispose(),this}}class hc extends _o{constructor(){super(bi(hc.getDefaults(),arguments,["volume","pan"])),this.name="Channel";const t=bi(hc.getDefaults(),arguments,["volume","pan"]);this._solo=this.input=new ac({solo:t.solo,context:this.context}),this._panVol=this.output=new cc({context:this.context,pan:t.pan,volume:t.volume,mute:t.mute,channelCount:t.channelCount}),this.pan=this._panVol.pan,this.volume=this._panVol.volume,this._solo.connect(this._panVol),ji(this,["pan","volume"])}static getDefaults(){return Object.assign(_o.getDefaults(),{pan:0,volume:0,mute:!1,solo:!1,channelCount:1})}get solo(){return this._solo.solo}set solo(t){this._solo.solo=t}get muted(){return this._solo.muted||this.mute}get mute(){return this._panVol.mute}set mute(t){this._panVol.mute=t}_getBus(t){return hc.buses.has(t)||hc.buses.set(t,new yo({context:this.context})),hc.buses.get(t)}send(t,e=0){const s=this._getBus(t),n=new yo({context:this.context,units:"decibels",gain:e});return this.connect(n),n.connect(s),n}receive(t){return this._getBus(t).connect(this),this}dispose(){return super.dispose(),this._panVol.dispose(),this.pan.dispose(),this.volume.dispose(),this._solo.dispose(),this}}hc.buses=new Map;class uc extends _o{constructor(){super(bi(uc.getDefaults(),arguments,["lowFrequency","highFrequency"])),this.name="MultibandSplit",this.input=new yo({context:this.context}),this.output=void 0,this.low=new Nr({context:this.context,frequency:0,type:"lowpass"}),this._lowMidFilter=new Nr({context:this.context,frequency:0,type:"highpass"}),this.mid=new Nr({context:this.context,frequency:0,type:"lowpass"}),this.high=new Nr({context:this.context,frequency:0,type:"highpass"}),this._internalChannels=[this.low,this.mid,this.high];const t=bi(uc.getDefaults(),arguments,["lowFrequency","highFrequency"]);this.lowFrequency=new bo({context:this.context,units:"frequency",value:t.lowFrequency}),this.highFrequency=new bo({context:this.context,units:"frequency",value:t.highFrequency}),this.Q=new bo({context:this.context,units:"positive",value:t.Q}),this.input.fan(this.low,this.high),this.input.chain(this._lowMidFilter,this.mid),this.lowFrequency.fan(this.low.frequency,this._lowMidFilter.frequency),this.highFrequency.fan(this.mid.frequency,this.high.frequency),this.Q.connect(this.low.Q),this.Q.connect(this._lowMidFilter.Q),this.Q.connect(this.mid.Q),this.Q.connect(this.high.Q),ji(this,["high","mid","low","highFrequency","lowFrequency"])}static getDefaults(){return Object.assign(_o.getDefaults(),{Q:1,highFrequency:2500,lowFrequency:400})}dispose(){return super.dispose(),Li(this,["high","mid","low","highFrequency","lowFrequency"]),this.low.dispose(),this._lowMidFilter.dispose(),this.mid.dispose(),this.high.dispose(),this.lowFrequency.dispose(),this.highFrequency.dispose(),this.Q.dispose(),this}}class lc extends _o{constructor(){super(...arguments),this.name="Listener",this.positionX=new fo({context:this.context,param:this.context.rawContext.listener.positionX}),this.positionY=new fo({context:this.context,param:this.context.rawContext.listener.positionY}),this.positionZ=new fo({context:this.context,param:this.context.rawContext.listener.positionZ}),this.forwardX=new fo({context:this.context,param:this.context.rawContext.listener.forwardX}),this.forwardY=new fo({context:this.context,param:this.context.rawContext.listener.forwardY}),this.forwardZ=new fo({context:this.context,param:this.context.rawContext.listener.forwardZ}),this.upX=new fo({context:this.context,param:this.context.rawContext.listener.upX}),this.upY=new fo({context:this.context,param:this.context.rawContext.listener.upY}),this.upZ=new fo({context:this.context,param:this.context.rawContext.listener.upZ})}static getDefaults(){return Object.assign(_o.getDefaults(),{positionX:0,positionY:0,positionZ:0,forwardX:0,forwardY:0,forwardZ:-1,upX:0,upY:1,upZ:0})}dispose(){return super.dispose(),this.positionX.dispose(),this.positionY.dispose(),this.positionZ.dispose(),this.forwardX.dispose(),this.forwardY.dispose(),this.forwardZ.dispose(),this.upX.dispose(),this.upY.dispose(),this.upZ.dispose(),this}}qi(t=>{t.listener=new lc({context:t})}),Ii(t=>{t.listener.dispose()});class pc extends _o{constructor(){super(bi(pc.getDefaults(),arguments,["positionX","positionY","positionZ"])),this.name="Panner3D";const t=bi(pc.getDefaults(),arguments,["positionX","positionY","positionZ"]);this._panner=this.input=this.output=this.context.createPanner(),this.panningModel=t.panningModel,this.maxDistance=t.maxDistance,this.distanceModel=t.distanceModel,this.coneOuterGain=t.coneOuterGain,this.coneOuterAngle=t.coneOuterAngle,this.coneInnerAngle=t.coneInnerAngle,this.refDistance=t.refDistance,this.rolloffFactor=t.rolloffFactor,this.positionX=new fo({context:this.context,param:this._panner.positionX,value:t.positionX}),this.positionY=new fo({context:this.context,param:this._panner.positionY,value:t.positionY}),this.positionZ=new fo({context:this.context,param:this._panner.positionZ,value:t.positionZ}),this.orientationX=new fo({context:this.context,param:this._panner.orientationX,value:t.orientationX}),this.orientationY=new fo({context:this.context,param:this._panner.orientationY,value:t.orientationY}),this.orientationZ=new fo({context:this.context,param:this._panner.orientationZ,value:t.orientationZ})}static getDefaults(){return Object.assign(_o.getDefaults(),{coneInnerAngle:360,coneOuterAngle:360,coneOuterGain:0,distanceModel:"inverse",maxDistance:1e4,orientationX:0,orientationY:0,orientationZ:0,panningModel:"equalpower",positionX:0,positionY:0,positionZ:0,refDistance:1,rolloffFactor:1})}setPosition(t,e,s){return this.positionX.value=t,this.positionY.value=e,this.positionZ.value=s,this}setOrientation(t,e,s){return this.orientationX.value=t,this.orientationY.value=e,this.orientationZ.value=s,this}get panningModel(){return this._panner.panningModel}set panningModel(t){this._panner.panningModel=t}get refDistance(){return this._panner.refDistance}set refDistance(t){this._panner.refDistance=t}get rolloffFactor(){return this._panner.rolloffFactor}set rolloffFactor(t){this._panner.rolloffFactor=t}get distanceModel(){return this._panner.distanceModel}set distanceModel(t){this._panner.distanceModel=t}get coneInnerAngle(){return this._panner.coneInnerAngle}set coneInnerAngle(t){this._panner.coneInnerAngle=t}get coneOuterAngle(){return this._panner.coneOuterAngle}set coneOuterAngle(t){this._panner.coneOuterAngle=t}get coneOuterGain(){return this._panner.coneOuterGain}set coneOuterGain(t){this._panner.coneOuterGain=t}get maxDistance(){return this._panner.maxDistance}set maxDistance(t){this._panner.maxDistance=t}dispose(){return super.dispose(),this._panner.disconnect(),this.orientationX.dispose(),this.orientationY.dispose(),this.orientationZ.dispose(),this.positionX.dispose(),this.positionY.dispose(),this.positionZ.dispose(),this}}class dc extends _o{constructor(){super(bi(dc.getDefaults(),arguments)),this.name="Recorder";const t=bi(dc.getDefaults(),arguments);this.input=new yo({context:this.context}),Xn(dc.supported,"Media Recorder API is not available"),this._stream=this.context.createMediaStreamDestination(),this.input.connect(this._stream),this._recorder=new MediaRecorder(this._stream.stream,{mimeType:t.mimeType})}static getDefaults(){return _o.getDefaults()}get mimeType(){return this._recorder.mimeType}static get supported(){return null!==ui&&Reflect.has(ui,"MediaRecorder")}get state(){return"inactive"===this._recorder.state?"stopped":"paused"===this._recorder.state?"paused":"started"}start(){return di(this,void 0,void 0,(function*(){Xn("started"!==this.state,"Recorder is already started");const t=new Promise(t=>{const e=()=>{this._recorder.removeEventListener("start",e,!1),t()};this._recorder.addEventListener("start",e,!1)});return this._recorder.start(),yield t}))}stop(){return di(this,void 0,void 0,(function*(){Xn("stopped"!==this.state,"Recorder is not started");const t=new Promise(t=>{const e=s=>{this._recorder.removeEventListener("dataavailable",e,!1),t(s.data)};this._recorder.addEventListener("dataavailable",e,!1)});return this._recorder.stop(),yield t}))}pause(){return Xn("started"===this.state,"Recorder must be started"),this._recorder.pause(),this}dispose(){return super.dispose(),this.input.dispose(),this._stream.disconnect(),this}}class fc extends _o{constructor(){super(bi(fc.getDefaults(),arguments,["threshold","ratio"])),this.name="Compressor",this._compressor=this.context.createDynamicsCompressor(),this.input=this._compressor,this.output=this._compressor;const t=bi(fc.getDefaults(),arguments,["threshold","ratio"]);this.threshold=new fo({minValue:this._compressor.threshold.minValue,maxValue:this._compressor.threshold.maxValue,context:this.context,convert:!1,param:this._compressor.threshold,units:"decibels",value:t.threshold}),this.attack=new fo({minValue:this._compressor.attack.minValue,maxValue:this._compressor.attack.maxValue,context:this.context,param:this._compressor.attack,units:"time",value:t.attack}),this.release=new fo({minValue:this._compressor.release.minValue,maxValue:this._compressor.release.maxValue,context:this.context,param:this._compressor.release,units:"time",value:t.release}),this.knee=new fo({minValue:this._compressor.knee.minValue,maxValue:this._compressor.knee.maxValue,context:this.context,convert:!1,param:this._compressor.knee,units:"decibels",value:t.knee}),this.ratio=new fo({minValue:this._compressor.ratio.minValue,maxValue:this._compressor.ratio.maxValue,context:this.context,convert:!1,param:this._compressor.ratio,units:"positive",value:t.ratio}),ji(this,["knee","release","attack","ratio","threshold"])}static getDefaults(){return Object.assign(_o.getDefaults(),{attack:.003,knee:30,ratio:12,release:.25,threshold:-24})}get reduction(){return this._compressor.reduction}dispose(){return super.dispose(),this._compressor.disconnect(),this.attack.dispose(),this.release.dispose(),this.threshold.dispose(),this.ratio.dispose(),this.knee.dispose(),this}}class _c extends _o{constructor(){super(Object.assign(bi(_c.getDefaults(),arguments,["threshold","smoothing"]))),this.name="Gate";const t=bi(_c.getDefaults(),arguments,["threshold","smoothing"]);this._follower=new ba({context:this.context,smoothing:t.smoothing}),this._gt=new Sr({context:this.context,value:Yi(t.threshold)}),this.input=new yo({context:this.context}),this._gate=this.output=new yo({context:this.context}),this.input.connect(this._gate),this.input.chain(this._follower,this._gt,this._gate.gain)}static getDefaults(){return Object.assign(_o.getDefaults(),{smoothing:.1,threshold:-40})}get threshold(){return Hi(this._gt.value)}set threshold(t){this._gt.value=Yi(t)}get smoothing(){return this._follower.smoothing}set smoothing(t){this._follower.smoothing=t}dispose(){return super.dispose(),this.input.dispose(),this._follower.dispose(),this._gt.dispose(),this._gate.dispose(),this}}class mc extends _o{constructor(){super(Object.assign(bi(mc.getDefaults(),arguments,["threshold"]))),this.name="Limiter";const t=bi(mc.getDefaults(),arguments,["threshold"]);this._compressor=this.input=this.output=new fc({context:this.context,ratio:20,attack:0,release:0,threshold:t.threshold}),this.threshold=this._compressor.threshold,ji(this,"threshold")}static getDefaults(){return Object.assign(_o.getDefaults(),{threshold:-12})}get reduction(){return this._compressor.reduction}dispose(){return super.dispose(),this._compressor.dispose(),this.threshold.dispose(),this}}class gc extends _o{constructor(){super(Object.assign(bi(gc.getDefaults(),arguments))),this.name="MidSideCompressor";const t=bi(gc.getDefaults(),arguments);this._midSideSplit=this.input=new Ya({context:this.context}),this._midSideMerge=this.output=new Ha({context:this.context}),this.mid=new fc(Object.assign(t.mid,{context:this.context})),this.side=new fc(Object.assign(t.side,{context:this.context})),this._midSideSplit.mid.chain(this.mid,this._midSideMerge.mid),this._midSideSplit.side.chain(this.side,this._midSideMerge.side),ji(this,["mid","side"])}static getDefaults(){return Object.assign(_o.getDefaults(),{mid:{ratio:3,threshold:-24,release:.03,attack:.02,knee:16},side:{ratio:6,threshold:-30,release:.25,attack:.03,knee:10}})}dispose(){return super.dispose(),this.mid.dispose(),this.side.dispose(),this._midSideSplit.dispose(),this._midSideMerge.dispose(),this}}class vc extends _o{constructor(){super(Object.assign(bi(vc.getDefaults(),arguments))),this.name="MultibandCompressor";const t=bi(vc.getDefaults(),arguments);this._splitter=this.input=new uc({context:this.context,lowFrequency:t.lowFrequency,highFrequency:t.highFrequency}),this.lowFrequency=this._splitter.lowFrequency,this.highFrequency=this._splitter.highFrequency,this.output=new yo({context:this.context}),this.low=new fc(Object.assign(t.low,{context:this.context})),this.mid=new fc(Object.assign(t.mid,{context:this.context})),this.high=new fc(Object.assign(t.high,{context:this.context})),this._splitter.low.chain(this.low,this.output),this._splitter.mid.chain(this.mid,this.output),this._splitter.high.chain(this.high,this.output),ji(this,["high","mid","low","highFrequency","lowFrequency"])}static getDefaults(){return Object.assign(_o.getDefaults(),{lowFrequency:250,highFrequency:2e3,low:{ratio:6,threshold:-30,release:.25,attack:.03,knee:10},mid:{ratio:3,threshold:-24,release:.03,attack:.02,knee:16},high:{ratio:3,threshold:-24,release:.03,attack:.02,knee:16}})}dispose(){return super.dispose(),this._splitter.dispose(),this.low.dispose(),this.mid.dispose(),this.high.dispose(),this.output.dispose(),this}}class yc extends _o{constructor(){super(bi(yc.getDefaults(),arguments,["low","mid","high"])),this.name="EQ3",this.output=new yo({context:this.context}),this._internalChannels=[];const t=bi(yc.getDefaults(),arguments,["low","mid","high"]);this.input=this._multibandSplit=new uc({context:this.context,highFrequency:t.highFrequency,lowFrequency:t.lowFrequency}),this._lowGain=new yo({context:this.context,gain:t.low,units:"decibels"}),this._midGain=new yo({context:this.context,gain:t.mid,units:"decibels"}),this._highGain=new yo({context:this.context,gain:t.high,units:"decibels"}),this.low=this._lowGain.gain,this.mid=this._midGain.gain,this.high=this._highGain.gain,this.Q=this._multibandSplit.Q,this.lowFrequency=this._multibandSplit.lowFrequency,this.highFrequency=this._multibandSplit.highFrequency,this._multibandSplit.low.chain(this._lowGain,this.output),this._multibandSplit.mid.chain(this._midGain,this.output),this._multibandSplit.high.chain(this._highGain,this.output),ji(this,["low","mid","high","lowFrequency","highFrequency"]),this._internalChannels=[this._multibandSplit]}static getDefaults(){return Object.assign(_o.getDefaults(),{high:0,highFrequency:2500,low:0,lowFrequency:400,mid:0})}dispose(){return super.dispose(),Li(this,["low","mid","high","lowFrequency","highFrequency"]),this._multibandSplit.dispose(),this.lowFrequency.dispose(),this.highFrequency.dispose(),this._lowGain.dispose(),this._midGain.dispose(),this._highGain.dispose(),this.low.dispose(),this.mid.dispose(),this.high.dispose(),this.Q.dispose(),this}}class xc extends _o{constructor(){super(bi(xc.getDefaults(),arguments,["url","onload"])),this.name="Convolver",this._convolver=this.context.createConvolver();const t=bi(xc.getDefaults(),arguments,["url","onload"]);this._buffer=new Bi(t.url,e=>{this.buffer=e,t.onload()}),this.input=new yo({context:this.context}),this.output=new yo({context:this.context}),this._buffer.loaded&&(this.buffer=this._buffer),this.normalize=t.normalize,this.input.chain(this._convolver,this.output)}static getDefaults(){return Object.assign(_o.getDefaults(),{normalize:!0,onload:zi})}load(t){return di(this,void 0,void 0,(function*(){this.buffer=yield this._buffer.load(t)}))}get buffer(){return this._buffer.length?this._buffer:null}set buffer(t){t&&this._buffer.set(t),this._convolver.buffer&&(this.input.disconnect(),this._convolver.disconnect(),this._convolver=this.context.createConvolver(),this.input.chain(this._convolver,this.output));const e=this._buffer.get();this._convolver.buffer=e||null}get normalize(){return this._convolver.normalize}set normalize(t){this._convolver.normalize=t}dispose(){return super.dispose(),this._buffer.dispose(),this._convolver.disconnect(),this}}function wc(){return Qi().now()}function bc(){return Qi().immediate()}const Tc=Qi().transport;function Sc(){return Qi().transport}const kc=Qi().destination,Cc=Qi().destination;function Ac(){return Qi().destination}const Dc=Qi().listener;function Oc(){return Qi().listener}const Mc=Qi().draw;function Ec(){return Qi().draw}const Rc=Qi();function qc(){return Bi.loaded()}const Fc=Bi,Ic=Mo,Vc=Go}])}));
 
-},{}],232:[function(require,module,exports){
+},{}],333:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -81600,7 +87460,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":233,"punycode":225,"querystring":228}],233:[function(require,module,exports){
+},{"./util":334,"punycode":315,"querystring":323}],334:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -81618,7 +87478,7 @@ module.exports = {
   }
 };
 
-},{}],234:[function(require,module,exports){
+},{}],335:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -82240,12 +88100,13 @@ module.exports = {
 
 })));
 
-},{}],235:[function(require,module,exports){
+},{}],336:[function(require,module,exports){
 /* global wand */
 window.wand = {
   router: require('./modules/router.js'),
   net: require('./modules/net.js'),
   maestro: require('./modules/maestro.js'),
+  transfer: require('./modules/transfer.js'),
   med: require('./modules/med'),
   monk: require('./modules/monk'),
   utils: require('./modules/utils.js'),
@@ -82285,7 +88146,12 @@ if (!found) { // includes empty/no URL parameters:
 
 wand.router.mkFooter()
 
-},{"./modules/maestro.js":236,"./modules/med":237,"./modules/monk":239,"./modules/net.js":240,"./modules/router.js":241,"./modules/test.js":242,"./modules/utils.js":244,"jquery":61}],236:[function(require,module,exports){
+},{"./modules/maestro.js":338,"./modules/med":339,"./modules/monk":341,"./modules/net.js":342,"./modules/router.js":343,"./modules/test.js":344,"./modules/transfer.js":345,"./modules/utils.js":346,"jquery":67}],337:[function(require,module,exports){
+const losdheaders = { authorization: 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwcm9kLXVzZXItY2xpZW50OnJmYWJicmkiLCJpc3MiOiJhZ2VudDpyZmFiYnJpOjo5YTc5MjA0OC00MDU0LTQ1NzQtODI5OS04MzU2NTVmZjk1NTYiLCJpYXQiOjE1NjA5Mzc2NDcsInJvbGUiOlsidXNlcl9hcGlfcmVhZCIsInVzZXJfYXBpX3dyaXRlIl0sImdlbmVyYWwtcHVycG9zZSI6dHJ1ZSwic2FtbCI6e319.MWcLAY_4bA20A6S8J2f8W2aHEQOrSw-yPCx1dBQHz97krLaRtiS7Yb9IUU1_gNYUO6x7y5fjvO1hB4hteCB1iQ' }
+
+module.exports = { losdheaders }
+
+},{}],338:[function(require,module,exports){
 const d = require('./utils.js').defaultArg
 const { chooseUnique } = require('./utils.js')
 const t = require('tone')
@@ -82375,12 +88241,12 @@ e.Speaker = class {
 
 e.speaker = new e.Speaker()
 
-},{"./utils.js":244,"tone":231}],237:[function(require,module,exports){
+},{"./utils.js":346,"tone":332}],339:[function(require,module,exports){
 module.exports = {
   model: require('./model1').meditation
 }
 
-},{"./model1":238}],238:[function(require,module,exports){
+},{"./model1":340}],340:[function(require,module,exports){
 const t = require('tone')
 const $ = require('jquery')
 const PIXI = require('pixi.js')
@@ -82852,7 +88718,7 @@ function tgui (synth, synthR, synthM, sampler) {
   })
 }
 
-},{"../maestro.js":236,"../router.js":241,"../transfer.js":243,"../utils.js":244,"dat.gui":39,"jquery":61,"pixi.js":223,"tone":231}],239:[function(require,module,exports){
+},{"../maestro.js":338,"../router.js":343,"../transfer.js":345,"../utils.js":346,"dat.gui":40,"jquery":67,"pixi.js":313,"tone":332}],341:[function(require,module,exports){
 const $ = require('jquery')
 const utils = require('../utils.js')
 
@@ -82865,10 +88731,14 @@ $.ajax({
   }
 })
 
-},{"../utils.js":244,"jquery":61}],240:[function(require,module,exports){
+},{"../utils.js":346,"jquery":67}],342:[function(require,module,exports){
+/* global wand */
 const Graph = require('graphology')
 const { erdosRenyi } = require('graphology-generators/random')
 const PIXI = require('pixi.js')
+const { random } = require('graphology-layout')
+const forceAtlas2 = require('graphology-layout-forceatlas2')
+const netdegree = require('graphology-metrics/degree')
 
 const e = module.exports
 
@@ -82942,7 +88812,161 @@ e.ParticleNet = class {
   }
 }
 
-},{"graphology":56,"graphology-generators/random":48,"pixi.js":223}],241:[function(require,module,exports){
+e.buildFromSparql = (members, friendships) => {
+  // specialized to build network from members and friendships as returned by sparql queries in losd
+  const net = new Graph()
+  for (let i = 0; i < members.length; i++) {
+    const member = members[i]
+    net.addNode(member.p.value, { name: member.n.value })
+  }
+  for (let i = 0; i < friendships.length; i++) {
+    const friendship = friendships[i]
+    const p1 = friendship.p1.value
+    const p2 = friendship.p2.value
+    if (!net.hasEdge(p1, p2)) {
+      net.addUndirectedEdge(p1, p2)
+    }
+  }
+  return net
+}
+
+e.plotFromSparql = (members, friendships) => {
+  const net = e.buildFromSparql(members, friendships)
+  netdegree.assign(net)
+  const removedNodes = []
+  net.forEachNode((n, a) => {
+    if (a.degree === 0) {
+      removedNodes.push({ n, a })
+    }
+  })
+  removedNodes.forEach(v => {
+    net.dropNode(v.n)
+  })
+  random.assign(net)
+  const saneSettings = forceAtlas2.inferSettings(net)
+  const atlas = forceAtlas2(net, { iterations: 150, settings: saneSettings })
+  scale(atlas)
+  return { net, saneSettings, atlas }
+}
+
+function scale (positions) {
+  const k = Object.values(positions)
+  const kx = k.map(kk => kk.x)
+  const ky = k.map(kk => kk.y)
+  const maxx = Math.max(...kx)
+  const minx = Math.min(...kx)
+  const maxy = Math.max(...ky)
+  const miny = Math.min(...ky)
+
+  const [w_, h_] = [wand.app.renderer.width, wand.app.renderer.height]
+  const w = w_ * 0.8
+  const h = h_ * 0.8
+  const w0 = w_ * 0.1
+  const h0 = h_ * 0.1
+  Object.keys(positions).forEach(key => {
+    positions[key].x = w * (positions[key].x - minx) / (maxx - minx) + w0
+    positions[key].y = h * (positions[key].y - miny) / (maxy - miny) + h0
+  })
+  return positions
+}
+
+e.ParticleNet2 = class { // using graphology net and positions as given by forceatlas2
+  constructor (app, net, atlas) {
+    this.mkContainers(app)
+    this.mkTextures(app)
+    this.plot(net, atlas, app)
+    this.input = { app, net, atlas }
+  }
+
+  mkContainers (app) {
+    this.nodeContainer = new PIXI.ParticleContainer(100000, {
+      scale: true,
+      position: true,
+      rotation: true,
+      alpha: true
+    })
+    console.log('INTERACTIVE:', this.nodeContainer.interactiveChildren)
+    this.nodeContainer.interactiveChildren = true
+    this.nodeContainer.interactive = true
+    this.edgeContainer = new PIXI.ParticleContainer(10000000, {
+      scale: true,
+      position: true,
+      rotation: true,
+      alpha: true
+    })
+    app.stage.addChild(this.edgeContainer)
+    app.stage.addChild(this.nodeContainer)
+  }
+
+  mkTextures (app) {
+    const myLine = new PIXI.Graphics()
+      .lineStyle(1, 0xff0000)
+      .moveTo(0, 0)
+      .lineTo(1000, 0)
+    const myCircle = new PIXI.Graphics()
+      .beginFill(0xffffff)
+      .drawCircle(0, 0, 5)
+      .endFill()
+    this.circleTexture = app.renderer.generateTexture(myCircle)
+    this.lineTexture = app.renderer.generateTexture(myLine)
+  }
+
+  plot (net, atlas, app) {
+    net.forEachNode((k, a) => {
+      const p = atlas[k]
+      const circle = new PIXI.Sprite(this.circleTexture)
+      circle.x = p.x
+      circle.y = p.y
+      circle.anchor.x = 0.5
+      circle.anchor.y = 0.5
+      circle.interactive = true
+      this.nodeContainer.addChild(circle)
+      a.pixiElement = circle
+      if (a.name) { // todo: implement rendering of the names on the fly
+        const texto = new PIXI.Text(
+          a.name,
+          { fontFamily: 'Arial', fontSize: 35, fill: 0xffffff, align: 'center' }
+        )
+
+        texto.tint = 0x00ff00
+        texto.x = p.x
+        texto.y = p.y
+        texto.zIndex = 1000
+        texto.alpha = 0
+        texto.interactive = true
+        texto.hitArea = new PIXI.Rectangle(-5, -5, 10, 10)
+        app.stage.addChild(texto)
+
+        a.textElement = texto
+        texto.on('pointerover', () => {
+          console.log(a.name)
+          texto.alpha = 1
+        })
+        texto.on('pointerout', () => {
+          texto.alpha = 0
+        })
+      }
+    })
+    net.forEachEdge((e, a, s, t) => {
+      this.mkEdge(atlas[s], atlas[t])
+    })
+  }
+
+  mkEdge (pos1, pos2) {
+    const line = new PIXI.Sprite(this.lineTexture)
+    const dx = pos2.x - pos1.x
+    const dy = pos2.y - pos1.y
+    const length = (dx ** 2 + dy ** 2) ** 0.5
+    line.scale.set(length / 1000, 1)
+    const angle = Math.atan2(dy, dx)
+    line.rotation = angle
+    line.x = pos1.x
+    line.y = pos1.y
+    this.edgeContainer.addChild(line)
+  }
+}
+
+},{"graphology":62,"graphology-generators/random":50,"graphology-layout":56,"graphology-layout-forceatlas2":53,"graphology-metrics/degree":58,"pixi.js":313}],343:[function(require,module,exports){
 /* global wand */
 const utils = require('./utils.js')
 
@@ -83135,7 +89159,7 @@ function lang (ft2) {
   })
 }
 
-},{"./utils.js":244}],242:[function(require,module,exports){
+},{"./utils.js":346}],344:[function(require,module,exports){
 const PIXI = require('pixi.js')
 const forceAtlas2 = require('graphology-layout-forceatlas2')
 
@@ -86032,7 +92056,47 @@ e.daPaz = () => {
   $('#loading').hide()
 }
 
-},{"./maestro.js":236,"./med":237,"./monk":239,"./net.js":240,"./router.js":241,"./transfer.js":243,"./utils.js":244,"@eastdesire/jscolor":1,"dat.gui":39,"flatpickr":44,"graphology-layout-forceatlas2":51,"jquery":61,"linkifyjs/html":62,"pixi.js":223,"tone":231}],243:[function(require,module,exports){
+e.losd = () => {
+  const adiv = utils.stdDiv().html(`
+  <h2>LOSD is Linked Open Social Data</h2>
+  <b>Æterni Anima</b> artifact for social mobilization.
+  `)
+  const grid = utils.mkGrid(1, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
+  $('<span/>', { css: { 'margin-left': '10%' } }).html('<b>source</b>').appendTo(grid)
+  utils.gridDivider(160, 160, 160, grid, 1)
+  utils.gridDivider(160, 160, 160, grid, 1)
+  transfer.losdCall('0', r => {
+    console.log(r)
+    r.forEach(n => {
+      $('<span/>', { css: { 'margin-left': '10%' }, title: `navigate and increment network by ${n.n.value}` }).html(`<a href="?net&s=${n.s.value.split('#')[1]}", target="_blank">${n.n.value}</a>`).appendTo(grid)
+      utils.gridDivider(160, 160, 160, grid, 1)
+    })
+    $('#loading').hide()
+  })
+}
+
+e.net = () => {
+  const app = new PIXI.Application({
+    width: window.innerWidth,
+    height: window.innerHeight,
+    // transparent: true
+    backgroundColor: 0x000000
+  })
+  app.stage.sortableChildren = true
+  document.body.appendChild(app.view)
+  window.wand.app = app
+  transfer.getNetMembersLinks(u('s'), r => {
+    console.log(r)
+    const pfs = net.plotFromSparql(r.members, r.friendships)
+    window.nnn = pfs
+    const dn = new net.ParticleNet2(app, pfs.net, pfs.atlas)
+    window.nnn.dn = dn
+    $('#loading').hide()
+  })
+}
+
+},{"./maestro.js":338,"./med":339,"./monk":341,"./net.js":342,"./router.js":343,"./transfer.js":345,"./utils.js":346,"@eastdesire/jscolor":1,"dat.gui":40,"flatpickr":46,"graphology-layout-forceatlas2":53,"jquery":67,"linkifyjs/html":68,"pixi.js":313,"tone":332}],345:[function(require,module,exports){
+// mongo:
 const s = require('mongodb-stitch-browser-sdk')
 const e = module.exports
 
@@ -86087,7 +92151,82 @@ e.remove = (query, aa) => {
   })
 }
 
-},{"mongodb-stitch-browser-sdk":125}],244:[function(require,module,exports){
+// sparql:
+const losdheaders = require('./losdheaders.js')
+const superagent = require('superagent')
+
+e.getNetMembersLinks = (netid, call = console.log) => {
+  const qmembers = `SELECT DISTINCT ?p ?n WHERE {
+    ?s po:snapshotID '${netid}' .
+    ?p a po:Participant .
+    ?p po:snapshot ?s .
+    ?p po:observation ?o .
+    ?o po:name ?n .
+  }`
+  const qfriendships = `SELECT DISTINCT ?p1 ?p2 WHERE {
+    ?f a po:Friendship .
+    ?f po:snapshot ?s .
+    ?s po:snapshotID '${netid}' .
+    ?f po:member ?p1, ?p2 .
+    FILTER(?p1 != ?p2)
+  }`
+  e.losdCall(qmembers, (members) => {
+    e.losdCall(qfriendships, (friendships) => {
+      call({ members, friendships })
+    })
+  })
+}
+
+const dummyQueries = {
+  0: [
+    'SELECT ?s ?n WHERE {',
+    '?s a po:Snapshot .',
+    '?s po:name ?n .',
+    '}'
+  ].join(' '),
+  1: `PREFIX : <https://rfabbri.linked.data.world/d/linked-open-social-data/>
+      PREFIX po: <http://purl.org/socialparticipation/po/>
+      SELECT (COUNT(DISTINCT ?author) as ?c) WHERE {
+        ?author a po:Participant . 
+    }`
+}
+
+e.losdCall = (query, callback) => {
+  if (typeof query === 'object') {
+    query = query.join(' ')
+  }
+  if (Object.keys(dummyQueries).includes(String(query))) {
+    query = dummyQueries[query]
+  }
+  const query_ = [
+    'PREFIX : <https://rfabbri.linked.data.world/d/linked-open-social-data/>',
+    'PREFIX po: <http://purl.org/socialparticipation/po/>',
+    query
+  ]
+  sparqlCall(
+    'https://api.data.world/v0/sparql/rfabbri/linked-open-social-data',
+    query_.join(' '),
+    callback,
+    losdheaders.losdheaders
+  )
+}
+
+const sparqlCall = (url, query, callback, headers) => {
+  if (typeof query !== 'string') {
+    query = query.join(' ')
+  }
+  superagent
+    .get(url)
+    .query({ query, format: 'json' })
+    .set(headers)
+    .then(result => {
+      const mres__ = JSON.parse(result.text)
+      const sparqlres = mres__.results.bindings
+      callback(sparqlres)
+    })
+}
+
+},{"./losdheaders.js":337,"mongodb-stitch-browser-sdk":215,"superagent":326}],346:[function(require,module,exports){
 const e = module.exports
 const $ = require('jquery')
 
@@ -86158,4 +92297,4 @@ e.chunkArray = (array, chunkSize) => {
 
 const d = e.defaultArg = (arg, def) => arg === undefined ? def : arg
 
-},{"jquery":61}]},{},[235]);
+},{"jquery":67}]},{},[336]);
