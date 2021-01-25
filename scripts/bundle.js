@@ -88146,7 +88146,7 @@ if (!found) { // includes empty/no URL parameters:
 
 wand.router.mkFooter()
 
-},{"./modules/maestro.js":338,"./modules/med":339,"./modules/monk":341,"./modules/net.js":342,"./modules/router.js":343,"./modules/test.js":344,"./modules/transfer.js":345,"./modules/utils.js":346,"jquery":67}],337:[function(require,module,exports){
+},{"./modules/maestro.js":338,"./modules/med":339,"./modules/monk":341,"./modules/net.js":343,"./modules/router.js":344,"./modules/test.js":345,"./modules/transfer.js":346,"./modules/utils.js":347,"jquery":67}],337:[function(require,module,exports){
 const losdheaders = { authorization: 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwcm9kLXVzZXItY2xpZW50OnJmYWJicmkiLCJpc3MiOiJhZ2VudDpyZmFiYnJpOjo5YTc5MjA0OC00MDU0LTQ1NzQtODI5OS04MzU2NTVmZjk1NTYiLCJpYXQiOjE1NjA5Mzc2NDcsInJvbGUiOlsidXNlcl9hcGlfcmVhZCIsInVzZXJfYXBpX3dyaXRlIl0sImdlbmVyYWwtcHVycG9zZSI6dHJ1ZSwic2FtbCI6e319.MWcLAY_4bA20A6S8J2f8W2aHEQOrSw-yPCx1dBQHz97krLaRtiS7Yb9IUU1_gNYUO6x7y5fjvO1hB4hteCB1iQ' }
 
 module.exports = { losdheaders }
@@ -88241,7 +88241,7 @@ e.Speaker = class {
 
 e.speaker = new e.Speaker()
 
-},{"./utils.js":346,"tone":332}],339:[function(require,module,exports){
+},{"./utils.js":347,"tone":332}],339:[function(require,module,exports){
 module.exports = {
   model: require('./model1').meditation
 }
@@ -88718,9 +88718,10 @@ function tgui (synth, synthR, synthM, sampler) {
   })
 }
 
-},{"../maestro.js":338,"../router.js":343,"../transfer.js":345,"../utils.js":346,"dat.gui":40,"jquery":67,"pixi.js":313,"tone":332}],341:[function(require,module,exports){
+},{"../maestro.js":338,"../router.js":344,"../transfer.js":346,"../utils.js":347,"dat.gui":40,"jquery":67,"pixi.js":313,"tone":332}],341:[function(require,module,exports){
 const $ = require('jquery')
 const utils = require('../utils.js')
+module.exports.prayers = require('./prayers.js')
 
 $.ajax({
   url: 'assets/text/biblePt.txt',
@@ -88731,7 +88732,27 @@ $.ajax({
   }
 })
 
-},{"../utils.js":346,"jquery":67}],342:[function(require,module,exports){
+},{"../utils.js":347,"./prayers.js":342,"jquery":67}],342:[function(require,module,exports){
+module.exports = {
+  abertura: `
+        Pedimos a você Deus Pai, Jesus Cristo, e Espírito Santo,
+        proteção em nosso trabalho para nós e nossas famílias,
+        graça para iluminarmos nossas vidas e a Humanidade.
+        Que as nossas palavras, pensamentos, sentimentos e ações sejam agradáveis a Ti,
+        e que nos concentremos em atuar em Seu Nome e para a Sua Obra.
+        Rogamos que nos livre do engano, orgulho, vaidade e cobiça,
+        e que tenhamos completa confiança em Ti e Sua Providência.
+  `,
+  fechamento: `
+        Obrigado Senhor pela oportunidade concedida,
+        pedimos que cuide de nós e de nossas famílias (e em especial de "nome do neófito").
+        Limpe nossos corpos, mentes, almas e espíritos de qualquer má influência
+        para que possamos continuar nosso trabalho de Luz para a Sua Glória.
+        Em Seu Nome, Deus Pai, Jesus Cristo, e Espírito Santo.
+  `
+}
+
+},{}],343:[function(require,module,exports){
 /* global wand */
 const Graph = require('graphology')
 const { erdosRenyi } = require('graphology-generators/random')
@@ -88966,7 +88987,7 @@ e.ParticleNet2 = class { // using graphology net and positions as given by force
   }
 }
 
-},{"graphology":62,"graphology-generators/random":50,"graphology-layout":56,"graphology-layout-forceatlas2":53,"graphology-metrics/degree":58,"pixi.js":313}],343:[function(require,module,exports){
+},{"graphology":62,"graphology-generators/random":50,"graphology-layout":56,"graphology-layout-forceatlas2":53,"graphology-metrics/degree":58,"pixi.js":313}],344:[function(require,module,exports){
 /* global wand */
 const utils = require('./utils.js')
 
@@ -89159,7 +89180,7 @@ function lang (ft2) {
   })
 }
 
-},{"./utils.js":346}],344:[function(require,module,exports){
+},{"./utils.js":347}],345:[function(require,module,exports){
 const PIXI = require('pixi.js')
 const forceAtlas2 = require('graphology-layout-forceatlas2')
 
@@ -91662,24 +91683,14 @@ e.liturgy101 = () => {
   Deve ser feita antes do começo da sessão e da entrada do neófito e com as mãos juntas em frente ao rosto, ao peito ou ao abdomem, com o propósito de invocar o Senhor, seus Anjos e demais protetores dos envolvidos:
 
   <i><pre>
-        Pedimos a você Deus Pai, Jesus Cristo, e Espírito Santo,
-        proteção em nosso trabalho para nós e nossas famílias,
-        graça para iluminarmos nossas vidas e a Humanidade.
-        Que as nossas palavras, pensamentos, sentimentos e ações sejam agradáveis a Ti,
-        e que nos concentremos em atuar em Seu Nome e para a Sua Obra.
-        Rogamos que nos livre do engano, orgulho, vaidade e cobiça,
-        e que tenhamos completa confiança em Ti e Sua Providência.
+        ${monk.prayers.abertura}
   </pre></i>
 
   <h4>Oração de Fechamento</h3>
   Deve ser feita ao final da sessão e após o neófito sair e com as mãos abertas e voltadas para cima, com o propósito de agradecer, realizar petições finais, e banir essências não desejadas:
 
   <i><pre>
-        Obrigado Senhor pela oportunidade concedida,
-        pedimos que cuide de nós e de nossas famílias (e em especial de "nome do neófito").
-        Limpe nossos corpos, mentes, almas e espíritos de qualquer má influência
-        para que possamos continuar nosso trabalho de Luz para a Sua Glória.
-        Em Seu Nome, Deus Pai, Jesus Cristo, e Espírito Santo.
+        ${monk.prayers.fechamento}
   </pre></i>
 
   Sopra-se as palmas das mãos ao final da oração.
@@ -92095,7 +92106,62 @@ e.net = () => {
   })
 }
 
-},{"./maestro.js":338,"./med":339,"./monk":341,"./net.js":342,"./router.js":343,"./transfer.js":345,"./utils.js":346,"@eastdesire/jscolor":1,"dat.gui":40,"flatpickr":46,"graphology-layout-forceatlas2":53,"jquery":67,"linkifyjs/html":68,"pixi.js":313,"tone":332}],345:[function(require,module,exports){
+e.prayer = () => {
+  const d = u('d').split(':')
+  const dd = new Date()
+  dd.setHours(d[0])
+  dd.setMinutes(d[1])
+  dd.setSeconds(d[2])
+  dd.setMilliseconds(0)
+  console.log(d, dd)
+  window.d = { d, dd }
+
+  const oracao = monk.prayers[u('p')]
+  setCountdown(dd - new Date(), () => {
+    if (check.prop('checked')) {
+      maestro.speaker.synth.cancel()
+      maestro.speaker.play(oracao, 'pt')
+    }
+  })
+
+  const adiv = utils.stdDiv().html(`
+  <h2>Æterni Anima prayer</h2>
+  <i><pre>
+${oracao}
+  </pre></i>
+  `)
+  const grid = utils.mkGrid(2, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
+  $('<span/>').html('countdown to start prayer:').appendTo(grid)
+  const tLeft2 = $('<span/>').appendTo(grid)
+  $('<span/>').html('participate:').appendTo(grid)
+  const check = $('<input/>', {
+    type: 'checkbox'
+  }).appendTo(grid)
+
+  function setCountdown (dur, fun) {
+    const duration = dur / 1000
+    const targetTime = (new Date()).getTime() / 1000 + duration
+    setTimeout(() => {
+      fun()
+      clearInterval(timer)
+    }, duration * 1000)
+    const reduce = dur => [Math.floor(dur / 60), Math.floor(dur % 60)]
+    const p = num => num < 10 ? '0' + num : num
+    const timer = setInterval(() => {
+      const moment = targetTime - (new Date()).getTime() / 1000
+      let [minutes, seconds] = reduce(moment)
+      let hours = ''
+      if (minutes > 59) {
+        [hours, minutes] = reduce(minutes)
+        hours += ':'
+      }
+      tLeft2.text(`${hours}${p(minutes)}:${p(seconds)}`)
+    }, 100)
+  }
+  $('#loading').hide()
+}
+
+},{"./maestro.js":338,"./med":339,"./monk":341,"./net.js":343,"./router.js":344,"./transfer.js":346,"./utils.js":347,"@eastdesire/jscolor":1,"dat.gui":40,"flatpickr":46,"graphology-layout-forceatlas2":53,"jquery":67,"linkifyjs/html":68,"pixi.js":313,"tone":332}],346:[function(require,module,exports){
 // mongo:
 const s = require('mongodb-stitch-browser-sdk')
 const e = module.exports
@@ -92226,7 +92292,7 @@ const sparqlCall = (url, query, callback, headers) => {
     })
 }
 
-},{"./losdheaders.js":337,"mongodb-stitch-browser-sdk":215,"superagent":326}],346:[function(require,module,exports){
+},{"./losdheaders.js":337,"mongodb-stitch-browser-sdk":215,"superagent":326}],347:[function(require,module,exports){
 const e = module.exports
 const $ = require('jquery')
 
