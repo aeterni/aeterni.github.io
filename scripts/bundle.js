@@ -88272,7 +88272,7 @@ if (!found) { // includes empty/no URL parameters:
 
 wand.router.mkFooter()
 
-},{"./modules/maestro.js":341,"./modules/med":342,"./modules/monk":344,"./modules/net.js":346,"./modules/router.js":347,"./modules/test.js":348,"./modules/transfer.js":349,"./modules/utils.js":350,"jquery":67}],340:[function(require,module,exports){
+},{"./modules/maestro.js":341,"./modules/med":342,"./modules/monk":346,"./modules/net.js":348,"./modules/router.js":349,"./modules/test.js":350,"./modules/transfer.js":351,"./modules/utils.js":352,"jquery":67}],340:[function(require,module,exports){
 const losdheaders = { authorization: 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwcm9kLXVzZXItY2xpZW50OnJmYWJicmkiLCJpc3MiOiJhZ2VudDpyZmFiYnJpOjo5YTc5MjA0OC00MDU0LTQ1NzQtODI5OS04MzU2NTVmZjk1NTYiLCJpYXQiOjE1NjA5Mzc2NDcsInJvbGUiOlsidXNlcl9hcGlfcmVhZCIsInVzZXJfYXBpX3dyaXRlIl0sImdlbmVyYWwtcHVycG9zZSI6dHJ1ZSwic2FtbCI6e319.MWcLAY_4bA20A6S8J2f8W2aHEQOrSw-yPCx1dBQHz97krLaRtiS7Yb9IUU1_gNYUO6x7y5fjvO1hB4hteCB1iQ' }
 
 module.exports = { losdheaders }
@@ -88367,12 +88367,201 @@ e.Speaker = class {
 
 e.speaker = new e.Speaker()
 
-},{"./utils.js":350,"tone":335}],342:[function(require,module,exports){
+},{"./utils.js":352,"tone":335}],342:[function(require,module,exports){
 module.exports = {
-  model: require('./model1').meditation
+  model: require('./model1').meditation,
+  MkMed2: require('./mkMed2').Mk,
+  Model2: require('./model2').Med
 }
 
-},{"./model1":343}],343:[function(require,module,exports){
+},{"./mkMed2":343,"./model1":344,"./model2":345}],343:[function(require,module,exports){
+const $ = require('jquery')
+const transfer = require('../transfer.js')
+const utils = require('../utils.js')
+
+const e = module.exports
+
+e.Mk = class {
+  constructor () {
+    this.div1 = $('<div/>', { css: { display: 'inline-block', width: '50%' } }).appendTo('body')
+    this.div2 = $('<div/>', { css: { display: 'inline-block', width: '50%' } }).appendTo('body')
+    this.grid = utils.mkGrid(2, this.div1, '90%', '#eeeeff')
+    this.grid2 = utils.mkGrid(2, this.div1, '90%', '#eeffee')
+    this.grid3 = utils.mkGrid(2, this.div1, '90%', '#ffeeee')
+    this.gd = grid => utils.gridDivider(0, 160, 0, grid)
+
+    transfer.findAll({ med2: { $exists: true } }).then(r => {
+      this.allSettings = r
+      this.addHeader()
+      // this.gd()
+      this.setVisual()
+      this.gd()
+      this.addMenu()
+      $('#loading').hide()
+    })
+  }
+
+  addHeader () {
+    console.log('good work man')
+    const grid = this.grid
+    $('<link/>', {
+      rel: 'stylesheet',
+      href: 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css'
+    }).appendTo('head')
+    const flatpickr = require('flatpickr')
+
+    const s = $('<select/>', { id: 'mselect' }).appendTo(grid)
+      .append($('<option/>').val(-1).html('~ creating ~'))
+      .attr('title', 'Select template to load, edit, or delete.')
+      .on('change', aself => {
+        this.load(aself.currentTarget.value)
+      })
+    this.s = s
+    this.allSettings.forEach((i, ii) => {
+      s.append($('<option/>', { class: 'pres' }).val(ii).html(i.med2))
+    })
+    $('<button/>').html('Delete').appendTo(grid)
+      .click(() => {
+      })
+
+    $('<span/>').html('id:').appendTo(grid)
+    const mdiv = $('<input/>', {
+      placeholder: 'id for the meditation'
+    }).appendTo(grid)
+      .attr('title', 'The ID for the meditation (will appear on the URL).')
+
+    $('<span/>').html('when:').appendTo(grid)
+    const adiv = $('<input/>', {
+      placeholder: 'select date and time'
+    }).appendTo(grid)
+      .attr('title', 'Select a date and time for the mentalization to occur.')
+    const mfp = flatpickr(adiv, {
+      enableTime: true
+    })
+
+    $('<span/>').html('total duration:').appendTo(grid)
+    const d = $('<input/>', {
+      placeholder: 'in seconds (0 if forever)'
+    }).appendTo(grid)
+      .attr('title', 'Duration of the meditation in seconds.')
+
+    window.foo = { mdiv, mfp, d }
+  }
+
+  setVisual () {
+    const grid = this.grid2
+    // const grid = utils.mkGrid(2)
+    $('<span/>').html('breathing ellipse:').appendTo(grid)
+    const ellipse = $('<input/>', {
+      type: 'checkbox'
+    }).appendTo(grid)
+      .attr('title', 'Breath-scaled circle is ellipsoid if checked.')
+
+    $('<span/>').html('breathing position:').appendTo(grid)
+    const posPos = ['Center', 'Left', 'Right']
+    const bPos = $('<button/>')
+      .html('Center')
+      .appendTo(grid)
+      .attr('title', 'Breath-scaled circle position.')
+      .click(() => {
+        bPos.bindex = (bPos.bindex + 1) % posPos.length
+        bPos.html(posPos[bPos.bindex])
+      })
+    bPos.bindex = 0
+
+    this.gd(grid)
+
+    $('<span/>').html('rainbow flakes:').appendTo(grid)
+    const rainbowFlakes = $('<input/>', {
+      type: 'checkbox'
+    }).appendTo(grid)
+      .attr('title', 'The flakes are in all colors if checked.')
+
+    const J = require('@eastdesire/jscolor')
+    $('<span/>').html('backgroung color:').appendTo(grid)
+    $('<input/>', { id: 'bgc' }).appendTo(grid)
+      .attr('title', 'The color of the background.')
+    const bgc = new J('#bgc', { value: '#000000' })
+
+    $('<span/>').html('foreground color:').appendTo(grid)
+    $('<input/>', { id: 'fgc' }).appendTo(grid)
+      .attr('title', 'The color of main drawing (e.g. sinusoid + shaking attractive circle).')
+    const fgc = new J('#fgc', { value: '#FFFFFF' })
+
+    $('<span/>').html('breathing circ color:').appendTo(grid)
+    $('<input/>', { id: 'bcc' }).appendTo(grid)
+      .attr('title', 'The color of circle that expands when to inhale.')
+    const bcc = new J('#bcc', { value: '#4444FF' })
+
+    const centerC = $('<span/>').html('center circ color:').appendTo(grid)
+    $('<input/>', { id: 'ccc' }).appendTo(grid)
+      .attr('title', 'The color of moving circle in (or most to) the middle.')
+    const ccc = new J('#ccc', { value: '#00FF00' })
+
+    const lateralC = $('<span/>').html('lateral circ color:').appendTo(grid)
+    $('<input/>', { id: 'lcc' }).appendTo(grid)
+      .attr('title', 'The color of the moving circle in (or most to) the laterals.')
+    const lcc = new J('#lcc', { value: '#FFFF00' })
+
+    this.gd(grid)
+
+    $('<span/>').html('lemniscate:').appendTo(grid)
+    const lemniscate = $('<input/>', {
+      type: 'checkbox'
+    }).appendTo(grid)
+      .attr('title', 'Visualization with lemniscate if checked, sinusoid if not checked.')
+      .on('change', function () {
+        if (this.checked) {
+          console.log('checked L')
+          centerC.html('left circ color:')
+          lateralC.html('right circ color:')
+        } else {
+          console.log('unchecked L')
+          centerC.html('center circ color:')
+          lateralC.html('lateral circ color:')
+        }
+      })
+    window.bar = { ellipse, rainbowFlakes, bgc, fgc, bcc, ccc, lcc, lemniscate }
+  }
+
+  addMenu () {
+    const grid = this.grid3
+    $('<span/>').html('add:').appendTo(grid)
+    const btnAddMartigli = $('<button/>')
+      .html('Martigli')
+      .appendTo(grid)
+    const btnAddBinaural = $('<button/>')
+      .html('Binaural')
+      .appendTo(grid)
+    const btnAddSymmetry = $('<button/>')
+      .html('Symmetry')
+      .appendTo(grid)
+    const btnAddSample = $('<button/>')
+      .html('Sample')
+      .appendTo(grid)
+    const btnAddMartigliBinaural = $('<button/>')
+      .html('Martigli-Binaural')
+      .appendTo(grid)
+    window.baz = { btnAddMartigli, btnAddBinaural, btnAddSymmetry, btnAddSample, btnAddMartigliBinaural }
+  }
+
+  addMartigli () {
+  }
+
+  addBinaural () {
+  }
+
+  addSymmetry () {
+  }
+
+  addSample () {
+  }
+
+  addMartigliBinaural () {
+  }
+}
+
+},{"../transfer.js":351,"../utils.js":352,"@eastdesire/jscolor":1,"flatpickr":46,"jquery":67}],344:[function(require,module,exports){
 const t = require('tone')
 const $ = require('jquery')
 const PIXI = require('pixi.js')
@@ -88413,7 +88602,8 @@ e.meditation = mid => {
       conoff.attr('disabled', true)
       vonoff.text('-----')
     }
-    let duration = (s.dateTime.getTime() - (new Date()).getTime()) / 1000
+    const dt = u('s') ? utils.timeArgument() : s.dateTime
+    let duration = (dt.getTime() - (new Date()).getTime()) / 1000
     if (u('t')) duration = parseFloat(u('t'))
     function caseConcluded () {
       vonoff.text('ask team to open a new session.')
@@ -88434,19 +88624,21 @@ e.meditation = mid => {
     if (duration < 0) {
       return caseOnOrConcluded()
     }
-    console.log(s, 'SETTIGNS')
     let sampler
     if (s.soundSample > 0) {
       sampler = new t.Player(`assets/audio/${maestro.sounds[s.soundSample].name}.mp3`).toDestination()
       sampler.volume.value = parseFloat(s.soundSampleVolume)
       sampler.loop = s.soundSamplePeriod === 0
     }
+
+    const { ticker, synth, synthR, synthM, mod_ } = initialize(s)
+
     setCountdown(duration, fun1, undefined, 'countdown to start: ')
     function fun1 () { // to start the med
       if (!conoff.prop('checked')) {
         return caseOnOrConcluded()
       }
-      const { synth, synthR, synthM, mod_ } = setSounds(s)
+      setSounds(ticker)
       t.Master.mute = false
       if (s.vcontrol) tgui(synth, synthR, synthM, sampler)
       if (s.soundSample > 0) {
@@ -88540,7 +88732,7 @@ e.meditation = mid => {
   const [x, y] = [w * 0.1, h * 0.5] // for sinusoid
   const [dx, dy] = [w * 0.8, h * 0.4] // for sinusoid
 
-  function setSounds (s) {
+  function initialize (s) {
     const [x0, y0] = s.lemniscate ? c : [w * 0.2, h * 0.2]
     const myLine = new PIXI.Graphics()
     const segments = 100
@@ -88548,7 +88740,6 @@ e.meditation = mid => {
       myCircle4.x = s.bPos === 0 ? c[0] : s.bPos === 1 ? (c[0] - a) / 2 : (3 * c[0] + a) / 2
       myLine.lineStyle(1, 0xffffff)
         .moveTo(...xy(0))
-      const segments = 100
       for (let i = 0; i <= segments; i++) {
         myLine.lineTo(...xy(2 * Math.PI * i / 100))
       }
@@ -88627,6 +88818,7 @@ e.meditation = mid => {
       t.Transport.start()
     }
 
+    // ticker stuff:
     let propx = 1
     let propy = 1
     let rot = Math.random() * 0.1
@@ -88643,7 +88835,7 @@ e.meditation = mid => {
       }
     }
     let lastdc = 0
-    app.ticker.add(() => {
+    const ticker = app.ticker.add(() => {
       const dc = met2.getValue()
       if (dc - lastdc > 0) { // inhale
         // mais proximo de 0, mais colorido
@@ -88702,7 +88894,11 @@ e.meditation = mid => {
         }
       }
     })
-    return { synth, synthR, synthM, mod_ }
+    setTimeout(() => ticker.stop(), 200)
+    return { mod_, synth, synthR, synthM, ticker }
+  }
+  function setSounds (ticker) {
+    ticker.start()
   }
 
   const grid = utils.mkGrid(2)
@@ -88755,11 +88951,20 @@ e.meditation = mid => {
   m2.css('background', 'rgb(255,255,0)')
   const evocation = $('<button/>', {
     css: {
+      'background-color': 'white',
+      // border: '2px solid #a7a7a7',
+      border: '2px solid #cafbfb',
+      color: 'black',
+      cursor: 'pointer',
+      'transition-duration': '0.4s',
+      'border-radius': '6px',
       'margin-left': '5%',
       'margin-right': '5%',
       'margin-top': '2px'
     }
-  }).html('Evocation').appendTo(grid)
+  }).html('Evocation').appendTo(grid).hover(function (e) {
+    $(this).css('background-color', e.type === 'mouseenter' ? '#cafbfb' : 'white')
+  })
   const gitems = [
     'use headphones whenever possible;',
     'breath with the vertical position of the oval or circular visual cue that don\'t change horizontal position and that expands and contracts;',
@@ -88775,6 +88980,12 @@ e.meditation = mid => {
   ].reduce((a, i) => a + `<li>${i}</li>`, '')
   $('<button/>', {
     css: {
+      'background-color': 'white',
+      border: '2px solid #cafbfb',
+      color: 'black',
+      cursor: 'pointer',
+      'transition-duration': '0.4s',
+      'border-radius': '6px',
       'margin-left': '5%',
       'margin-right': '5%',
       'margin-top': '2px'
@@ -88790,6 +89001,8 @@ e.meditation = mid => {
       Good luck and thank you!
       <br><br><br>:::
       `)
+    }).hover(function (e) {
+      $(this).css('background-color', e.type === 'mouseenter' ? '#cafbfb' : 'white')
     })
 }
 
@@ -88844,7 +89057,38 @@ function tgui (synth, synthR, synthM, sampler) {
   })
 }
 
-},{"../maestro.js":341,"../router.js":347,"../transfer.js":349,"../utils.js":350,"dat.gui":40,"jquery":67,"pixi.js":316,"tone":335}],344:[function(require,module,exports){
+},{"../maestro.js":341,"../router.js":349,"../transfer.js":351,"../utils.js":352,"dat.gui":40,"jquery":67,"pixi.js":316,"tone":335}],345:[function(require,module,exports){
+const e = module.exports
+
+e.Med = class {
+  constructor (ss) {
+    for (let i = 1; i < ss.length; i++) {
+      const s = ss[i]
+      this[s.type](s)
+    }
+    this.setVisual(ss[0])
+  }
+
+  setVisual (s) {
+  }
+
+  martigli (s) {
+  }
+
+  binaural (s) {
+  }
+
+  symmetry (s) {
+  }
+
+  sample (s) {
+  }
+
+  martigliBinaural (s) {
+  }
+}
+
+},{}],346:[function(require,module,exports){
 const $ = require('jquery')
 const utils = require('../utils.js')
 module.exports.prayers = require('./prayers.js')
@@ -88858,7 +89102,7 @@ $.ajax({
   }
 })
 
-},{"../utils.js":350,"./prayers.js":345,"jquery":67}],345:[function(require,module,exports){
+},{"../utils.js":352,"./prayers.js":347,"jquery":67}],347:[function(require,module,exports){
 module.exports = {
   abertura: `
         Pedimos a você Deus Pai, Jesus Cristo, e Espírito Santo,
@@ -88914,7 +89158,7 @@ module.exports = {
   `
 }
 
-},{}],346:[function(require,module,exports){
+},{}],348:[function(require,module,exports){
 /* global wand */
 const Graph = require('graphology')
 const { erdosRenyi } = require('graphology-generators/random')
@@ -89149,7 +89393,7 @@ e.ParticleNet2 = class { // using graphology net and positions as given by force
   }
 }
 
-},{"graphology":62,"graphology-generators/random":50,"graphology-layout":56,"graphology-layout-forceatlas2":53,"graphology-metrics/degree":58,"pixi.js":316}],347:[function(require,module,exports){
+},{"graphology":62,"graphology-generators/random":50,"graphology-layout":56,"graphology-layout-forceatlas2":53,"graphology-metrics/degree":58,"pixi.js":316}],349:[function(require,module,exports){
 /* global wand */
 const utils = require('./utils.js')
 
@@ -89342,7 +89586,23 @@ function lang (ft2) {
   })
 }
 
-},{"./utils.js":350}],348:[function(require,module,exports){
+e.timeArgument = () => {
+  const dd = new Date()
+  const d_ = e.urlArgument('s')
+  if (d_) {
+    const d = d_.split(':')
+    dd.setHours(d[0])
+    dd.setMinutes(d.length > 1 ? d[1] : 0)
+    dd.setSeconds(d.length > 2 ? d[2] : 0)
+  } else {
+    dd.setMinutes(dd.getMinutes() + 1)
+    dd.setSeconds(0)
+  }
+  dd.setMilliseconds(0)
+  return dd
+}
+
+},{"./utils.js":352}],350:[function(require,module,exports){
 const PIXI = require('pixi.js')
 const forceAtlas2 = require('graphology-layout-forceatlas2')
 
@@ -91236,6 +91496,7 @@ e.aeterni = () => {
     Further keywords: hallmarks of aging, rejuvenation biotechnology, 
   </div>
   `).appendTo('body')
+  $('#loading').hide()
 }
 
 e.accounts = () => {
@@ -92227,18 +92488,7 @@ ${oracao}
   </pre></i>
   `)
 
-  const dd = new Date()
-  const d_ = u('d')
-  if (d_) {
-    const d = d_.split(':')
-    dd.setHours(d[0])
-    dd.setMinutes(d.length > 1 ? d[1] : 0)
-    dd.setSeconds(d.length > 2 ? d[2] : 0)
-  } else {
-    dd.setMinutes(dd.getMinutes() + 1)
-    dd.setSeconds(0)
-  }
-  dd.setMilliseconds(0)
+  const dd = window.wand.router.timeArgument()
   setCountdown(dd - new Date(), () => {
     if (check.prop('checked')) {
       maestro.speaker.synth.cancel()
@@ -92247,7 +92497,7 @@ ${oracao}
   })
   const grid = utils.mkGrid(2, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
   $('<span/>').html('countdown to start prayer:').appendTo(grid)
-  const tLeft2 = $('<span/>', { css: { 'background-color': '#ffffaa', cursor: 'context-menu' }, title: 'URL argument d=HH:MM:SS. MM and SS and HH are optional. If &d= is not given, prayer starts on next minute.' }).appendTo(grid)
+  const tLeft2 = $('<span/>', { css: { 'background-color': '#ffffaa', cursor: 'context-menu' }, title: 'URL argument s=HH:MM:SS. MM and SS and HH are optional. If &s= is not given, prayer starts on next minute.' }).appendTo(grid)
   $('<span/>').html('participate:').appendTo(grid)
   const check = $('<input/>', {
     type: 'checkbox'
@@ -92338,7 +92588,12 @@ e.tper = () => {
   $('#loading').hide()
 }
 
-},{"./maestro.js":341,"./med":342,"./monk":344,"./net.js":346,"./router.js":347,"./transfer.js":349,"./utils.js":350,"@eastdesire/jscolor":1,"dat.gui":40,"flatpickr":46,"graphology-layout-forceatlas2":53,"jquery":67,"linkifyjs/html":68,"percom":314,"pixi.js":316,"tone":335}],349:[function(require,module,exports){
+e.mkMed2 = () => {
+  const mk = new m.MkMed2()
+  window.mk = mk
+}
+
+},{"./maestro.js":341,"./med":342,"./monk":346,"./net.js":348,"./router.js":349,"./transfer.js":351,"./utils.js":352,"@eastdesire/jscolor":1,"dat.gui":40,"flatpickr":46,"graphology-layout-forceatlas2":53,"jquery":67,"linkifyjs/html":68,"percom":314,"pixi.js":316,"tone":335}],351:[function(require,module,exports){
 // mongo:
 const s = require('mongodb-stitch-browser-sdk')
 const e = module.exports
@@ -92469,7 +92724,7 @@ const sparqlCall = (url, query, callback, headers) => {
     })
 }
 
-},{"./losdheaders.js":340,"mongodb-stitch-browser-sdk":215,"superagent":329}],350:[function(require,module,exports){
+},{"./losdheaders.js":340,"mongodb-stitch-browser-sdk":215,"superagent":329}],352:[function(require,module,exports){
 const e = module.exports
 const $ = require('jquery')
 
