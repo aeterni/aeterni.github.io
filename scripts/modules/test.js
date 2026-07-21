@@ -2277,6 +2277,17 @@ e.welcome2 = () => {
     @media (max-width: 620px) { .aprojects { grid-template-columns: 1fr; } }
     .aproj > strong { font-family: var(--serif); font-size: 1.2rem; letter-spacing: 0.01em; }
     .aproj .asub { margin: 0.6em 0 0; padding-left: 1.15em; font-size: 0.97rem; }
+    .aproj--feature {
+      background: rgba(184, 149, 48, 0.12);
+      border-color: var(--accent-soft);
+      padding: 20px 22px;
+    }
+    .aproj--feature > strong { font-size: 1.6rem; }
+    .aeyebrow {
+      display: block; margin-bottom: 0.35em;
+      font-family: var(--sans); font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent);
+    }
     .acenter { text-align: center; }
     .amute { color: var(--ink-soft); }
   </style>
@@ -2292,9 +2303,9 @@ e.welcome2 = () => {
   <p>Welcome. You can learn more <a href="?about">about this initiative</a>, <span id="fund-us"></span>, or explore our projects:</p>
 
   <ul class="aprojects">
+    <li class="aproj aproj--wide aproj--feature"><span class="aeyebrow">Flagship</span><strong><a href="https://biosyncare.com/">BioSynCare</a>:</strong> audiovisual medicine — neuromodulation for well-being through breathing and sound waves produced by <a href="?artifacts">audiovisual artifacts</a>.</li>
     <li class="aproj aproj--wide"><strong><a href="?daimesm">Daime Science Manifesto</a>:</strong> integrating scientific knowledge and spiritual wisdom within the Santo Daime community.
       <ul class="asub">
-        <li><strong><a href="https://audiovisualmedicine.github.io">Audiovisual Medicine</a>:</strong> neuromodulation through breathing and sound waves produced by <a href="?artifacts">audiovisual artifacts</a>.</li>
         <li><strong><a href="https://da1me.github.io/">Da1me</a>:</strong> textual analyses of Santo Daime hymnals.</li>
         <li><strong>QR:</strong> a system for tracking and documenting Daime batches.</li>
         <li><strong>Daimists' Wellness Monitoring:</strong> tracking and analysis of daimists' health before and after the works.</li>
