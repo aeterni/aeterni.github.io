@@ -2308,7 +2308,7 @@ e.welcome2 = () => {
   <p>Welcome. You can learn more <a href="?about">about this initiative</a>, <span id="fund-us"></span>, or explore our projects:</p>
 
   <ul class="aprojects">
-    <li class="aproj aproj--wide aproj--feature"><span class="aeyebrow">Flagship</span><strong><a href="https://biosyncare.com/">BioSynCare</a>:</strong> sensory stimulation — audiovisual medicine — non-invasive neuromodulation for health, well-being and performance, through breathing and sound.<span class="afeat-line"><strong>SSTIM and Patch Studio:</strong> open knowledge (OWL, SKOS, RDF) and software to promote Sensory Stimulation.</span></li>
+    <li class="aproj aproj--wide aproj--feature"><span class="aeyebrow">Flagship</span><strong><a href="https://biosyncare.com/">BioSynCare</a>:</strong> sensory stimulation — audiovisual medicine — non-invasive neuromodulation for health, well-being and performance, through breathing and sound.<span class="afeat-line"><strong><a href="https://labiosyncare.github.io/">SSTIM and Patch Studio</a>:</strong> open knowledge (OWL, SKOS, RDF) and software to promote Sensory Stimulation, at the BSC Lab.</span></li>
     <li class="aproj"><strong><a href="https://pypi.org/project/music/">Music</a>:</strong> a Python library for the synthesis of mathematically precise sounds and musical structures.</li>
     <li class="aproj"><strong>OurAquarium:</strong> navigating and harnessing your own social networks through audiovisual art — for example, making personalized music to share with your contacts and spread custom messages.</li>
     <li class="aproj"><strong>Daimeantes:</strong> a simple platform to register insights and ideas in general.</li>
