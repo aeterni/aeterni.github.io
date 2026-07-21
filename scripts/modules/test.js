@@ -2574,7 +2574,7 @@ e.about2 = () => {
   .about-lead { font-size: 1.1rem; }
 </style>
 <h2>About Æterni Anima</h2>
-<p class="about-lead"><strong>Æterni Anima</strong> is an initiative established in December 2020 to promote <span class="highlighted">longevity</span> and <span class="highlighted">advance humanity towards immortality</span>. We integrate science, art and technology to foster <span class="highlighted">wellbeing</span> across a range of endeavors.</p>
+<p class="about-lead"><strong>Æterni Anima</strong> is an initiative established in December 2020 to promote <span class="highlighted">extended longevity</span> through <span class="highlighted">non-invasive</span> improvements to health and performance. We integrate science, art and technology to foster <span class="highlighted">wellbeing</span> across a range of endeavors.</p>
 
 <p>Our flagship, <a href="https://biosyncare.com/">BioSynCare</a>, advances <span class="highlighted">sensory stimulation</span> — audiovisual medicine — for non-invasive neuromodulation of health, well-being and performance, through breathing and sound. It rests on the open knowledge (OWL, SKOS, RDF) and software of <a href="https://labiosyncare.github.io/">SSTIM and Patch Studio</a>, at the BSC Lab.</p>
 
