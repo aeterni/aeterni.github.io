@@ -2097,22 +2097,22 @@ e.guide = () => {
   
       <ul>
   
-          <li><a href="https://audiovisualmedicine.github.io/?.alpha9.15">Peaceful
+          <li><a href="?.alpha9.15">Peaceful
                   Pulse</a>: a simple and clean 9.15 Hz alpha wave to cultivate a sense of
               peacefulness.</li>
   
-          <li><a href="https://audiovisualmedicine.github.io/?.betas">Cognitive
+          <li><a href="?.betas">Cognitive
                   Crescendo</a>: a sequence of low, med, and high beta waves, often the best
               choice for learning.</li>
   
-          <li><a href="https://audiovisualmedicine.github.io/?.gamma40_">Genius
+          <li><a href="?.gamma40_">Genius
                   Glow</a>: two simple 40 Hz gamma waves with periodic pan transitions and
               symmetries in 5 and 3, used to enhance the creativity flow.</li>
   
-          <li><a href="https://audiovisualmedicine.github.io/?.midLowAlpha2">Harmony
+          <li><a href="?.midLowAlpha2">Harmony
                   Haven</a>: a 10 Hz alpha wave to promote a feeling of harmony.</li>
   
-          <li><a href="https://audiovisualmedicine.github.io/?.40-1_sim1-..4__">Expanded
+          <li><a href="?.40-1_sim1-..4__">Expanded
                   Enlightenment</a>: a combo of gamma waves at 40 Hz and delta waves at 1Hz, with
               symmetries, to foster deep meditation and altered states of consciousness.</li>
       </ul>
@@ -2568,15 +2568,22 @@ e.about2 = () => {
   utils.stdDiv().html(`
   <style>
   .highlighted {
-    font-size: 108%;
-    color: darkred;
+    color: var(--accent);
+    font-weight: 600;
   }
+  .about-lead { font-size: 1.1rem; }
 </style>
 <h2>About Æterni Anima</h2>
-<p><strong>Æterni Anima</strong> is an initiative established in December 2020 to promote <span class="highlighted">longevity</span> and <span class="highlighted">advance humanity towards immortality</span>. We integrate science, art and technology and foster <span class="highlighted">wellbeing</span> within various endeavors, from developing and providing <a href="https://audiovisualmedicine.github.io">Audiovisual Stimulation gadgets</a> to enabling one's social networks harnessing. Through our <strong>publishing activity</strong>, we curate and disseminate <span class="highlighted">transformative narratives</span>.</p>
+<p class="about-lead"><strong>Æterni Anima</strong> is an initiative established in December 2020 to promote <span class="highlighted">longevity</span> and <span class="highlighted">advance humanity towards immortality</span>. We integrate science, art and technology to foster <span class="highlighted">wellbeing</span> across a range of endeavors.</p>
+
+<p>Our flagship, <a href="https://biosyncare.com/">BioSynCare</a>, advances <span class="highlighted">sensory stimulation</span> — audiovisual medicine — for non-invasive neuromodulation of health, well-being and performance, through breathing and sound. It rests on the open knowledge (OWL, SKOS, RDF) and software of <a href="https://labiosyncare.github.io/">SSTIM and Patch Studio</a>, at the BSC Lab.</p>
+
+<p>Around it we cultivate tools for <a href="https://pypi.org/project/music/">musical synthesis</a>, for harnessing one's own social networks, and for registering insights and distilling knowledge. Within the Santo Daime community, the <a href="?daimesm">Daime Science Manifesto</a> guides work that unites scientific rigor with spiritual wisdom.</p>
+
+<p>Through our <strong>publishing activity</strong>, we curate and disseminate <span class="highlighted">transformative narratives</span>.</p>
 
 <p>We invite you to join us on this journey. Your participation is invaluable, and we look forward to sharing each step with you.</p>
-<p>:::</p>
+<p style="text-align:center;color:var(--ink-soft)">:::</p>
   `)
   $('#loading').hide()
 }
