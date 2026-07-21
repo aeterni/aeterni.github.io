@@ -138,32 +138,38 @@ const groups = `<a href="https://www.facebook.com/groups/arcturianart" target="_
 <a href="https://www.facebook.com/groups/mentaliz" target="_blank">MMM</a>,
 <a href="https://chat.whatsapp.com/BztLyvWDEgW3C1mjXZTTrP" target="_blank">WM</a>`
 
+const groupArcturian = '<a href="https://www.facebook.com/groups/arcturianart" target="_blank">Arcturian Art</a>'
+const groupMentaliz = '<a href="https://www.facebook.com/groups/mentaliz" target="_blank">Mentaliz</a>'
+const groupWhatsapp = '<a href="https://chat.whatsapp.com/BztLyvWDEgW3C1mjXZTTrP" target="_blank">WhatsApp group</a>'
+
 e.stdMsg2 = () => {
   if (window.wand.country === 'BR') {
     return `
-    <h2>Envolva-se com AA</h2>
+    <h2>Envolva-se com a Æterni Anima</h2>
+    <p>Toda contribuição conta, e há muitas formas de participar:</p>
     <ul>
-        <li><strong>Compartilhe suas experiências:</strong> Reflita sobre como sua participação tem beneficiado você e incentive outros a fazer o mesmo.</li>
-        <li><strong>Crie e compartilhe conteúdo multimídia:</strong> Produza artefatos audiovisuais e distribua-os para enriquecer as ofertas do projeto e aumentar a conscientização.</li>
-        <li><strong>Expanda sua rede:</strong> Entre em contato com potenciais parceiros, colaboradores e indivíduos com interesses semelhantes para fortalecer conexões e ampliar a comunidade.</li>
-        <li><strong>Promova o engajamento:</strong> Incentive a participação ativa e o envolvimento em grupos existentes (${groups}) ou considere formar novos.</li>
-        <li><strong>Apóie iniciativas:</strong> Ofereça assistência, seja por meio de contribuições financeiras ou outros tipos de apoio, para promover os objetivos e iniciativas do projeto.</li>
-        <li><strong>Mantenha-se conectado e forneça feedback:</strong> Mantenha linhas de comunicação abertas, forneça feedback construtivo e ofereça sugestões para aprimorar a eficácia do projeto.</li>
+        <li><strong>Conte sua experiência:</strong> diga-nos como as sessões e as ferramentas têm afetado você, e convide outros a fazerem o mesmo.</li>
+        <li><strong>Crie e compartilhe:</strong> produza artefatos audiovisuais e distribua-os, enriquecendo o que temos a oferecer.</li>
+        <li><strong>Amplie o círculo:</strong> aproxime parceiros, colaboradores e pessoas afins que possam se interessar por este trabalho.</li>
+        <li><strong>Participe de uma comunidade:</strong> junte-se ao ${groupArcturian}, ao ${groupMentaliz} ou ao nosso ${groupWhatsapp} — ou crie o seu.</li>
+        <li><strong>Apoie a iniciativa:</strong> <a href="?angel">contribua financeiramente</a> ou ofereça seu tempo e suas habilidades.</li>
+        <li><strong>Mantenha contato:</strong> envie suas ideias e sugestões — elas orientam os próximos passos.</li>
     </ul>
-    <p>Lembre-se, até o menor esforço pode fazer uma grande diferença.</p>
+    <p>Até o menor gesto faz diferença. Obrigado.</p>
     `
   }
   return `
-  <h2>Get Involved with AA</h2>
+  <h2>Get Involved with Æterni Anima</h2>
+  <p>Every contribution counts, and there are many ways to take part:</p>
   <ul>
-      <li><strong>Share your experiences:</strong> Reflect on how your participation has benefited you and encourage others to do the same.</li>
-      <li><strong>Create and share multimedia content:</strong> Make audiovisual artifacts and distribute them to enrich the project's offerings and raise awareness.</li>
-      <li><strong>Expand your network:</strong> Reach out to potential partners, collaborators, and like-minded individuals to strengthen connections and grow the community.</li>
-      <li><strong>Promote engagement:</strong> Encourage active participation and involvement in existing groups (${groups}) or consider forming new ones.</li>
-      <li><strong>Support initiatives:</strong> Offer assistance, whether through financial contributions or other forms of support.</li>
-      <li><strong>Stay connected and provide feedback:</strong> Maintain open lines of communication, provide constructive feedback, and offer suggestions for enhancing the project's effectiveness.</li>
+      <li><strong>Share your experience:</strong> tell us how the sessions and tools have affected you, and invite others to do the same.</li>
+      <li><strong>Create and share:</strong> make audiovisual artifacts and pass them on, enriching what we can offer.</li>
+      <li><strong>Widen the circle:</strong> introduce partners, collaborators and kindred spirits who might care about this work.</li>
+      <li><strong>Join a community:</strong> take part in ${groupArcturian}, ${groupMentaliz} or our ${groupWhatsapp} — or start one of your own.</li>
+      <li><strong>Support the initiative:</strong> <a href="?angel">contribute financially</a> or lend your time and skills.</li>
+      <li><strong>Stay in touch:</strong> send us your thoughts and suggestions — they shape where this goes next.</li>
   </ul>
-  <p>Remember, even the smallest effort can make a big difference.</p>
+  <p>Even the smallest gesture makes a difference. Thank you.</p>
   `
 }
 
@@ -243,19 +249,22 @@ e.mkModal = content => {
   ${content || e.stdMsg}
   <br><br><br>:::
   `)
+  // feedback is sent by email: the former database backend (mongodb stitch) is gone.
+  const contactMail = 'aeterni.anima@gmail.com'
   const descArea = $('<textarea/>', {
     maxlength: 3200,
     placeholder: 'Share your feedback or ideas… / Compartilhe seu feedback ou ideias…'
   }).appendTo('#mfeedback')
   $('<button/>', { css: { margin: '1%' } }).html('Send / Enviar Feedback').on('click', () => {
-    window.wand.transfer.fAll.ucosta(
-      { _id: window.sessionL.insertedId },
-      { feedback: descArea.val() }
-    ).then(r => {
-      descArea.val('')
-      window.alert('Thank you / Obrigado.')
-    })
+    const text = descArea.val().trim()
+    if (!text) return descArea.trigger('focus')
+    const subject = encodeURIComponent('Feedback — Æterni Anima')
+    window.location.href = `mailto:${contactMail}?subject=${subject}&body=${encodeURIComponent(text)}`
   }).appendTo('#mfeedback')
+  $('<p/>', {
+    css: { 'font-size': '0.92rem', 'margin-top': '0.6em' }
+  }).html(`This opens your email app. You can also write to <a href="mailto:${contactMail}">${contactMail}</a>.`)
+    .appendTo('#mfeedback')
   return {
     show: (ms, msg) => {
       // $('#mcontent').html((msg || e.stdMsg()) + '<br><br><br>:::')
