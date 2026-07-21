@@ -2304,16 +2304,18 @@ e.welcome2 = () => {
 
   <ul class="aprojects">
     <li class="aproj aproj--wide aproj--feature"><span class="aeyebrow">Flagship</span><strong><a href="https://biosyncare.com/">BioSynCare</a>:</strong> audiovisual medicine — neuromodulation for well-being through breathing and sound waves produced by <a href="?artifacts">audiovisual artifacts</a>.</li>
+    <li class="aproj"><strong><a href="https://github.com/ttm/music">Music</a>:</strong> a Python library for the synthesis of mathematically precise sounds and musical structures.</li>
+    <li class="aproj"><strong>OurAquarium:</strong> navigating and harnessing your own social networks through audiovisual art — for example, making personalized music to share with your contacts and spread custom messages.</li>
+    <li class="aproj"><strong>Daimeantes:</strong> a simple platform to register insights and ideas in general.</li>
+    <li class="aproj"><strong>Notesourcing:</strong> an elaborate system to register notes and distill knowledge.</li>
     <li class="aproj aproj--wide"><strong><a href="?daimesm">Daime Science Manifesto</a>:</strong> integrating scientific knowledge and spiritual wisdom within the Santo Daime community.
       <ul class="asub">
         <li><strong><a href="https://da1me.github.io/">Da1me</a>:</strong> textual analyses of Santo Daime hymnals.</li>
-        <li><strong>QR:</strong> a system for tracking and documenting Daime batches.</li>
+        <li><strong>São Irineu:</strong> a platform dedicated to Daimist activities and knowledge.</li>
+        <li><strong>Medicine Wheel:</strong> an ancient map that teaches us to understand our lives as interconnected cycles.</li>
         <li><strong>Daimists' Wellness Monitoring:</strong> tracking and analysis of daimists' health before and after the works.</li>
       </ul>
     </li>
-    <li class="aproj"><strong>OurAquarium:</strong> navigating and harnessing your own social networks through audiovisual art — for example, making personalized music to share with your contacts and spread custom messages.</li>
-    <li class="aproj"><strong><a href="https://github.com/ttm/music">Music</a>:</strong> a Python library for the synthesis of mathematically precise sounds and musical structures.</li>
-    <li class="aproj aproj--wide"><strong>Hubs:</strong> establishing cultural exchange hubs worldwide.</li>
   </ul>
 
   <p>Explore these initiatives aimed at extending and enriching life, fostered for the benefit of every individual, group, and the Cosmos.</p>
