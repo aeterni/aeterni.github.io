@@ -2500,7 +2500,7 @@ e.daimesm = () => {
   // [code, label, published embed URL ('' = not yet published), commentable doc URL]
   const langs = [
     ['en', 'English', 'https://docs.google.com/document/d/e/2PACX-1vSCJqlSpPE8OyAo-I2xdEl1DhlPwf9aHd7aRsWPHxC4WNX18YgL5oUA35G4wP8Hk6VLlfBV8a5lt16O/pub?embedded=true', 'https://docs.google.com/document/d/1ycexORBC5poOGM5TrGsht8NbWv0yU_0zsGAnRzHqo_A/edit'],
-    ['pt', 'Português', '', 'https://docs.google.com/document/d/1K3sc0B19SniNYUGnO1kqnoWfuqc1lvKdjCAxzs4OZl0/edit'],
+    ['pt', 'Português', 'https://docs.google.com/document/d/e/2PACX-1vThmHtC_yOpTkvSU6VwNFgCxzYXlHQ8wSmjybWaO6f1IoRUaxqDORew3wuksNiYPAt7S7AKi5vyCkGU/pub?embedded=true', 'https://docs.google.com/document/d/1K3sc0B19SniNYUGnO1kqnoWfuqc1lvKdjCAxzs4OZl0/edit'],
     ['it', 'Italiano', 'https://docs.google.com/document/d/e/2PACX-1vTEYxSd69ObcqKcwcs1RgTzOna7hPZfMLOkob4D-A522TADpWKZd6BK_E6hD7YpHiVx5hJIElI3n3MI/pub?embedded=true', 'https://docs.google.com/document/d/1WrAOawnLW0FZd5-ubCo6HH5u1TiQG5TkR1O2nZPHSnQ/edit']
   ]
   const buttons = langs.map(l => `<button type="button" class="dsm-lang" data-lang="${l[0]}">${l[1]}</button>`).join('')
