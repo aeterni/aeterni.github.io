@@ -2497,28 +2497,63 @@ e.welcomeOLD = () => {
 }
 
 e.daimesm = () => {
+  // [code, label, published embed URL ('' = not yet published), commentable doc URL]
+  const langs = [
+    ['en', 'English', 'https://docs.google.com/document/d/e/2PACX-1vSCJqlSpPE8OyAo-I2xdEl1DhlPwf9aHd7aRsWPHxC4WNX18YgL5oUA35G4wP8Hk6VLlfBV8a5lt16O/pub?embedded=true', 'https://docs.google.com/document/d/1ycexORBC5poOGM5TrGsht8NbWv0yU_0zsGAnRzHqo_A/edit'],
+    ['pt', 'Português', '', 'https://docs.google.com/document/d/1K3sc0B19SniNYUGnO1kqnoWfuqc1lvKdjCAxzs4OZl0/edit'],
+    ['it', 'Italiano', 'https://docs.google.com/document/d/e/2PACX-1vTEYxSd69ObcqKcwcs1RgTzOna7hPZfMLOkob4D-A522TADpWKZd6BK_E6hD7YpHiVx5hJIElI3n3MI/pub?embedded=true', 'https://docs.google.com/document/d/1WrAOawnLW0FZd5-ubCo6HH5u1TiQG5TkR1O2nZPHSnQ/edit']
+  ]
+  const buttons = langs.map(l => `<button type="button" class="dsm-lang" data-lang="${l[0]}">${l[1]}</button>`).join('')
   utils.stdDiv().html(`
-  
-<h1>Daimist Science Manifesto</h1>
+  <style>
+    .dsm-head { text-align: center; margin-bottom: 0.2em; }
+    .dsm-intro { text-align: center; color: var(--ink-soft); max-width: 34em; margin: 0.4em auto 1.4em; }
+    .dsm-langs { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 1.1em; }
+    .dsm-lang {
+      font-family: var(--sans); font-size: 0.95rem; cursor: pointer;
+      padding: 7px 16px; border-radius: 999px;
+      border: 1px solid var(--card-border); background: var(--bg); color: var(--ink);
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+    .dsm-lang:hover { border-color: var(--accent-soft); color: var(--accent); }
+    .dsm-lang.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .dsm-frame-wrap {
+      border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden;
+      background: #fff; box-shadow: var(--shadow);
+    }
+    .dsm-frame-wrap iframe { display: block; width: 100%; height: min(78vh, 900px); border: 0; }
+    .dsm-pending { padding: 2.6em 1.5em; text-align: center; color: var(--ink-soft); }
+    .dsm-comment { text-align: center; margin-top: 1.1em; color: var(--ink-soft); }
+  </style>
 
-<p>The daimist community finds depth and elevation in the confluence of scientific literacy and spiritual wisdom. The rigor of scientific inquiry and the profundity of spiritual pursuits are mutually uplifting.</p>
+  <h1 class="dsm-head">Daimist Science Manifesto</h1>
+  <p class="dsm-intro">Read the manifesto below, or open it in Google&nbsp;Docs to leave comments and contribute.</p>
 
-<p>
-<strong>On Spirituality</strong>: its introspective qualities refine research questions, making them both comprehensive and nuanced. Non-linear thinking spawns innovative solutions, opening pathways to untapped avenues of scientific discovery. A sense of unity and interconnectedness enhances collaborative research, advocating for a truly multidisciplinary approach. Moreover, ancient spiritual wisdom offers time-tested hypotheses that are ripe for scientific investigation.</p>
+  <div class="dsm-langs">${buttons}</div>
 
-<p><strong>On Science</strong>: its methods offer spirituality a grounded, empirically validated framework, sharpening what is often understood through anecdote or dogma. The revelation of the intricate beauty and complexities of nature - from the subatomic to the cosmic - invigorates our sense of awe and spiritual connection. Evidence-and-data-based insights into the benefits of spirituality encourage broader engagement in spiritual practices. Its rigor and skepticism are crucibles for spiritual integrity, sifting the genuine from the spurious.</p>
+  <div id="dsm-view" class="dsm-frame-wrap"></div>
 
-<p>Rooted in the spiritual lineage of <strong>Padrinho Alfredo</strong>, whose teachings trace back to King Solomon, the Santo Daime community celebrates the symbiotic relationship between ancestral wisdom and contemporary inquiry. This foundation informs and inspires scientific pursuits.</p>
-
-<p>The primary objective of the <strong>DAIME Alliance for Interconnected Multidisciplinary Examination (DAIME)</strong> is to amplify the scope and caliber of daimist scientific contributions across all disciplines. By facilitating an academic network, the Society enables rigorous, collaborative research that meets the highest standards of scientific output. One anticipated outcome is the emergence of seminal research at the intersection of science and spirituality, stemming from and nurtured by the society&#39;s communal focus.</p>
-
-<p>To cultivate scholarly rendering, the DAIME should navigate paths for grants and cultivate collaborations with academic and industrial entities. This will secure the necessary financial and infrastructural <strong>resources</strong> for research activities.</p>
-
-<p>A potential <strong>online hub</strong> could serve as a repository for research dissemination, facilitate data sharing, enable real-time dialogue, and offer custom fine-tuned tools. This will synchronize and boost our collective scientific endeavors.</p>
-
-<p>As a beacon in the integration of science and spirituality, the DAIME cherishes open dialogues and the wellspring of wisdom that benefits the daimist community and also the world at large.</p>
-<p>:::</p>
+  <p class="dsm-comment"><a id="dsm-edit" href="#" target="_blank" rel="noopener">Open this version in Google Docs to comment &#8599;</a></p>
+  <p style="text-align:center;color:var(--ink-soft)">:::</p>
   `)
+
+  const byLang = {}
+  langs.forEach(l => { byLang[l[0]] = { label: l[1], pub: l[2], edit: l[3] } })
+
+  const show = code => {
+    const d = byLang[code]
+    $('.dsm-lang').removeClass('is-active').filter(`[data-lang="${code}"]`).addClass('is-active')
+    if (d.pub) {
+      $('#dsm-view').html(`<iframe src="${d.pub}" title="Daimist Science Manifesto (${d.label})"></iframe>`)
+    } else {
+      $('#dsm-view').html(`<div class="dsm-pending">The ${d.label} version is open for reading and comments in Google Docs — use the link below.</div>`)
+    }
+    $('#dsm-edit').attr('href', d.edit)
+  }
+
+  $('.dsm-lang').on('click', function () { show($(this).data('lang')) })
+  show('en')
+
   $('#loading').hide()
 }
 
