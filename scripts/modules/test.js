@@ -2316,7 +2316,7 @@ e.welcome2 = () => {
     <li class="aproj aproj--wide"><strong><a href="?daimesm">Daime Science Manifesto</a>:</strong> integrating scientific knowledge and spiritual wisdom within the Santo Daime community.
       <ul class="asub">
         <li><strong><a href="https://da1me.github.io/">Da1me</a>:</strong> textual analyses of Santo Daime hymnals.</li>
-        <li><strong>São Irineu:</strong> a platform dedicated to Daimist activities and knowledge.</li>
+        <li><strong><a href="https://saoirineu.github.io/">São Irineu</a>:</strong> a platform dedicated to Daimist activities and knowledge.</li>
         <li><strong>Medicine Wheel:</strong> an ancient map that teaches us to understand our lives as interconnected cycles.</li>
         <li><strong>Daimists' Wellness Monitoring:</strong> tracking and analysis of daimists' health before and after the works.</li>
       </ul>
