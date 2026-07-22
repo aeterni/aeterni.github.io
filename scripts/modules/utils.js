@@ -504,8 +504,10 @@ e.objectIdWithTimestamp = timestamp => { // db.mycollection.find({ _id: { $gt: o
   /* Convert date object to hex seconds since Unix epoch */
   const hexSeconds = Math.floor(timestamp / 1000).toString(16)
 
-  /* Create an ObjectId with that hex timestamp */
-  return new window.wand.transfer.ss.BSON.ObjectId(hexSeconds + '0000000000000000')
+  /* An ObjectId as a plain 24 character hex string: the browser no longer
+     carries a BSON library, and the data function turns this back into a real
+     ObjectId before querying. */
+  return hexSeconds + '0000000000000000'
 }
 
 e.chroma = require('chroma-js')

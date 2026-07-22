@@ -38,6 +38,7 @@ e.mkFooter = () => {
     response.date = new Date()
     response.uargs = e.urlAllArguments()
     wand.transfer.fAll.wcosta(response).then(r => {
+      if (!r || !r.insertedId) return // visit logging is dormant
       window.sessionL = r
       wand.unloadFuncs.unshift(e => {
         wand.transfer.fAll.ucosta({ _id: r.insertedId }, { dateLeft: new Date() })

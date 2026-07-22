@@ -1,7 +1,61 @@
-// mongo:
-const s = require('mongodb-stitch-browser-sdk')
+// Data access.
+//
+// This used to talk to MongoDB Stitch directly from the browser. Stitch (later
+// Atlas App Services) reached end of life and its endpoints now answer 410, so
+// requests go through our own small serverless function instead — see
+// netlify/functions/data.mjs. The promise-returning shape of the calls below is
+// unchanged, so callers (the artifact player included) did not have to change.
 const e = module.exports
-e.ss = s
+
+// Override in the page with window.AETERNI_API to point somewhere else (a
+// staging deploy, say). Served from localhost, it expects the data function to
+// be running locally on port 8788.
+e.apiUrl = () => {
+  if (typeof window === 'undefined') return 'https://aeterni-data.netlify.app/api/data'
+  if (window.AETERNI_API) return window.AETERNI_API
+  if (['localhost', '127.0.0.1'].includes(window.location.hostname)) return 'http://localhost:8788/api/data'
+  return 'https://aeterni-data.netlify.app/api/data'
+}
+
+// JSON carries no dates, and the artifact player needs real Date objects (it
+// calls header.datetime.getTime()). Dates travel as {$date: <iso>} in both
+// directions; the function rebuilds them on its side.
+const pack = (value, depth = 0) => {
+  if (depth > 12) return value
+  if (value instanceof Date) return { $date: value.toISOString() }
+  if (Array.isArray(value)) return value.map(v => pack(v, depth + 1))
+  if (value && typeof value === 'object') {
+    const out = {}
+    for (const k in value) out[k] = pack(value[k], depth + 1)
+    return out
+  }
+  return value
+}
+
+const unpack = (value, depth = 0) => {
+  if (depth > 12) return value
+  if (Array.isArray(value)) return value.map(v => unpack(v, depth + 1))
+  if (value && typeof value === 'object') {
+    if (typeof value.$date === 'string' && Object.keys(value).length === 1) return new Date(value.$date)
+    const out = {}
+    for (const k in value) out[k] = unpack(value[k], depth + 1)
+    return out
+  }
+  return value
+}
+
+const call = body =>
+  window.fetch(e.apiUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pack(body))
+  }).then(async res => {
+    const payload = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(payload.error || `data request failed (${res.status})`)
+    return unpack(payload.result)
+  })
+
+e.call = call
 
 const creds = {}
 const regName = (name, app, url, db, coll) => {
@@ -30,32 +84,16 @@ const auth = creds.tokisona
 
 // auth.url = 'http://localhost:8080/'
 
-const client = s.Stitch.initializeDefaultAppClient(auth.app)
-const db = client.getServiceClient(s.RemoteMongoClient.factory, auth.cluster).db(auth.db)
+const collectionOf = (aa, col) => (aa ? 'aatest' : (col || auth.collections.test))
 
-e.writeAny = (data, aa) => {
-  return client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-    return db.collection(aa ? 'aatest' : auth.collections.test).insertOne(data)
-  })
-}
+e.writeAny = (data, aa) => call({ op: 'insertOne', collection: collectionOf(aa), doc: data })
 
-e.findAny = (data, aa) => {
-  return client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-    return db.collection(aa ? 'aatest' : auth.collections.test).findOne(data)
-  })
-}
+e.findAny = (data, aa) => call({ op: 'findOne', collection: collectionOf(aa), query: data })
 
-e.findAll = (query, aa, projection, col) => {
-  return client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-    return db.collection(aa ? 'aatest' : (col || auth.collections.test)).find(query, { projection }).asArray()
-  })
-}
+e.findAll = (query, aa, projection, col) =>
+  call({ op: 'find', collection: collectionOf(aa, col), query, projection })
 
-e.remove = (query, aa) => {
-  return client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-    return db.collection(aa ? 'aatest' : auth.collections.test).deleteMany(query)
-  })
-}
+e.remove = (query, aa) => call({ op: 'deleteMany', collection: collectionOf(aa), query })
 
 // sparql:
 const losdheaders = require('./losdheaders.js')
@@ -133,55 +171,34 @@ const sparqlCall = (url, query, callback, headers) => {
 }
 
 // ////////////// generic:
+// Each name below lived in its own Atlas cluster, reached through its own Stitch
+// app. Only 'tokisona' — the artifacts — is served by our data function today;
+// the rest stay dormant rather than throwing, so the features that touch them
+// (social network views, visit logging) simply find nothing. To bring one back,
+// give the function its connection string and route the name here.
+const dormant = new Set(Object.keys(creds).filter(au => au !== 'tokisona'))
+
 class FindAll {
   constructor () {
     this.dbs = {}
     this.clients = {}
     this.auths = {}
     this.tests = {}
-    for (const au in creds) {
-      if (au === 'tokisona') continue
-      this.mkOne(au)
-    }
+    for (const au of dormant) this.mkOne(au)
     this.tokisona = (query, projection, col) => e.findAll(query, false, projection, col)
   }
 
   mkOne (au) {
-    const auth = creds[au]
-    const client = s.Stitch.initializeAppClient(auth.app)
-    const db = client.getServiceClient(s.RemoteMongoClient.factory, auth.cluster).db(auth.db)
-    const find = (query, projection, col) => client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-      return db.collection(col || auth.collections.test).find(query, { projection }).asArray()
-    })
-    const findo = (query, projection, col) => client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-      return db.collection(col || auth.collections.test).findOne(query, { projection })
-    })
-    const write = (query, col) => client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-      return db.collection(col || auth.collections.test).insertOne(query)
-    })
-    const remove = (query, col) => {
-      return client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-        return db.collection(col || auth.collections.test).deleteMany(query)
-      })
+    const warn = op => {
+      console.warn(`transfer: ${op} on "${au}" is dormant — that database is not served by the data function`)
     }
-    const update = (query, set, col) => {
-      return client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-        return db.collection(col || auth.collections.test).updateOne(query, { $set: set })
-      })
-    }
-    const test = (query, projection, col) => client.auth.loginWithCredential(new s.AnonymousCredential()).then(user => {
-      return db.collection(col || auth.collections.test)
-    })
-
-    this.tests[au] = test
-    this[au] = find
-    this['o' + au] = findo
-    this['w' + au] = write
-    this['d' + au] = remove
-    this['u' + au] = update
-    this.dbs[au] = db
-    this.clients[au] = client
-    this.auths[au] = auth
+    this.tests[au] = () => { warn('test'); return Promise.resolve(null) }
+    this[au] = () => { warn('find'); return Promise.resolve([]) }
+    this['o' + au] = () => { warn('findOne'); return Promise.resolve(null) }
+    this['w' + au] = () => { warn('insert'); return Promise.resolve(null) }
+    this['d' + au] = () => { warn('delete'); return Promise.resolve({ deletedCount: 0 }) }
+    this['u' + au] = () => { warn('update'); return Promise.resolve({ modifiedCount: 0 }) }
+    this.auths[au] = creds[au]
   }
 }
 

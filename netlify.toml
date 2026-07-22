@@ -1,0 +1,12 @@
+# The Æterni site itself is served by GitHub Pages; this Netlify deploy exists
+# only to host the data function that replaced MongoDB Stitch (now end of life).
+# Set MONGODB_URI in the Netlify UI (Site settings › Environment variables) —
+# it must never be committed to the repository.
+
+[build]
+  publish = "netlify-public"
+  command = "mkdir -p netlify-public && printf '%s' 'Data API for Aeterni Anima. See /api/data' > netlify-public/index.html"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
