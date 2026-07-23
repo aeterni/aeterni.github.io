@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy — Quiet Alarm</title>
+
+    <meta name="description" content="Privacy Policy for the Quiet Alarm mobile app. Quiet Alarm has no accounts, no servers and no analytics — everything you create in the app stays on your device." />
+    <link rel="canonical" href="https://aeterni.github.io/quiet-alarm/privacy.html" />
+    <meta name="theme-color" content="#f7f4ee" />
+    <link rel="shortcut icon" type="image/png" href="../assets/fav5.png" />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Privacy Policy — Quiet Alarm" />
+    <meta property="og:description" content="Quiet Alarm has no accounts, no servers and no analytics. Everything you create in the app stays on your device." />
+    <meta property="og:url" content="https://aeterni.github.io/quiet-alarm/privacy.html" />
+
+    <!-- Deliberately self-contained: no web fonts, no scripts, no third-party
+         requests of any kind. A privacy policy page should not phone home. -->
+    <style type="text/css">
+:root {
+  --bg: #f7f4ee;
+  --card: #fffdf9;
+  --card-border: #e8e2d4;
+  --ink: #23222a;
+  --ink-soft: #55524e;
+  --ink-faint: #7d7973;
+  --accent: #8a6d1d;
+  --accent-soft: #b89530;
+  --link: #4a4494;
+  --link-hover: #8a6d1d;
+  --shadow: 0 1px 2px rgba(35, 34, 42, 0.05), 0 12px 40px -12px rgba(35, 34, 42, 0.18);
+  --serif: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  padding: clamp(16px, 4vh, 48px) 0 0;
+  font-family: var(--sans);
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+.doc {
+  width: min(820px, 94vw);
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 56px) clamp(20px, 5vw, 60px);
+  background-color: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  font-size: 1.02rem;
+  line-height: 1.68;
+  overflow-wrap: break-word;
+}
+
+/* ------- masthead ------- */
+.eyebrow {
+  margin: 0 0 0.35em;
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h1 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(1.9rem, 5vw, 2.6rem);
+  line-height: 1.15;
+  margin: 0 0 0.4em;
+}
+
+.dates {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--ink-faint);
+}
+
+.dates span { white-space: nowrap; }
+
+.masthead {
+  padding-bottom: clamp(18px, 3vw, 28px);
+  border-bottom: 1px solid var(--card-border);
+  margin-bottom: clamp(20px, 3vw, 32px);
+}
+
+/* ------- headings ------- */
+h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 3.2vw, 1.65rem);
+  line-height: 1.2;
+  margin: 2.2em 0 0.7em;
+  padding-top: 1.1em;
+  border-top: 1px solid var(--card-border);
+  color: var(--ink);
+}
+
+h2:first-of-type { margin-top: 1.4em; }
+
+h2 .num {
+  color: var(--accent-soft);
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.35em;
+}
+
+/* ------- text ------- */
+p { margin: 0 0 1.1em; }
+
+ul { padding-left: 1.3em; margin: 0 0 1.1em; }
+li { margin: 0.5em 0; }
+li::marker { color: var(--accent-soft); }
+
+strong { font-weight: 600; }
+
+a {
+  color: var(--link);
+  text-decoration-color: rgba(74, 68, 148, 0.35);
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+a:hover { color: var(--link-hover); }
+
+/* ------- lede callout ------- */
+.lede {
+  margin: 0 0 1.4em;
+  padding: clamp(14px, 3vw, 20px) clamp(16px, 3vw, 24px);
+  background-color: var(--bg);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--accent-soft);
+  border-radius: 12px;
+}
+
+.lede p:last-child { margin-bottom: 0; }
+
+/* ------- table ------- */
+.table-wrap {
+  overflow-x: auto;
+  margin: 0 0 1.4em;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  min-width: 540px;
+  border-collapse: collapse;
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+th {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1rem;
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+tr:last-child td { border-bottom: none; }
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  padding: 1px 5px;
+  background-color: var(--bg);
+  border: 1px solid var(--card-border);
+  border-radius: 5px;
+}
+
+/* ------- footer ------- */
+.doc-footer {
+  margin-top: 2.4em;
+  padding-top: 1.4em;
+  border-top: 1px solid var(--card-border);
+  font-size: 0.94rem;
+  color: var(--ink-soft);
+}
+
+.doc-footer em { color: var(--ink-faint); }
+
+.page-foot {
+  width: min(820px, 94vw);
+  margin: 0 auto;
+  padding: 22px 4px 44px;
+  font-size: 0.86rem;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+/* ------- print ------- */
+@media print {
+  body { background: #fff; padding: 0; }
+  .doc { width: auto; border: none; box-shadow: none; border-radius: 0; }
+  .page-foot { display: none; }
+  h2 { break-after: avoid; }
+  .table-wrap { overflow: visible; }
+  table { min-width: 0; }
+}
+
+/* ------- dark mode ------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16151a;
+    --card: #1e1d24;
+    --card-border: #34323d;
+    --ink: #ece9e2;
+    --ink-soft: #b6b1a8;
+    --ink-faint: #8d8880;
+    --accent: #d0ae55;
+    --accent-soft: #b89530;
+    --link: #a9a2e8;
+    --link-hover: #d0ae55;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 40px -12px rgba(0, 0, 0, 0.6);
+  }
+  a { text-decoration-color: rgba(169, 162, 232, 0.4); }
+}
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header class="masthead">
+        <p class="eyebrow">Quiet Alarm</p>
+        <h1>Privacy Policy</h1>
+        <p class="dates">
+          <span><strong>Effective date:</strong> 23 July 2026</span> &nbsp;·&nbsp;
+          <span><strong>Last updated:</strong> 23 July 2026</span>
+        </p>
+      </header>
+
+      <p>Quiet Alarm (“the App”) is developed and published by <strong>Riccardo Berti</strong> (“we”, “us”, the “Developer”), an individual developer based in Italy. This policy explains what happens to your information when you use the App.</p>
+
+      <div class="lede">
+        <p>The short version: <strong>Quiet Alarm has no accounts, no servers, and no analytics. Everything you create in the App stays on your device.</strong> We do not collect, receive, store, or transmit any personal data about you.</p>
+      </div>
+
+      <h2><span class="num">1.</span>Data controller and contact</h2>
+
+      <p>For the purposes of the EU General Data Protection Regulation (Regulation (EU) 2016/679, “GDPR”), the data controller is:</p>
+
+      <p><strong>Riccardo Berti</strong><br />
+      Email: <strong><a href="mailto:gor.na.rik@gmail.com">gor.na.rik@gmail.com</a></strong></p>
+
+      <p>Because the App does not transmit any data to us, we hold no personal data about you and are unable to identify you from your use of the App. You can still contact us at the address above with any question about this policy.</p>
+
+      <h2><span class="num">2.</span>What the App stores on your device</h2>
+
+      <p>The App stores the following information locally, in its own private storage area on your phone:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>What</th>
+              <th>Why</th>
+              <th>Where</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Your alarms — time (hour and minute), repeat weekdays, chosen audio session, session length, on/off state, optional label, creation timestamp</td>
+              <td>So your alarms persist between app launches and can be scheduled</td>
+              <td><code>alarms.json</code> in the App’s private documents directory</td>
+            </tr>
+            <tr>
+              <td>A local diagnostic log of alarm events (timestamps and short technical event names, e.g. that an alarm was scheduled or fired)</td>
+              <td>To help diagnose alarm reliability problems on your own device</td>
+              <td><code>alarm-log.txt</code> in the App’s private documents directory</td>
+            </tr>
+            <tr>
+              <td>On Android: pre-rendered audio files generated from the built-in sessions</td>
+              <td>So the alarm can play reliably at the scheduled time without running the audio engine live</td>
+              <td>Audio files in the App’s private storage</td>
+            </tr>
+            <tr>
+              <td>Scheduled alarm entries registered with your operating system’s alarm/notification system</td>
+              <td>So the alarm fires at the right time</td>
+              <td>Managed by Android/iOS on your device</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>None of this leaves your device.</strong> There is no cloud sync, no account, no backup service operated by us, and no server that receives this information.</p>
+
+      <p>This data is not used to identify you. It is stored on the device solely to make the App work, and — under the GDPR — it is processed locally by you as the user of your own device rather than transmitted to us for processing.</p>
+
+      <h2><span class="num">3.</span>What we do NOT collect</h2>
+
+      <p>We want to be specific, because “we don’t collect data” is a claim that deserves detail. Quiet Alarm contains:</p>
+
+      <ul>
+        <li><strong>No user accounts, sign-up, login, or email collection.</strong></li>
+        <li><strong>No analytics or telemetry SDKs</strong> — no Google Analytics, Firebase, Amplitude, Mixpanel, Segment, PostHog or equivalent.</li>
+        <li><strong>No advertising SDKs, ad identifiers, or advertising profiling.</strong></li>
+        <li><strong>No crash-reporting SDK</strong> operated by us (e.g. no Sentry, Crashlytics, Bugsnag).</li>
+        <li><strong>No location collection</strong> of any kind — the App does not request or use location permissions.</li>
+        <li><strong>No contacts, photos, calendar, or health data access.</strong></li>
+        <li><strong>No device or advertising identifiers</strong> collected, read, or transmitted by us (no IDFA, no Android Advertising ID).</li>
+        <li><strong>No tracking across apps or websites</strong>, and no data sold or shared with data brokers.</li>
+        <li><strong>No audio recording.</strong> See section 4.</li>
+      </ul>
+
+      <p>The App does not make network requests to any server operated by us, because no such server exists.</p>
+
+      <h2><span class="num">4.</span>Microphone permission — declared but never used</h2>
+
+      <p>On iOS you may see a microphone entry associated with the App, and your device may show a microphone-related permission description.</p>
+
+      <p><strong>Quiet Alarm never records, listens to, accesses, or transmits audio from your microphone.</strong> The permission declaration exists only because it is required by a third-party audio library the App depends on (<code>react-native-audio-api</code>), which bundles microphone-capable functionality that Quiet Alarm does not use. No recording feature exists anywhere in the App, and no audio input is captured, stored, or sent anywhere.</p>
+
+      <h2><span class="num">5.</span>Network access</h2>
+
+      <p>The Android version of the App declares the standard <code>INTERNET</code> permission, which is included by default by the application framework the App is built on (React Native / Expo). The App itself makes no network requests to send or retrieve your data, and over-the-air updates are disabled.</p>
+
+      <p>The only situation in which the App causes network activity is when <strong>you tap the BioSynCare promotional card</strong>, which opens the Apple App Store or Google Play listing for the BioSynCare app in your device’s store or browser. That request is made by your store or browser app, not by Quiet Alarm, and is subject to Apple’s or Google’s own privacy policies. Quiet Alarm sends no information about you along with it.</p>
+
+      <h2><span class="num">6.</span>Third parties</h2>
+
+      <p>Because the App transmits nothing, there are no third-party recipients of your data from us. However, two independent relationships are worth naming:</p>
+
+      <p><strong>Apple and Google.</strong> You obtain the App from the Apple App Store or Google Play. Those platforms collect their own data about downloads, purchases, and (where you have opted in) crash diagnostics, under their own privacy policies:</p>
+
+      <ul>
+        <li>Apple: <a href="https://www.apple.com/legal/privacy/" rel="noopener noreferrer">https://www.apple.com/legal/privacy/</a></li>
+        <li>Google: <a href="https://policies.google.com/privacy" rel="noopener noreferrer">https://policies.google.com/privacy</a></li>
+      </ul>
+
+      <p>Apple and Google may share aggregated, non-identifying statistics with us as the developer (for example, download counts, or anonymised crash logs where you have opted in to sharing diagnostics with developers). We do not receive information that identifies you personally, and we do not attempt to re-identify anyone from this data.</p>
+
+      <p><strong>BioSynCare.</strong> Quiet Alarm uses the BioSynCare audio engine and links to the BioSynCare app. The engine runs entirely on your device and sends nothing anywhere. If you choose to install and use the separate BioSynCare app, that app is covered by its own privacy policy, not this one.</p>
+
+      <h2><span class="num">7.</span>Device backups</h2>
+
+      <p>If you have enabled iCloud Backup (iOS) or Google backup (Android), your operating system may include the App’s local files — including your alarms — in your own device backup. Those backups are held in <strong>your</strong> Apple or Google account, under Apple’s or Google’s terms, and are not accessible to us. You can control this in your device’s backup settings.</p>
+
+      <h2><span class="num">8.</span>Data retention and deletion</h2>
+
+      <p>Your data lives on your device for as long as you keep it there. You are in full control:</p>
+
+      <ul>
+        <li><strong>Delete individual alarms</strong> inside the App at any time.</li>
+        <li><strong>Clear the App’s data</strong> through your device’s app settings (Android), which erases its local files.</li>
+        <li><strong>Uninstall the App</strong> — this removes all of its locally stored data, including alarms, the diagnostic log, and any pre-rendered audio files.</li>
+      </ul>
+
+      <p>Because we never receive your data, there is nothing for us to delete on our side, and no deletion request needs to be sent to us.</p>
+
+      <h2><span class="num">9.</span>Your rights under the GDPR</h2>
+
+      <p>If you are in the European Economic Area or the United Kingdom, you have rights of access, rectification, erasure, restriction, portability, and objection in relation to personal data a controller holds about you.</p>
+
+      <p>In the case of Quiet Alarm, <strong>we hold no personal data about you at all</strong>, so in practice these rights are exercised directly on your own device: you can view, correct, export (the files are plain JSON and text), and delete everything the App stores, at any time, without involving us. We cannot access, retrieve, or delete data on your device on your behalf.</p>
+
+      <p>You always retain the right to lodge a complaint with a supervisory authority. In Italy this is the Garante per la protezione dei dati personali (<a href="https://www.garanteprivacy.it/" rel="noopener noreferrer">https://www.garanteprivacy.it/</a>). If you are elsewhere in the EEA, you may complain to your local authority.</p>
+
+      <h2><span class="num">10.</span>Children</h2>
+
+      <p>Quiet Alarm is not directed at children under 13, and the App is intended for users aged 13 and over. We do not knowingly collect personal data from anyone, including children. Since the App collects no data whatsoever, no children’s personal data can be collected through it.</p>
+
+      <h2><span class="num">11.</span>Legal basis for processing</h2>
+
+      <p>To the extent that storing alarm settings on your device constitutes processing for which we are responsible under the GDPR, the legal basis is <strong>performance of a contract</strong> (Article 6(1)(b)) — the data is strictly necessary to provide the alarm functionality you asked for. We do not process any data on the basis of consent for marketing, profiling, or advertising, because we perform none of those activities.</p>
+
+      <h2><span class="num">12.</span>International transfers</h2>
+
+      <p>None. No data is transferred anywhere, because no data leaves your device.</p>
+
+      <h2><span class="num">13.</span>Security</h2>
+
+      <p>Your alarm data is stored in the App’s private, sandboxed storage area, which the operating system protects from access by other apps. The strongest protection here is structural rather than technical: there is no server to breach, no database to leak, and no account credentials to steal, because none of these exist.</p>
+
+      <p>Please note that if your device itself is unlocked, lost, or compromised, data stored on it — including the App’s — may be accessible to whoever has the device. Using your device’s passcode, biometric lock, and encryption is the most effective protection.</p>
+
+      <h2><span class="num">14.</span>If this ever changes</h2>
+
+      <p>If we add features in the future that would change any of the above — for example paid sessions, cloud sync, or any form of analytics — we will update this policy, change the “Last updated” date, and describe the change clearly in the App or its store listing before or when the feature ships. We will not silently begin collecting data under an unchanged policy.</p>
+
+      <p>Material changes affecting how your personal data is handled will be surfaced to you in the App where feasible.</p>
+
+      <h2><span class="num">15.</span>Contact</h2>
+
+      <p>Questions about this policy or about privacy in Quiet Alarm:</p>
+
+      <p><strong>Riccardo Berti</strong> — <strong><a href="mailto:gor.na.rik@gmail.com">gor.na.rik@gmail.com</a></strong></p>
+
+      <div class="doc-footer">
+        <p><em>Quiet Alarm is not a medical device and does not provide medical advice. See the <a href="terms.html">Terms of Use</a> for the full disclaimer, including important limitations on alarm reliability.</em></p>
+      </div>
+    </main>
+
+    <footer class="page-foot">
+      Quiet Alarm · <a href="terms.html">Terms of Use</a>
+    </footer>
+  </body>
+</html>
