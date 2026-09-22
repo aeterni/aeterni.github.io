@@ -1,10 +1,11 @@
 // Data access.
 //
-// This used to talk to MongoDB Stitch directly from the browser. Stitch (later
-// Atlas App Services) reached end of life and its endpoints now answer 410, so
-// requests go through our own small serverless function instead — see
-// netlify/functions/data.mjs. The promise-returning shape of the calls below is
-// unchanged, so callers (the artifact player included) did not have to change.
+// This used to talk to five MongoDB Atlas databases directly from the browser,
+// through MongoDB Stitch. Stitch reached end of life and the clusters are gone,
+// so requests go to our own small serverless function, which holds their data
+// restored from the last backups — see netlify/functions/data.mjs and DATA.md.
+// The promise-returning shape of the calls below is unchanged, so callers (the
+// artifact player included) did not have to change.
 const e = module.exports
 
 // Override in the page with window.AETERNI_API to point somewhere else (a
@@ -37,6 +38,7 @@ const unpack = (value, depth = 0) => {
   if (Array.isArray(value)) return value.map(v => unpack(v, depth + 1))
   if (value && typeof value === 'object') {
     if (typeof value.$date === 'string' && Object.keys(value).length === 1) return new Date(value.$date)
+    if (typeof value.$numberDouble === 'string' && Object.keys(value).length === 1) return Number(value.$numberDouble)
     const out = {}
     for (const k in value) out[k] = unpack(value[k], depth + 1)
     return out
@@ -44,56 +46,58 @@ const unpack = (value, depth = 0) => {
   return value
 }
 
-const call = body =>
-  window.fetch(e.apiUrl(), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(pack(body))
-  }).then(async res => {
-    const payload = await res.json().catch(() => ({}))
-    if (!res.ok) throw new Error(payload.error || `data request failed (${res.status})`)
-    return unpack(payload.result)
-  })
-
-e.call = call
-
-const creds = {}
-const regName = (name, app, url, db, coll) => {
-  creds[name] = {
-    cluster: 'mongodb-atlas', // always
-    app,
-    url,
-    db: db || 'anydb',
-    collections: { test: coll || 'anycollection' }
+// Deleting, and writing to the network archives, takes the admin key. It is
+// asked for the first time it is needed and remembered in this browser.
+const KEY_ITEM = 'aeterniAdminKey'
+let sessionKey = null
+const adminKey = () => {
+  try { return window.localStorage.getItem(KEY_ITEM) || sessionKey } catch { return sessionKey }
+}
+const rememberKey = key => {
+  sessionKey = key
+  try {
+    if (key) window.localStorage.setItem(KEY_ITEM, key)
+    else window.localStorage.removeItem(KEY_ITEM)
+  } catch {
+    // storage blocked (private mode): the key lasts for this visit only
   }
 }
 
-regName('ttm', 'freene-gui-fzgxa', 'https://ttm.github.io/oa/', 'freenet-all', 'test3') // renato.fabbri@, also cols: test, test2, nets
-// regName('ttm', 'freene-gui-fzgxa', 'https://ttm.github.io/oa/', 'freenet-all', 'nets') // dummy
-regName('tokisona', 'aplicationcreated-mkwpm', 'https://tokisona.github.io/oa/', 'adbcreated', 'acolectioncreated') // sync.aquarium@ and aeterni, also col aatest
-regName('f4b', 'application-0-bcham', '', 'fdb', 'fcol') // f466r1@
-regName('costa', 'application-0-izpfj', '', 'adbb', 'acoll') // rcostafabbri@
-regName('aeterni', 'application-0-knxbk', '', 'adb', 'acol') // aeterni.anima@
-regName('mark', 'anyapplication-faajz', 'https://markturian.github.io/ouraquarium/', 'anydb', 'anycollection') // markarcturian@
-// regName('sync', 'anyapplication-faajz', 'https://worldhealing.github.io/ouraquarium/', 'anydb', 'anycollection') // markarcturian@
+const call = (body, retried) => {
+  const headers = { 'Content-Type': 'application/json' }
+  if (!['find', 'findOne'].includes(body.op) && adminKey()) headers['X-Admin-Key'] = adminKey()
+  return window.fetch(e.apiUrl(), {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(pack(body))
+  }).then(async res => {
+    const payload = await res.json().catch(() => ({}))
+    if (res.status === 401) {
+      rememberKey(null)
+      const given = !retried && window.prompt('This change needs the Æterni admin key:')
+      if (given) {
+        rememberKey(given.trim())
+        return call(body, true)
+      }
+    }
+    if (!res.ok) throw new Error(payload.error || `data request failed (${res.status})`)
+    return unpack(payload.result)
+  })
+}
 
-const auth = creds.tokisona
-// const auth = creds.mark
-// const auth = creds.ttm
-// const auth = creds.sync
+e.call = call
 
-// auth.url = 'http://localhost:8080/'
+// The session artifacts (and, with `aa`, the AA shouts):
+const collectionOf = (aa, col) => (aa ? 'aatest' : (col || 'acolectioncreated'))
+const artifacts = (op, aa, col, rest) => call({ source: 'artifacts', op, collection: collectionOf(aa, col), ...rest })
 
-const collectionOf = (aa, col) => (aa ? 'aatest' : (col || auth.collections.test))
+e.writeAny = (data, aa) => artifacts('insertOne', aa, null, { doc: data })
 
-e.writeAny = (data, aa) => call({ op: 'insertOne', collection: collectionOf(aa), doc: data })
+e.findAny = (data, aa) => artifacts('findOne', aa, null, { query: data })
 
-e.findAny = (data, aa) => call({ op: 'findOne', collection: collectionOf(aa), query: data })
+e.findAll = (query, aa, projection, col) => artifacts('find', aa, col, { query, projection })
 
-e.findAll = (query, aa, projection, col) =>
-  call({ op: 'find', collection: collectionOf(aa, col), query, projection })
-
-e.remove = (query, aa) => call({ op: 'deleteMany', collection: collectionOf(aa), query })
+e.remove = (query, aa) => artifacts('deleteMany', aa, null, { query })
 
 // sparql:
 const losdheaders = require('./losdheaders.js')
@@ -171,34 +175,42 @@ const sparqlCall = (url, query, callback, headers) => {
 }
 
 // ////////////// generic:
-// Each name below lived in its own Atlas cluster, reached through its own Stitch
-// app. Only 'tokisona' — the artifacts — is served by our data function today;
-// the rest stay dormant rather than throwing, so the features that touch them
-// (social network views, visit logging) simply find nothing. To bring one back,
-// give the function its connection string and route the name here.
-const dormant = new Set(Object.keys(creds).filter(au => au !== 'tokisona'))
+// The names the pages use for the old databases (each was its own Atlas cluster
+// and Stitch app), and where each now lives in the data function. Collections
+// kept their names; `collection` is the default each name had.
+const routes = {
+  tokisona: { source: 'artifacts', collection: 'acolectioncreated' }, // sessions (sync.aquarium@)
+  mark: { source: 'aquarium', collection: 'anycollection' }, // Our Aquarium networks (markarcturian@)
+  aeterni: { source: 'communities', collection: 'acol' }, // communities recorded in ?you (aeterni.anima@)
+  ttm: { source: 'freenet', collection: 'test3' }, // earlier and WhatsApp networks (renato.fabbri@)
+  f4b: { source: 'syncs', collection: 'fcol' } // synchronized sessions made in ?tithorea (f466r1@)
+}
+// Visit logging kept visitors' IP details and is not restored: it resolves empty.
+const dormant = ['costa']
 
 class FindAll {
   constructor () {
-    this.dbs = {}
-    this.clients = {}
-    this.auths = {}
-    this.tests = {}
-    for (const au of dormant) this.mkOne(au)
-    this.tokisona = (query, projection, col) => e.findAll(query, false, projection, col)
+    for (const [au, { source, collection }] of Object.entries(routes)) {
+      const at = col => ({ source, collection: col || collection })
+      this[au] = (query, projection, col) => call({ ...at(col), op: 'find', query, projection })
+      this['o' + au] = (query, projection, col) => call({ ...at(col), op: 'findOne', query, projection })
+      this['w' + au] = (doc, col) => call({ ...at(col), op: 'insertOne', doc })
+      this['d' + au] = (query, col) => call({ ...at(col), op: 'deleteMany', query })
+      this['u' + au] = () => {
+        console.warn(`transfer: updates on "${au}" are not supported by the data function`)
+        return Promise.resolve({ modifiedCount: 0 })
+      }
+    }
+    for (const au of dormant) this.mkDormant(au)
   }
 
-  mkOne (au) {
-    const warn = op => {
-      console.warn(`transfer: ${op} on "${au}" is dormant — that database is not served by the data function`)
-    }
-    this.tests[au] = () => { warn('test'); return Promise.resolve(null) }
+  mkDormant (au) {
+    const warn = op => console.warn(`transfer: ${op} on "${au}" is dormant — that database is not restored`)
     this[au] = () => { warn('find'); return Promise.resolve([]) }
     this['o' + au] = () => { warn('findOne'); return Promise.resolve(null) }
     this['w' + au] = () => { warn('insert'); return Promise.resolve(null) }
     this['d' + au] = () => { warn('delete'); return Promise.resolve({ deletedCount: 0 }) }
     this['u' + au] = () => { warn('update'); return Promise.resolve({ modifiedCount: 0 }) }
-    this.auths[au] = creds[au]
   }
 }
 

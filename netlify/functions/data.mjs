@@ -1,28 +1,42 @@
 // Data API for Æterni Anima.
 //
-// Replaces MongoDB Stitch / Atlas App Services, which reached end of life: the
-// browser can no longer talk to Atlas directly, so this small function is the
-// only thing that holds a database connection. It speaks to a single database
-// and a fixed set of collections, and it is deliberately narrow — see guards
-// below — rather than being a general purpose proxy.
+// The site used to reach five MongoDB Atlas databases straight from the browser
+// through MongoDB Stitch. Stitch reached end of life, and later the clusters
+// themselves were deleted. Their data, restored from the last backups, now lives
+// in this site's Netlify Blobs (see ../lib/store.mjs), and this function is the
+// only way in. See DATA.md.
 //
 // Configuration (environment variables, never committed):
-//   MONGODB_URI         required, the Atlas connection string
-//   MONGODB_DB          optional, defaults to adbcreated
-//   ALLOWED_ORIGINS     optional, comma separated; defaults to the Æterni site
-import { MongoClient, ObjectId } from 'mongodb'
+//   ADMIN_KEY          required for deletes, for writes to the network archives,
+//                      and for seeding
+//   ALLOWED_ORIGINS    optional, comma separated; added to the Æterni origins
+//   AETERNI_DATA_DIR   local development only: keep the data in this directory
+import { gunzipSync, gzipSync } from 'node:zlib'
+import { createHash, timingSafeEqual } from 'node:crypto'
+import { Collection, blobsBackend, fsBackend, plainify } from '../lib/store.mjs'
 
-const DB_NAME = process.env.MONGODB_DB || 'adbcreated'
-const COLLECTIONS = ['acolectioncreated', 'aatest'] // the artifact collections
-const OPS = ['findOne', 'find', 'insertOne', 'deleteMany']
+// Each source is one of the old Atlas databases, and the collections keep their
+// names. `open` lists what anyone may do; every other operation needs the admin key.
+const READ = ['findOne', 'find']
+const SOURCES = {
+  artifacts: { collections: ['acolectioncreated', 'aatest'], open: [...READ, 'insertOne'] }, // sessions; AA shouts
+  aquarium: { collections: ['anycollection'], open: READ }, // Our Aquarium: the networks people contributed
+  communities: { collections: ['acol'], open: [...READ, 'insertOne'] }, // communities recorded in ?you
+  freenet: { collections: ['test3', 'test', 'test2', 'nets'], open: READ }, // earlier and WhatsApp networks
+  syncs: { collections: ['fcol'], open: [...READ, 'insertOne'] } // synchronized sessions made in ?tithorea
+}
+const OPS = ['findOne', 'find', 'insertOne', 'deleteMany', 'putDocs', 'putIndex', 'stats']
+
 const DEFAULT_ORIGINS = [
   'https://aeterni.github.io',
   'http://localhost:8123',
   'http://127.0.0.1:8123'
 ]
-const MAX_LIMIT = 2000
-const DEFAULT_LIMIT = 500
-const MAX_BODY_BYTES = 512 * 1024
+const MAX_LIMIT = 20000
+const MAX_BODY_BYTES = 4 * 1024 * 1024 // a recorded community runs to 1.5 MB
+const MAX_WIRE_BYTES = 5.5 * 1024 * 1024 // Netlify refuses requests and responses over 6 MB
+const MAX_SEED_BYTES = 64 * 1024 * 1024 // decompressed seeding batches
+const COMPRESS_FROM = 64 * 1024
 
 // Mongo operators that execute server side javascript or are otherwise unsafe
 // to accept from an anonymous caller:
@@ -33,25 +47,33 @@ const allowedOrigins = () =>
 
 const corsHeaders = origin => {
   const list = allowedOrigins()
-  const allow = list.includes(origin) ? origin : list[0]
   return {
-    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Origin': list.includes(origin) ? origin : list[0],
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Key',
     'Access-Control-Max-Age': '86400',
-    Vary: 'Origin'
+    Vary: 'Origin, Accept-Encoding'
   }
 }
 
-const json = (status, body, origin) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
-  })
+// Large results (an Aquarium network reaches 6 MB) are gzipped, which also keeps
+// them under Netlify's response limit.
+const json = (status, body, req) => {
+  const headers = { 'Content-Type': 'application/json', ...corsHeaders(req.headers.get('origin') || '') }
+  let payload = JSON.stringify(body)
+  if (payload.length > COMPRESS_FROM && /\bgzip\b/.test(req.headers.get('accept-encoding') || '')) {
+    payload = gzipSync(payload)
+    headers['Content-Encoding'] = 'gzip'
+  }
+  if (payload.length > MAX_WIRE_BYTES) {
+    return json(413, { error: 'result too large; narrow the query or add a projection' }, req)
+  }
+  return new Response(payload, { status, headers })
+}
 
 // Walk a query/document and reject anything carrying a forbidden operator.
 const assertSafe = (value, depth = 0) => {
-  if (depth > 12) throw new Error('query nested too deeply')
+  if (depth > 32) throw new Error('query nested too deeply')
   if (Array.isArray(value)) return value.forEach(v => assertSafe(v, depth + 1))
   if (value && typeof value === 'object') {
     for (const [k, v] of Object.entries(value)) {
@@ -61,109 +83,103 @@ const assertSafe = (value, depth = 0) => {
   }
 }
 
-const HEX24 = /^[0-9a-fA-F]{24}$/
-
-// JSON has neither ObjectIds nor dates, and the browser no longer carries a BSON
-// library. The two are carried across as a 24 character hex string and as
-// {$date: <iso>} respectively, and rebuilt on each side — the artifact player
-// needs real Date objects, not strings.
-const revive = (value, key = null, depth = 0) => {
-  if (depth > 12) return value
-  if (Array.isArray(value)) return value.map(v => revive(v, key, depth + 1))
-  if (value && typeof value === 'object') {
-    if (typeof value.$date === 'string' && Object.keys(value).length === 1) return new Date(value.$date)
-    const out = {}
-    for (const [k, v] of Object.entries(value)) {
-      out[k] = revive(v, k.startsWith('$') ? key : k, depth + 1)
-    }
-    return out
-  }
-  if (key === '_id' && typeof value === 'string' && HEX24.test(value)) return new ObjectId(value)
-  return value
+const digest = s => createHash('sha256').update(String(s)).digest()
+const isAdmin = given => {
+  const key = process.env.ADMIN_KEY
+  return Boolean(key && given) && timingSafeEqual(digest(key), digest(given))
 }
 
-const plainify = value => {
-  if (Array.isArray(value)) return value.map(plainify)
-  if (value instanceof ObjectId) return value.toHexString()
-  if (value instanceof Date) return { $date: value.toISOString() }
-  if (value && typeof value === 'object') {
-    const out = {}
-    for (const [k, v] of Object.entries(value)) out[k] = plainify(v)
-    return out
+let backendPromise = null
+const backend = () => {
+  if (!backendPromise) {
+    const dir = process.env.AETERNI_DATA_DIR
+    backendPromise = dir ? Promise.resolve(fsBackend(dir)) : blobsBackend()
   }
-  return value
+  return backendPromise
 }
 
-let clientPromise = null
-const collection = async name => {
-  const uri = process.env.MONGODB_URI
-  if (!uri) throw new Error('MONGODB_URI is not configured')
-  if (!clientPromise) {
-    clientPromise = new MongoClient(uri, { maxPoolSize: 4, serverSelectionTimeoutMS: 8000 }).connect()
+const stats = async () => {
+  const b = await backend()
+  const out = {}
+  for (const [source, { collections }] of Object.entries(SOURCES)) {
+    out[source] = {}
+    for (const name of collections) out[source][name] = await new Collection(b, source, name).count()
   }
-  const client = await clientPromise
-  return client.db(DB_NAME).collection(name)
+  return out
 }
+
+const isObject = v => v !== null && typeof v === 'object' && !Array.isArray(v)
 
 export default async req => {
-  const origin = req.headers.get('origin') || ''
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(req.headers.get('origin') || '') })
+  if (req.method !== 'POST') return json(405, { error: 'use POST' }, req)
 
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(origin) })
-  if (req.method !== 'POST') return json(405, { error: 'use POST' }, origin)
-
+  const admin = isAdmin(req.headers.get('x-admin-key'))
   let body
   try {
-    const raw = await req.text()
-    if (raw.length > MAX_BODY_BYTES) return json(413, { error: 'payload too large' }, origin)
-    body = JSON.parse(raw || '{}')
+    let raw = Buffer.from(await req.arrayBuffer())
+    // Compressed or oversized bodies are for seeding only. Seeding sends gzip as
+    // application/octet-stream (Netlify mangles binary sent as JSON), so look at
+    // the bytes, not the headers.
+    const gzipped = raw[0] === 0x1f && raw[1] === 0x8b
+    if (gzipped || raw.length > MAX_BODY_BYTES) {
+      if (!admin && gzipped) return json(401, { error: 'compressed requests need the admin key' }, req)
+      if (!admin) return json(413, { error: 'payload too large' }, req)
+      if (gzipped) raw = gunzipSync(raw, { maxOutputLength: MAX_SEED_BYTES })
+      if (raw.length > MAX_SEED_BYTES) return json(413, { error: 'payload too large' }, req)
+    }
+    body = JSON.parse(raw.toString('utf8') || '{}')
   } catch {
-    return json(400, { error: 'invalid json' }, origin)
+    return json(400, { error: 'invalid body' }, req)
   }
 
-  const { op, collection: coll = COLLECTIONS[0], query = {}, projection, doc, limit } = body
-
-  if (!OPS.includes(op)) return json(400, { error: `op must be one of ${OPS.join(', ')}` }, origin)
-  if (!COLLECTIONS.includes(coll)) return json(400, { error: 'unknown collection' }, origin)
+  const { source = 'artifacts', op, query = {}, projection, doc, limit } = body
+  if (!OPS.includes(op)) return json(400, { error: `op must be one of ${OPS.join(', ')}` }, req)
 
   try {
+    if (op === 'stats') return json(200, { result: await stats() }, req)
+
+    const src = SOURCES[source]
+    if (!src) return json(400, { error: 'unknown source' }, req)
+    const name = body.collection || src.collections[0]
+    if (!src.collections.includes(name)) return json(400, { error: 'unknown collection' }, req)
+    if (!src.open.includes(op) && !admin) return json(401, { error: 'admin key required' }, req)
+    if (!isObject(query)) return json(400, { error: 'query must be an object' }, req)
+    if (projection !== undefined && projection !== null && !isObject(projection)) {
+      return json(400, { error: 'projection must be an object' }, req)
+    }
     assertSafe(query)
     if (doc !== undefined) assertSafe(doc)
-  } catch (err) {
-    return json(400, { error: err.message }, origin)
-  }
 
-  try {
-    const c = await collection(coll)
-    const q = revive(query)
-
+    const c = new Collection(await backend(), source, name)
+    let result
     if (op === 'findOne') {
-      const found = await c.findOne(q, { projection })
-      return json(200, { result: plainify(found) }, origin)
-    }
-
-    if (op === 'find') {
-      const capped = Math.min(Number(limit) || DEFAULT_LIMIT, MAX_LIMIT)
-      const found = await c.find(q, { projection }).limit(capped).toArray()
-      return json(200, { result: plainify(found) }, origin)
-    }
-
-    if (op === 'insertOne') {
-      if (!doc || typeof doc !== 'object' || Array.isArray(doc)) {
-        return json(400, { error: 'doc must be an object' }, origin)
-      }
-      const res = await c.insertOne(revive(doc))
-      return json(200, { result: { insertedId: res.insertedId.toHexString() } }, origin)
-    }
-
-    if (op === 'deleteMany') {
+      result = await c.findOne(query, { projection })
+    } else if (op === 'find') {
+      result = await c.find(query, { projection, limit: Math.min(Number(limit) || MAX_LIMIT, MAX_LIMIT) })
+    } else if (op === 'insertOne') {
+      if (!isObject(doc)) return json(400, { error: 'doc must be an object' }, req)
+      result = await c.insertOne(doc)
+    } else if (op === 'deleteMany') {
       // never allow an unbounded delete
-      if (!q || Object.keys(q).length === 0) return json(400, { error: 'refusing to delete with an empty query' }, origin)
-      const res = await c.deleteMany(q)
-      return json(200, { result: { deletedCount: res.deletedCount } }, origin)
+      if (!Object.keys(query).length) return json(400, { error: 'refusing to delete with an empty query' }, req)
+      result = await c.deleteMany(query)
+    } else if (op === 'putDocs') {
+      const { docs } = body
+      if (!Array.isArray(docs) || !docs.every(d => isObject(d) && typeof d._id === 'string')) {
+        return json(400, { error: 'docs must be objects with string _id' }, req)
+      }
+      result = await c.putDocs(docs)
+    } else if (op === 'putIndex') {
+      if (!Array.isArray(body.entries)) return json(400, { error: 'entries must be an array' }, req)
+      result = await c.putIndex(body.entries)
     }
+    return json(200, { result: plainify(result) }, req)
   } catch (err) {
+    if (err.status) return json(err.status, { error: err.message }, req)
+    if (/not allowed|nested too deeply|unsupported operation/i.test(err.message)) return json(400, { error: err.message }, req)
     console.error('data function failed:', err)
-    return json(500, { error: 'database request failed' }, origin)
+    return json(500, { error: 'data request failed' }, req)
   }
 }
 
