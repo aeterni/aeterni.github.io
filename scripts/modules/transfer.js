@@ -65,7 +65,8 @@ const rememberKey = key => {
 
 const call = (body, retried) => {
   const headers = { 'Content-Type': 'application/json' }
-  if (!['find', 'findOne'].includes(body.op) && adminKey()) headers['X-Admin-Key'] = adminKey()
+  // the key also opens the listings the archives do not answer anonymously
+  if (adminKey()) headers['X-Admin-Key'] = adminKey()
   return window.fetch(e.apiUrl(), {
     method: 'POST',
     headers,
@@ -74,7 +75,7 @@ const call = (body, retried) => {
     const payload = await res.json().catch(() => ({}))
     if (res.status === 401) {
       rememberKey(null)
-      const given = !retried && window.prompt('This change needs the Æterni admin key:')
+      const given = !retried && window.prompt('This needs the Æterni admin key:')
       if (given) {
         rememberKey(given.trim())
         return call(body, true)

@@ -1,6 +1,10 @@
 // Load the database backups into the data function (see DATA.md).
 //
 //   node tools/seed-data.mjs --api <url> --key-file <file> [--backups <dir>] [--only source/collection]
+//   node tools/seed-data.mjs --api <url> --key-file <file> --dump <dir>
+//
+// With --dump it reads a directory written by tools/dump-data.mjs instead of the
+// 2024 Atlas exports, which is how a dump of the live store is restored.
 //
 // The five Atlas clusters the site used no longer exist; their last exports
 // (mongoexport JSON lines, or mongodump BSON read through bsondump) are the
@@ -37,6 +41,7 @@ const keyFile = arg('key-file')
 const adminKey = keyFile ? readFileSync(keyFile, 'utf8').trim() : process.env.ADMIN_KEY
 const backups = arg('backups', path.join(os.homedir(), 'repos/generalDataBackup/backups'))
 const only = arg('only')
+const dump = arg('dump')
 if (!adminKey) throw new Error('give the admin key with --key-file <file> or ADMIN_KEY')
 
 const BATCH_BYTES = 12 * 1024 * 1024 // uncompressed; gzipped, a batch stays well under 6 MB
@@ -62,7 +67,11 @@ const post = async body => {
   return payload.result
 }
 
-for (const [source, collection, rel] of FILES) {
+const sources = dump
+  ? FILES.map(([source, collection]) => [source, collection, `${source}-${collection}.jsonl`])
+  : FILES
+
+for (const [source, collection, rel] of sources) {
   if (only && only !== `${source}/${collection}`) continue
   const unknown = new Set()
   const entries = []
@@ -75,7 +84,7 @@ for (const [source, collection, rel] of FILES) {
     batch = []
     batchBytes = 0
   }
-  for await (const line of lines(path.join(backups, rel))) {
+  for await (const line of lines(path.join(dump || backups, rel))) {
     if (!line.trim()) continue
     const doc = normalize(JSON.parse(line), unknown)
     doc._id = String(doc._id)

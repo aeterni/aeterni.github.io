@@ -55,14 +55,30 @@ Two things need care crossing JSON:
 
 ## Who may do what
 
-- Anyone may read, and may add sessions, shouts, communities and syncs — the
-  pages that create them are public, as they were.
-- Deleting, and writing to the network archives (`aquarium`, `freenet`), needs
-  the admin key, sent as `X-Admin-Key`. The site asks for it the first time an
-  admin action needs it and remembers it in that browser.
-- `$where`, `$function`, `$accumulator`, `$merge`, `$out` are refused, deletes
-  must carry a query, and bodies are capped at 4 MB.
-- CORS is limited to the site origins.
+The endpoint is public and CORS restrains only browsers, so the rules are in the
+function itself.
+
+Without the admin key:
+
+- **Sessions** can be read and listed, and **shouts** read and written (up to
+  16 KB each) — those pages are public, as they were.
+- **The archives** (`aquarium`, `communities`, `freenet`, `syncs`) answer a query
+  that names what it wants: a network by `userData.id`, a community by
+  `comName`, a sync by `syncId` (the full list is `mustMatch` in the function).
+  Every link works; downloading the lot does not.
+- **Creator logins** (the `luser` documents) are neither listed nor readable.
+
+With the admin key, sent as `X-Admin-Key`, everything else: listings, deleting,
+making sessions, recording communities, creating syncs, seeding and dumping. The
+site asks for the key the first time a page needs it and remembers it in that
+browser — the session maker does this on opening.
+
+Also refused, always: `$where`, `$function`, `$accumulator`, `$merge`, `$out`,
+deletes without a query, and bodies over 4 MB.
+
+Not done yet: rate limiting. A query touching a trimmed field makes the function
+read every full document in a collection, which is a cheap way for someone to
+burn the Netlify quota.
 
 The admin key lives in `~/.config/aeterni/admin-key` on Renato's machine and in
 the site's `ADMIN_KEY` environment variable. Never commit it.
@@ -81,6 +97,22 @@ make data-seed     # load the backups into it (replaces what is there)
 `make data-seed` reads the February 2024 exports in
 `~/repos/generalDataBackup/backups/` (see `FILES` in `tools/seed-data.mjs`).
 They hold personal data and stay out of this repository.
+
+Those exports are the only reason this data still exists, and they stop at
+February 2024. Everything made since — sessions, communities, syncs, shouts —
+exists only in the live store, so copy it out now and then:
+
+```sh
+make data-dump     # → ~/repos/generalDataBackup/aeterni-store/<date>/
+```
+
+To put a dump back:
+
+```sh
+node tools/seed-data.mjs --api $(DATA_API) --key-file $(ADMIN_KEY_FILE) --dump <dir>
+```
+
+(verified: a dump restored into an empty store gives the same 8,412 documents).
 
 To change the admin key: write a new one to `~/.config/aeterni/admin-key`, then
 `env -u NETLIFY_AUTH_TOKEN NETLIFY_SITE_ID=<DATA_SITE> netlify env:set ADMIN_KEY "$(cat ~/.config/aeterni/admin-key)"`

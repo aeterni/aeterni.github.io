@@ -149,7 +149,7 @@ export const indexEntry = doc => {
 }
 
 // field paths a query tests (descending through $and/$or/$nor)
-const queryPaths = (q, out = []) => {
+export const queryPaths = (q, out = []) => {
   if (Array.isArray(q)) q.forEach(x => queryPaths(x, out))
   else if (q && typeof q === 'object') {
     for (const [k, v] of Object.entries(q)) {
@@ -371,5 +371,9 @@ export class Collection {
 
   async count () {
     return (await this.index()).entries.length
+  }
+
+  async ids () {
+    return (await this.index()).entries.map(e => e.d._id)
   }
 }

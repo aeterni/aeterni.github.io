@@ -50,3 +50,8 @@ data-local:
 # load the backups into the local function (while make data-local runs):
 data-seed-local:
 	ADMIN_KEY=local node tools/seed-data.mjs --backups $(BACKUPS)
+
+# copy the live store into ~/repos/generalDataBackup/aeterni-store/<date>/
+# (restore one with: node tools/seed-data.mjs --api $(DATA_API) --key-file $(ADMIN_KEY_FILE) --dump <dir>)
+data-dump:
+	node tools/dump-data.mjs --api $(DATA_API) --key-file $(ADMIN_KEY_FILE)

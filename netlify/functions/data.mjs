@@ -13,19 +13,45 @@
 //   AETERNI_DATA_DIR   local development only: keep the data in this directory
 import { gunzipSync, gzipSync } from 'node:zlib'
 import { createHash, timingSafeEqual } from 'node:crypto'
-import { Collection, blobsBackend, fsBackend, plainify } from '../lib/store.mjs'
+import { Collection, blobsBackend, fsBackend, plainify, queryPaths } from '../lib/store.mjs'
 
 // Each source is one of the old Atlas databases, and the collections keep their
 // names. `open` lists what anyone may do; every other operation needs the admin key.
+//
+// The archives hold people's networks, so they are readable by the link, not by
+// the listing: without the admin key a query must name what it wants through one
+// of `mustMatch`. Every page of the site does (a network by userData.id, a sync
+// by syncId), so this only stops bulk collection.
 const READ = ['findOne', 'find']
 const SOURCES = {
-  artifacts: { collections: ['acolectioncreated', 'aatest'], open: [...READ, 'insertOne'] }, // sessions; AA shouts
-  aquarium: { collections: ['anycollection'], open: READ }, // Our Aquarium: the networks people contributed
-  communities: { collections: ['acol'], open: [...READ, 'insertOne'] }, // communities recorded in ?you
-  freenet: { collections: ['test3', 'test', 'test2', 'nets'], open: READ }, // earlier and WhatsApp networks
-  syncs: { collections: ['fcol'], open: [...READ, 'insertOne'] } // synchronized sessions made in ?tithorea
+  artifacts: { // the sessions themselves, and the AA shouts
+    collections: ['acolectioncreated', 'aatest'],
+    open: [...READ, 'insertOne'],
+    openInsert: ['aatest'], // shouts are public; making a session takes the key
+    hideFromAnon: { luser: { $exists: false } } // creator logins are not public
+  },
+  aquarium: { // Our Aquarium: the networks people contributed
+    collections: ['anycollection'],
+    open: READ,
+    mustMatch: ['userData.id', 'sid', '_id']
+  },
+  communities: { // communities recorded in ?you
+    collections: ['acol'],
+    open: READ,
+    mustMatch: ['comName', 'source', '_id']
+  },
+  freenet: { // earlier and WhatsApp networks
+    collections: ['test3', 'test', 'test2', 'nets'],
+    open: READ,
+    mustMatch: ['sid', 'marker', 'syncId', '_id']
+  },
+  syncs: { // synchronized sessions made in ?tithorea
+    collections: ['fcol'],
+    open: READ,
+    mustMatch: ['syncId', '_id']
+  }
 }
-const OPS = ['findOne', 'find', 'insertOne', 'deleteMany', 'putDocs', 'putIndex', 'stats']
+const OPS = ['findOne', 'find', 'insertOne', 'deleteMany', 'putDocs', 'putIndex', 'ids', 'stats']
 
 const DEFAULT_ORIGINS = [
   'https://aeterni.github.io',
@@ -34,6 +60,7 @@ const DEFAULT_ORIGINS = [
 ]
 const MAX_LIMIT = 20000
 const MAX_BODY_BYTES = 4 * 1024 * 1024 // a recorded community runs to 1.5 MB
+const MAX_OPEN_DOC_BYTES = 16 * 1024 // a shout, written without the admin key
 const MAX_WIRE_BYTES = 5.5 * 1024 * 1024 // Netlify refuses requests and responses over 6 MB
 const MAX_SEED_BYTES = 64 * 1024 * 1024 // decompressed seeding batches
 const COMPRESS_FROM = 64 * 1024
@@ -110,6 +137,16 @@ const stats = async () => {
 
 const isObject = v => v !== null && typeof v === 'object' && !Array.isArray(v)
 
+// What anyone may do, as opposed to what needs the admin key.
+const isOpen = (src, op, name) =>
+  op === 'insertOne' ? (src.openInsert || []).includes(name) : src.open.includes(op)
+
+// A query names what it wants: a value, or a short list of them.
+const exact = v =>
+  ['string', 'number'].includes(typeof v) ||
+  (isObject(v) && Array.isArray(v.$in) && v.$in.length <= 100 && v.$in.every(x => ['string', 'number'].includes(typeof x)))
+const namesOne = (query, fields) => fields.some(f => exact(query[f]))
+
 export default async req => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(req.headers.get('origin') || '') })
   if (req.method !== 'POST') return json(405, { error: 'use POST' }, req)
@@ -143,8 +180,11 @@ export default async req => {
     if (!src) return json(400, { error: 'unknown source' }, req)
     const name = body.collection || src.collections[0]
     if (!src.collections.includes(name)) return json(400, { error: 'unknown collection' }, req)
-    if (!src.open.includes(op) && !admin) return json(401, { error: 'admin key required' }, req)
+    if (!isOpen(src, op, name) && !admin) return json(401, { error: 'admin key required' }, req)
     if (!isObject(query)) return json(400, { error: 'query must be an object' }, req)
+    if (!admin && src.mustMatch && READ.includes(op) && !namesOne(query, src.mustMatch)) {
+      return json(401, { error: `this archive answers by ${src.mustMatch.join(', ')} — or with the admin key` }, req)
+    }
     if (projection !== undefined && projection !== null && !isObject(projection)) {
       return json(400, { error: 'projection must be an object' }, req)
     }
@@ -152,13 +192,29 @@ export default async req => {
     if (doc !== undefined) assertSafe(doc)
 
     const c = new Collection(await backend(), source, name)
+    // Documents the site keeps to itself stay out of anonymous results, and a
+    // query that asks for them is told to bring the key — so the session maker,
+    // which reads the creator logins, asks for it instead of finding nothing.
+    let asked = query
+    if (!admin && src.hideFromAnon) {
+      const hidden = Object.keys(src.hideFromAnon)
+      if (queryPaths(query).some(p => hidden.includes(p.split('.')[0]))) {
+        return json(401, { error: 'admin key required' }, req)
+      }
+      asked = { $and: [query, src.hideFromAnon] }
+    }
     let result
     if (op === 'findOne') {
-      result = await c.findOne(query, { projection })
+      result = await c.findOne(asked, { projection })
     } else if (op === 'find') {
-      result = await c.find(query, { projection, limit: Math.min(Number(limit) || MAX_LIMIT, MAX_LIMIT) })
+      result = await c.find(asked, { projection, limit: Math.min(Number(limit) || MAX_LIMIT, MAX_LIMIT) })
+    } else if (op === 'ids') {
+      result = await c.ids()
     } else if (op === 'insertOne') {
       if (!isObject(doc)) return json(400, { error: 'doc must be an object' }, req)
+      if (!admin && JSON.stringify(doc).length > MAX_OPEN_DOC_BYTES) {
+        return json(413, { error: 'document too large' }, req)
+      }
       result = await c.insertOne(doc)
     } else if (op === 'deleteMany') {
       // never allow an unbounded delete
