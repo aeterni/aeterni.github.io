@@ -1983,10 +1983,10 @@ const elink_ = (text, path) => {
 }
 
 e.angel = () => {
+  // PagSeguro's donation button stopped working when it became PagBank
   const items = [
     '"chave Pix": <b>luz</b>; or',
     `the ${link('Paypal inlet', 'paypal')}; or`,
-    `the ${link('Pagseguro inlet', 'pagseguro')}; or`,
     `the ${link('Bitcoin inlet', 'bitcoin')}.`
   ].reduce((a, t) => a + `<li>${t}</li>`, '')
 
@@ -1996,8 +1996,7 @@ e.angel = () => {
   Please send us feedback on your experience with <b>Æterni</b> and ideas for enhancements or derivatives, join the coordination, creation and tech tasks, donate through:
   </p>
 
-  ${items}
-  <br/>
+  <ul>${items}</ul>
   <p>
   Write us for a direct bank transfer,
   to help us include other e-coins such as Ethereum,
@@ -2263,18 +2262,19 @@ e.welcome2 = () => {
       border: none; height: 1px; margin: 1.7em auto; width: 76%;
       background: linear-gradient(to right, transparent, var(--accent-soft), transparent);
     }
-    .aprojects {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    /* .acard-qualified so they win over the general .acard ul / li rules */
+    .acard .aprojects {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;
       padding: 0; margin: 1.3em 0;
     }
-    .aproj {
+    .acard .aproj {
       list-style: none; margin: 0; box-sizing: border-box;
       border: 1px solid var(--card-border); border-radius: 14px;
       padding: 15px 18px;
       background: rgba(184, 149, 48, 0.05);
     }
     .aproj--wide { grid-column: 1 / -1; }
-    @media (max-width: 620px) { .aprojects { grid-template-columns: 1fr; } }
+    @media (max-width: 620px) { .acard .aprojects { grid-template-columns: minmax(0, 1fr); } }
     .aproj > strong { font-family: var(--serif); font-size: 1.2rem; letter-spacing: 0.01em; }
     .aproj .asub { margin: 0.6em 0 0; padding-left: 1.15em; font-size: 0.97rem; }
     .aproj--feature {
@@ -2313,7 +2313,7 @@ e.welcome2 = () => {
     <li class="aproj"><strong>OurAquarium:</strong> navigating and harnessing your own social networks through audiovisual art — for example, making personalized music to share with your contacts and spread custom messages.</li>
     <li class="aproj"><strong>Daimeantes:</strong> a simple platform to register insights and ideas in general.</li>
     <li class="aproj"><strong>Notesourcing:</strong> an elaborate system to register notes and distill knowledge.</li>
-    <li class="aproj aproj--wide"><strong><a href="?daimesm">Daime Science Manifesto</a>:</strong> integrating scientific knowledge and spiritual wisdom within the Santo Daime community.
+    <li class="aproj aproj--wide"><strong><a href="?daimesm">Daimist Science Manifesto</a>:</strong> integrating scientific knowledge and spiritual wisdom within the Santo Daime community.
       <ul class="asub">
         <li><strong><a href="https://da1me.github.io/">Da1me</a>:</strong> textual analyses of Santo Daime hymnals.</li>
         <li><strong><a href="https://saoirineu.github.io/">São Irineu</a>:</strong> a platform dedicated to Daimist activities and knowledge.</li>
@@ -2332,7 +2332,7 @@ e.welcome2 = () => {
   const fundUs = document.getElementById('fund-us')
   wand.$('<a/>', {
     href: '',
-    id: 'contribL'
+    id: 'fundUsL' // #contribL is the footer's link; ids must not repeat
   }).html('fund us').appendTo(fundUs).click(() => {
     wand.modal.show()
     return false
@@ -2578,7 +2578,7 @@ e.about2 = () => {
 
 <p>Our flagship, <a href="https://biosyncare.com/">BioSynCare</a>, advances <span class="highlighted">sensory stimulation</span> — audiovisual medicine — for non-invasive neuromodulation of health, well-being and performance, through breathing and sound. It rests on the open knowledge (OWL, SKOS, RDF) and software of <a href="https://labiosyncare.github.io/">SSTIM and Patch Studio</a>, at the BSC Lab.</p>
 
-<p>Around it we cultivate tools for <a href="https://pypi.org/project/music/">musical synthesis</a>, for harnessing one's own social networks, and for registering insights and distilling knowledge. Within the Santo Daime community, the <a href="?daimesm">Daime Science Manifesto</a> guides work that unites scientific rigor with spiritual wisdom.</p>
+<p>Around it we cultivate tools for <a href="https://pypi.org/project/music/">musical synthesis</a>, for harnessing one's own social networks, and for registering insights and distilling knowledge. Within the Santo Daime community, the <a href="?daimesm">Daimist Science Manifesto</a> guides work that unites scientific rigor with spiritual wisdom.</p>
 
 <p>Through our <strong>publishing activity</strong>, we curate and disseminate <span class="highlighted">transformative narratives</span>.</p>
 
@@ -2793,44 +2793,16 @@ e.paypal = () => {
   $('#loading').hide()
 }
 
+// PagSeguro became PagBank and its donation button now lands on "page not
+// found"; old links to ?pagseguro say so and point to what still works.
 e.pagseguro = () => {
   utils.stdDiv().html(`
   <h2>Donate using Pagseguro</h2>
 
   <p>
-  Click on the following image to transfer any amount:
-  <!-- INICIO FORMULARIO BOTAO PAGSEGURO -->
-  <form action="https://pagseguro.uol.com.br/checkout/v2/donation.html" method="post">
-  <!-- NÃO EDITE OS COMANDOS DAS LINHAS ABAIXO -->
-  <input type="hidden" name="currency" value="BRL" />
-  <input type="hidden" name="receiverEmail" value="renato.fabbri@gmail.com" />
-  <input type="hidden" name="iot" value="button" />
-  <input type="image" src="https://stc.pagseguro.uol.com.br/public/img/botoes/doacoes/209x48-doar-assina.gif" name="submit" alt="Pague com PagSeguro - é rápido, grátis e seguro!" />
-  </form>
-  <!-- FINAL FORMULARIO BOTAO PAGSEGURO -->
+  Donations through PagSeguro are no longer available.
+  Please see the <a href="?angel">other ways to support us</a>.
   </p>
-
-  <br>
-  `)
-  $('#loading').hide()
-}
-
-e.bitcoin = () => {
-  utils.stdDiv().html(`
-  <h2>Donate using Bitcoins</h2>
-
-  <p>Transfer any amount of bitcoins to the wallet in the address:
-  <b>bc1qjw72xa6c8c924j8aj8y737q56let8envx4j0xd</b>
-  </p>
-
-  <p>
-  <p>
-  Or use the QR Code:
-  </p>
-  <img src="assets/donation/qrBitcoin.png" alt="QR Code for donating using the Bitcoin Wallet">
-  </p>
-
-  <br>
   `)
   $('#loading').hide()
 }

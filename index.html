@@ -102,10 +102,13 @@ body {
 #afooter {
   align-items: center;
   justify-content: center;
-  gap: clamp(14px, 5vw, 44px);
+  flex-wrap: wrap; /* on a phone, a centered row that cannot wrap is cut off at both ends */
+  gap: 8px clamp(14px, 5vw, 44px);
   padding: 10px 16px 34px !important;
   font-size: 0.95rem;
 }
+
+#afooter > * { white-space: nowrap; }
 
 #afooter a {
   font-size: inherit !important;
