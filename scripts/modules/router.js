@@ -76,7 +76,9 @@ e.mkFooter = () => {
     css: {
       display: 'inline-block'
     }
-  }).html(`<b>Regarding <span class="notranslate">${['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname) ? 'Æterni' : 'AV Medicine'}</span></b>`).appendTo(ft)
+  // The space sits inside the notranslate span on purpose: Google Translate trims the
+  // whitespace at the edges of the text it translates, which glued "deÆterni" together.
+  }).html(`<b>Regarding<span class="notranslate"> ${['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname) ? 'Æterni' : 'AV Medicine'}</span></b>`).appendTo(ft)
   // wand.$('<div/>', { css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft).html(' | ')
   wand.$('<a/>', {
     // href: `?angel${lflag}`,

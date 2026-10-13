@@ -141,6 +141,8 @@ const groups = `<a href="https://www.facebook.com/groups/arcturianart" target="_
 const groupArcturian = '<a href="https://www.facebook.com/groups/arcturianart" target="_blank">Arcturian Art</a>'
 const groupMentaliz = '<a href="https://www.facebook.com/groups/mentaliz" target="_blank">Mentaliz</a>'
 const groupWhatsapp = '<a href="https://chat.whatsapp.com/BztLyvWDEgW3C1mjXZTTrP" target="_blank">WhatsApp group</a>'
+const sstimGroup = '<a href="https://www.w3.org/groups/cg/sstim/" target="_blank">W3C Sensory Stimulation Vocabulary Community Group</a>'
+const sstimFix = label => `<a href="https://w3c-cg.github.io/sstim/contribute/" target="_blank">${label}</a>`
 
 e.stdMsg2 = () => {
   if (window.wand.country === 'BR') {
@@ -152,6 +154,7 @@ e.stdMsg2 = () => {
         <li><strong>Crie e compartilhe:</strong> produza artefatos audiovisuais e distribua-os, enriquecendo o que temos a oferecer.</li>
         <li><strong>Amplie o círculo:</strong> aproxime parceiros, colaboradores e pessoas afins que possam se interessar por este trabalho.</li>
         <li><strong>Participe de uma comunidade:</strong> junte-se ao ${groupArcturian}, ao ${groupMentaliz} ou ao nosso ${groupWhatsapp} — ou crie o seu.</li>
+        <li><strong>Contribua com o conhecimento aberto:</strong> participe do ${sstimGroup} ou ${sstimFix('sugira uma correção ao SSTIM')}.</li>
         <li><strong>Apoie a iniciativa:</strong> <a href="?angel">contribua financeiramente</a> ou ofereça seu tempo e suas habilidades.</li>
         <li><strong>Mantenha contato:</strong> envie suas ideias e sugestões — elas orientam os próximos passos.</li>
     </ul>
@@ -166,6 +169,7 @@ e.stdMsg2 = () => {
       <li><strong>Create and share:</strong> make audiovisual artifacts and pass them on, enriching what we can offer.</li>
       <li><strong>Widen the circle:</strong> introduce partners, collaborators and kindred spirits who might care about this work.</li>
       <li><strong>Join a community:</strong> take part in ${groupArcturian}, ${groupMentaliz} or our ${groupWhatsapp} — or start one of your own.</li>
+      <li><strong>Shape open knowledge:</strong> join the ${sstimGroup}, or ${sstimFix('suggest a correction to SSTIM')}.</li>
       <li><strong>Support the initiative:</strong> <a href="?angel">contribute financially</a> or lend your time and skills.</li>
       <li><strong>Stay in touch:</strong> send us your thoughts and suggestions — they shape where this goes next.</li>
   </ul>

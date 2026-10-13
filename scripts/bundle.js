@@ -197490,7 +197490,9 @@ e.mkFooter = () => {
     css: {
       display: 'inline-block'
     }
-  }).html(`<b>Regarding <span class="notranslate">${['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname) ? 'Æterni' : 'AV Medicine'}</span></b>`).appendTo(ft)
+  // The space sits inside the notranslate span on purpose: Google Translate trims the
+  // whitespace at the edges of the text it translates, which glued "deÆterni" together.
+  }).html(`<b>Regarding<span class="notranslate"> ${['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname) ? 'Æterni' : 'AV Medicine'}</span></b>`).appendTo(ft)
   // wand.$('<div/>', { css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft).html(' | ')
   wand.$('<a/>', {
     // href: `?angel${lflag}`,
@@ -199897,6 +199899,8 @@ e.guide = () => {
   $('#loading').hide()
 }
 
+// The project list is mirrored in index.html's <noscript> block, for readers and
+// crawlers that run no JavaScript; keep the two in step.
 e.welcome2 = () => {
   utils.stdDiv().html(`
   <style>
@@ -199968,10 +199972,11 @@ e.welcome2 = () => {
 
   <hr class="ahr"/>
 
-  <p>Welcome. You can learn more <a href="?about">about this initiative</a>, <span id="fund-us"></span>, or explore our projects:</p>
+  <p>Welcome. You can learn more <a href="?about">about this initiative</a>, <span id="fund-us"></span>, or explore the projects we develop and contribute to:</p>
 
   <ul class="aprojects">
-    <li class="aproj aproj--wide aproj--feature"><span class="aeyebrow">Flagship</span><strong><a href="https://biosyncare.com/">BioSynCare</a>:</strong> sensory stimulation — audiovisual medicine — non-invasive neuromodulation for health, well-being and performance, through breathing and sound.<span class="afeat-line"><strong><a href="https://labiosyncare.github.io/">SSTIM and Patch Studio</a>:</strong> open knowledge (OWL, SKOS, RDF) and software to promote Sensory Stimulation, at the BSC Lab.</span></li>
+    <li class="aproj aproj--wide aproj--feature"><span class="aeyebrow">Flagship</span><strong><a href="https://biosyncare.com/">BioSynCare</a>:</strong> an app of carefully composed sessions — rhythmic sound, guided breathing and sensory design — for focus, relaxation, meditation and sleep preparation. It approaches sensory stimulation as non-invasive neuromodulation for health, well-being and performance. <span class="amute">Formerly Audiovisual Medicine.</span></li>
+    <li class="aproj aproj--wide"><span class="aeyebrow">Open science</span><strong><a href="https://w3c-cg.github.io/sstim/">SSTIM</a>:</strong> the Sensory Stimulation Vocabulary, an open, evolving reference that connects research, technology and AI through citable identifiers, precise descriptions and transparent evidence. It is developed through the <a href="https://www.w3.org/groups/cg/sstim/">W3C Sensory Stimulation Vocabulary Community Group</a>, and BioSynCare adopts it and contributes to it.<span class="afeat-line"><strong><a href="https://w3c-cg.github.io/sstim/about/">SSTIM Workbench</a>:</strong> SSTIM's open reference app, formerly BSC Lab. Build sensory-stimulation patches in Patch Studio and examine the knowledge behind them, right in the browser — no account needed.</span></li>
     <li class="aproj"><strong><a href="https://pypi.org/project/music/">Music</a>:</strong> a Python library for the synthesis of mathematically precise sounds and musical structures.</li>
     <li class="aproj"><strong>OurAquarium:</strong> navigating and harnessing your own social networks through audiovisual art — for example, making personalized music to share with your contacts and spread custom messages.</li>
     <li class="aproj"><strong>Daimeantes:</strong> a simple platform to register insights and ideas in general.</li>
@@ -200239,9 +200244,11 @@ e.about2 = () => {
 <h2>About Æterni Anima</h2>
 <p class="about-lead"><strong>Æterni Anima</strong> is an initiative established in December 2020 to promote <span class="highlighted">extended longevity</span> through <span class="highlighted">non-invasive</span> improvements to health and performance. We integrate science, art and technology to foster <span class="highlighted">wellbeing</span> across a range of endeavors.</p>
 
-<p>Our flagship, <a href="https://biosyncare.com/">BioSynCare</a>, advances <span class="highlighted">sensory stimulation</span> — audiovisual medicine — for non-invasive neuromodulation of health, well-being and performance, through breathing and sound. It rests on the open knowledge (OWL, SKOS, RDF) and software of <a href="https://labiosyncare.github.io/">SSTIM and Patch Studio</a>, at the BSC Lab.</p>
+<p>Our flagship, <a href="https://biosyncare.com/">BioSynCare</a> (formerly Audiovisual Medicine), advances <span class="highlighted">sensory stimulation</span> for non-invasive neuromodulation of health, well-being and performance, through breathing and sound: an app of carefully composed sessions for focus, relaxation, meditation and sleep preparation.</p>
 
-<p>Around it we cultivate tools for <a href="https://pypi.org/project/music/">musical synthesis</a>, for harnessing one's own social networks, and for registering insights and distilling knowledge. Within the Santo Daime community, the <a href="?daimesm">Daimist Science Manifesto</a> guides work that unites scientific rigor with spiritual wisdom.</p>
+<p>We also contribute to <a href="https://w3c-cg.github.io/sstim/">SSTIM</a>, the Sensory Stimulation Vocabulary: an <span class="highlighted">open, evolving reference</span> that connects research, technology and AI through citable identifiers, precise descriptions and transparent evidence. It is developed through the <a href="https://www.w3.org/groups/cg/sstim/">W3C Sensory Stimulation Vocabulary Community Group</a>, and BioSynCare adopts it. Its open reference app, <a href="https://w3c-cg.github.io/sstim/about/">SSTIM Workbench</a> (formerly BSC Lab), lets anyone build sensory-stimulation patches in Patch Studio and examine the knowledge behind them.</p>
+
+<p>Around this work we cultivate tools for <a href="https://pypi.org/project/music/">musical synthesis</a>, for harnessing one's own social networks, and for registering insights and distilling knowledge. Within the Santo Daime community, the <a href="?daimesm">Daimist Science Manifesto</a> guides work that unites scientific rigor with spiritual wisdom.</p>
 
 <p>Through our <strong>publishing activity</strong>, we curate and disseminate <span class="highlighted">transformative narratives</span>.</p>
 
@@ -203896,6 +203903,8 @@ const groups = `<a href="https://www.facebook.com/groups/arcturianart" target="_
 const groupArcturian = '<a href="https://www.facebook.com/groups/arcturianart" target="_blank">Arcturian Art</a>'
 const groupMentaliz = '<a href="https://www.facebook.com/groups/mentaliz" target="_blank">Mentaliz</a>'
 const groupWhatsapp = '<a href="https://chat.whatsapp.com/BztLyvWDEgW3C1mjXZTTrP" target="_blank">WhatsApp group</a>'
+const sstimGroup = '<a href="https://www.w3.org/groups/cg/sstim/" target="_blank">W3C Sensory Stimulation Vocabulary Community Group</a>'
+const sstimFix = label => `<a href="https://w3c-cg.github.io/sstim/contribute/" target="_blank">${label}</a>`
 
 e.stdMsg2 = () => {
   if (window.wand.country === 'BR') {
@@ -203907,6 +203916,7 @@ e.stdMsg2 = () => {
         <li><strong>Crie e compartilhe:</strong> produza artefatos audiovisuais e distribua-os, enriquecendo o que temos a oferecer.</li>
         <li><strong>Amplie o círculo:</strong> aproxime parceiros, colaboradores e pessoas afins que possam se interessar por este trabalho.</li>
         <li><strong>Participe de uma comunidade:</strong> junte-se ao ${groupArcturian}, ao ${groupMentaliz} ou ao nosso ${groupWhatsapp} — ou crie o seu.</li>
+        <li><strong>Contribua com o conhecimento aberto:</strong> participe do ${sstimGroup} ou ${sstimFix('sugira uma correção ao SSTIM')}.</li>
         <li><strong>Apoie a iniciativa:</strong> <a href="?angel">contribua financeiramente</a> ou ofereça seu tempo e suas habilidades.</li>
         <li><strong>Mantenha contato:</strong> envie suas ideias e sugestões — elas orientam os próximos passos.</li>
     </ul>
@@ -203921,6 +203931,7 @@ e.stdMsg2 = () => {
       <li><strong>Create and share:</strong> make audiovisual artifacts and pass them on, enriching what we can offer.</li>
       <li><strong>Widen the circle:</strong> introduce partners, collaborators and kindred spirits who might care about this work.</li>
       <li><strong>Join a community:</strong> take part in ${groupArcturian}, ${groupMentaliz} or our ${groupWhatsapp} — or start one of your own.</li>
+      <li><strong>Shape open knowledge:</strong> join the ${sstimGroup}, or ${sstimFix('suggest a correction to SSTIM')}.</li>
       <li><strong>Support the initiative:</strong> <a href="?angel">contribute financially</a> or lend your time and skills.</li>
       <li><strong>Stay in touch:</strong> send us your thoughts and suggestions — they shape where this goes next.</li>
   </ul>

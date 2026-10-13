@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title class="notranslate">&#x00C6;terni Anima</title>
 
-    <meta name="description" content="Æterni Anima — an initiative where science, art and technology converge for well-being and longevity: audiovisual medicine, textual analyses of sacred hymnals, publishing and community projects." />
+    <meta name="description" content="Æterni Anima: science, art and technology for well-being and longevity — BioSynCare, contributions to the open SSTIM vocabulary, music synthesis and Daimist science." />
     <link rel="canonical" href="https://aeterni.github.io/" />
     <meta name="theme-color" content="#f7f4ee" />
     <link id="favicon" rel="shortcut icon" type="image/png" href="assets/fav5.png" />
@@ -13,14 +13,30 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Æterni Anima" />
     <meta property="og:title" content="Æterni Anima" />
-    <meta property="og:description" content="Where science, art and technology converge for well-being and longevity." />
+    <meta property="og:description" content="Where science, art and technology converge for well-being and longevity: BioSynCare, contributions to the open SSTIM vocabulary, music synthesis and Daimist science." />
     <meta property="og:url" content="https://aeterni.github.io/" />
     <meta property="og:image" content="https://aeterni.github.io/assets/imgs/coil2.jpeg" />
     <meta property="og:image:secure_url" content="https://aeterni.github.io/assets/imgs/coil2.jpeg" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Æterni Anima" />
-    <meta name="twitter:description" content="Where science, art and technology converge for well-being and longevity." />
+    <meta name="twitter:description" content="Where science, art and technology converge for well-being and longevity: BioSynCare, contributions to the open SSTIM vocabulary, music synthesis and Daimist science." />
     <meta name="twitter:image" content="https://aeterni.github.io/assets/imgs/coil2.jpeg" />
+
+    <!-- sameAs is Æterni Anima's identifier in the SSTIM knowledge graph. -->
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://aeterni.github.io/#organization",
+  "name": "Æterni Anima",
+  "alternateName": "Aeterni Anima",
+  "url": "https://aeterni.github.io/",
+  "foundingDate": "2020-12",
+  "description": "An initiative where science, art and technology converge for well-being and longevity. It develops BioSynCare and contributes to SSTIM, the open Sensory Stimulation Vocabulary.",
+  "brand": { "@type": "Brand", "name": "BioSynCare", "url": "https://biosyncare.com/" },
+  "sameAs": ["https://w3id.org/sstim/organization/aeterni-anima"]
+}
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -362,6 +378,8 @@ input:checked + .slideraa:after {
   visibility: hidden;
 }
     </style>
+    <!-- after the stylesheet above, so it overrides #loading's display: flex -->
+    <noscript><style>#loading { display: none; }</style></noscript>
   </head>
   <body>
     <div id="loading">
@@ -369,6 +387,22 @@ input:checked + .slideraa:after {
       <div class="aename notranslate">&#x00C6;terni Anima</div>
       <div class="aering"></div>
     </div>
+    <!-- Mirrors the landing's project list (e.welcome2 in scripts/modules/test.js); keep the two in step. -->
+    <noscript>
+      <div class="acard">
+        <h1 class="notranslate">&#x00C6;terni Anima</h1>
+        <p>Where science, art and technology converge for well-being — extending and enriching life.</p>
+        <ul>
+          <li><a href="https://biosyncare.com/">BioSynCare</a>, our flagship (formerly Audiovisual Medicine): an app of carefully composed sessions — rhythmic sound, guided breathing and sensory design — for focus, relaxation, meditation and sleep preparation.</li>
+          <li><a href="https://w3c-cg.github.io/sstim/">SSTIM</a>: the Sensory Stimulation Vocabulary, an open, evolving reference developed through the <a href="https://www.w3.org/groups/cg/sstim/">W3C Sensory Stimulation Vocabulary Community Group</a>. BioSynCare adopts it and contributes to it.</li>
+          <li><a href="https://w3c-cg.github.io/sstim/about/">SSTIM Workbench</a> (formerly BSC Lab): SSTIM's open reference app, with Patch Studio for building sensory-stimulation patches.</li>
+          <li><a href="https://pypi.org/project/music/">Music</a>: a Python library for the synthesis of mathematically precise sounds and musical structures.</li>
+          <li><a href="https://da1me.github.io/">Da1me</a>: textual analyses of Santo Daime hymnals.</li>
+          <li><a href="https://saoirineu.github.io/">São Irineu</a>: a platform dedicated to Daimist activities and knowledge.</li>
+        </ul>
+        <p>The rest of this site, including the Daimist Science Manifesto, needs JavaScript.</p>
+      </div>
+    </noscript>
     <script type="text/javascript">
 function googleTranslateElementInit() {
   // new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,pt,de,zh-CN,ko,it,ja,ru,fr,es', layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL }, 'google_translate_element');
