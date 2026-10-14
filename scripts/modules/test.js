@@ -1982,34 +1982,67 @@ const elink_ = (text, path) => {
   return `<a href="?.${path}">${text}</a>`
 }
 
+const bitcoinWallet = 'bc1qjw72xa6c8c924j8aj8y737q56let8envx4j0xd'
+
 e.angel = () => {
   // PagSeguro's donation button stopped working when it became PagBank
-  const items = [
-    '"chave Pix": <b>luz</b>; or',
-    `the ${link('Paypal inlet', 'paypal')}; or`,
-    `the ${link('Bitcoin inlet', 'bitcoin')}.`
-  ].reduce((a, t) => a + `<li>${t}</li>`, '')
-
   utils.stdDiv().html(`
-  <h2>Aid <b>Æterni Anima</b></h2>
-  <p>
-  Please send us feedback on your experience with <b>Æterni</b> and ideas for enhancements or derivatives, join the coordination, creation and tech tasks, donate through:
-  </p>
+  <style>
+    .agive-head { text-align: center; margin-bottom: 1.2em; }
+    .agive-head .amark { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 3.4rem; line-height: 1; color: var(--accent); }
+    .acard .agive-head h2 { margin: 0.12em 0 0.3em; }
+    .agive-lead { font-size: 1.1rem; max-width: 32em; margin: 0 auto; color: var(--ink-soft); }
+    .agive { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 1.6em 0; }
+    @media (max-width: 620px) { .agive { grid-template-columns: minmax(0, 1fr); } }
+    .agive-opt { border: 1px solid var(--card-border); border-radius: 16px; padding: 18px 20px; background: rgba(184, 149, 48, 0.05); }
+    .acard .agive-opt h3 { font-size: 1.4rem; margin: 0 0 0.2em; }
+    .agive-opt p { margin: 0 0 0.5em; }
+    .agive-opt img { display: block; width: 128px; height: 128px; margin: 0.6em 0; border-radius: 10px; border: 1px solid var(--card-border); background: #fff; image-rendering: pixelated; } /* half of 256: QR modules stay crisp */
+    .agive-opt code { font-size: 0.82rem; word-break: break-all; }
+    .agive-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; margin: 1.4em 0 1.2em; }
+  </style>
+  <header class="agive-head">
+    <p class="amark notranslate" aria-hidden="true">Æ</p>
+    <h2>Support Æterni Anima</h2>
+    <p class="agive-lead">Your support keeps these projects alive and growing. Every gift, of any size, makes a difference.</p>
+  </header>
 
-  <ul>${items}</ul>
-  <p>
-  Write us for a direct bank transfer,
-  to help us include other e-coins such as Ethereum,
-  and whatnot.
-  </p>
-  <p>
-  Get in touch through <a href="mailto:aeterni.anima@gmail.com" target="_blank">our email</a>.
-  </p>
-  <p>
-  Thank you.
-  </p>
-    `
-  ).appendTo('body')
+  <div class="agive">
+    <div class="agive-opt">
+      <h3>PayPal</h3>
+      <p>Give any amount by card or through PayPal.</p>
+      <img src="assets/donation/qrPaypal.png" alt="QR code for donating through PayPal">
+      <p>${link('Donate with PayPal', 'paypal')}</p>
+    </div>
+    <div class="agive-opt">
+      <h3>Bitcoin</h3>
+      <p>Send any amount to our wallet:</p>
+      <img src="assets/donation/qrBitcoin.png" alt="QR code of the Bitcoin wallet">
+      <p><code>${bitcoinWallet}</code></p>
+    </div>
+    <div class="agive-opt">
+      <h3>Pix</h3>
+      <p>In Brazil, use the Pix key <b>luz</b>.</p>
+    </div>
+    <div class="agive-opt">
+      <h3>Bank transfer and other coins</h3>
+      <p>Write to us for a direct bank transfer, or to give in Ethereum or another currency.</p>
+      <p><a href="mailto:aeterni.anima@gmail.com">aeterni.anima@gmail.com</a></p>
+    </div>
+  </div>
+
+  <h3>Give your time and ideas</h3>
+  <p>Send us feedback on your experience with Æterni and ideas for enhancements or derivatives, or join the coordination, creation and tech tasks.</p>
+  <div class="agive-cta">
+    <a class="abtn abtn--primary" id="angelJoinL" href="">Ways to take part</a>
+    <a class="abtn" href="mailto:aeterni.anima@gmail.com">Write to us</a>
+  </div>
+  <p style="text-align:center">Thank you.</p>
+  `)
+  $('#angelJoinL').on('click', () => {
+    window.wand.modal.show()
+    return false
+  })
   $('canvas').hide()
   $('#loading').hide()
 }
@@ -2234,110 +2267,317 @@ e.guide = () => {
   $('#loading').hide()
 }
 
+// Line icons for the landing's project cards: a 24px grid, stroked in currentColor.
+const aicon = paths => `<svg class="aicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths}</svg>`
+const projectIcons = {
+  biosyncare: aicon('<circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="12" r="6" opacity=".72"/><circle cx="12" cy="12" r="9.6" opacity=".42"/>'),
+  sstim: aicon('<circle cx="12" cy="12" r="2.3"/><circle cx="5" cy="6" r="1.8"/><circle cx="19" cy="6.5" r="1.8"/><circle cx="6" cy="18.5" r="1.8"/><circle cx="18.5" cy="18" r="1.8"/><path d="M6.4 7.2 10.3 10.6M17.6 7.6l-3.9 3M7.4 17.2l3-3.4M17.1 16.7l-3.2-3M6.8 6.1l10.4.3"/>'),
+  workbench: aicon('<path d="M5 4v16M12 4v16M19 4v16"/><circle cx="5" cy="14" r="2.3" class="afill"/><circle cx="12" cy="8" r="2.3" class="afill"/><circle cx="19" cy="16" r="2.3" class="afill"/>'),
+  music: aicon('<path d="M2 12c1.7-5.6 3.3-5.6 5 0s3.3 5.6 5 0 3.3-5.6 5 0 3.3 5.6 5 0"/>'),
+  aquarium: aicon('<path d="M21 12c-1.8 3.4-4.6 5.2-7.8 5.2-3 0-5.4-1.7-7.2-5.2 1.8-3.5 4.2-5.2 7.2-5.2 3.2 0 6 1.8 7.8 5.2Z"/><path d="M6 12 2.5 8.6v6.8Z"/><circle cx="16.6" cy="11" r=".95" class="afill"/>'),
+  daimeantes: aicon('<path d="M11 4c.7 5 3.4 7.7 8 8.3-4.6.6-7.3 3.3-8 8.3-.7-5-3.4-7.7-8-8.3 4.6-.6 7.3-3.3 8-8.3Z"/><path d="M19 2.8v3.4M17.3 4.5h3.4"/>'),
+  notesourcing: aicon('<rect x="4" y="3" width="12.5" height="15.5" rx="2"/><path d="M8.2 21h9.3a2 2 0 0 0 2-2V7.5"/><path d="M7.4 7.8h6M7.4 11h6M7.4 14.2h3.6"/>'),
+  manifesto: aicon('<path d="M12 6.6C10.1 5 7.2 4.3 3.5 4.5v13c3.7-.2 6.6.5 8.5 2.1 1.9-1.6 4.8-2.3 8.5-2.1v-13c-3.7-.2-6.6.5-8.5 2.1Z"/><path d="M12 6.6v13"/>'),
+  da1me: aicon('<path d="M3.5 6h11M3.5 10h8.5M3.5 14h5"/><circle cx="15.6" cy="15.4" r="3.8"/><path d="m18.4 18.2 2.8 2.8"/>'),
+  saoirineu: aicon('<path d="M18.8 15.6A8.3 8.3 0 1 1 9.6 3.9a6.6 6.6 0 0 0 9.2 11.7Z"/><path d="M16.9 3.6l2.6 4.5h-5.2ZM16.9 9.6l-2.6-4.5h5.2Z"/>'),
+  wheel: aicon('<circle cx="12" cy="12" r="8.6"/><path d="M12 3.4v17.2M3.4 12h17.2"/><circle cx="12" cy="12" r="1.7" class="afill"/>'),
+  wellness: aicon('<path d="M2.5 12.8h4.2l2.1-4.6 3.4 9.2 2.6-6.4 1.6 1.8h5.1"/>')
+}
+
+// Nested waves behind the flagship's text: one sine at four amplitudes, like breaths.
+const flagshipWaves = `<svg class="awaves" viewBox="0 0 420 220" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  <path d="M0 110C35 34 70 34 105 110S175 186 210 110 280 34 315 110 385 186 420 110" opacity=".35"/>
+  <path d="M0 110C35 62 70 62 105 110S175 158 210 110 280 62 315 110 385 158 420 110"/>
+  <path d="M0 110C35 80 70 80 105 110S175 140 210 110 280 80 315 110 385 140 420 110" opacity=".7"/>
+  <path d="M0 110C35 95 70 95 105 110S175 125 210 110 280 95 315 110 385 125 420 110" opacity=".45"/>
+</svg>`
+
 // The project list is mirrored in index.html's <noscript> block, for readers and
 // crawlers that run no JavaScript; keep the two in step.
 e.welcome2 = () => {
-  utils.stdDiv().html(`
+  const i = projectIcons
+  utils.stdDiv().addClass('acard--home').html(`
   <style>
-    .ahero { text-align: center; padding: 0.2em 0 0.4em; }
-    .ahero .amark {
-      font-family: var(--serif);
-      font-size: clamp(3.4rem, 10vw, 5rem);
-      line-height: 1;
-      color: var(--accent);
-      margin: 0;
+    /* The landing sits on the page itself instead of one card; each project gets its own. */
+    .acard.acard--home {
+      width: min(1060px, 94vw);
+      background: transparent; border: none; box-shadow: none;
+      padding: clamp(4px, 2vw, 20px) 0 0;
     }
-    .ahero h1 {
-      font-family: var(--serif);
-      font-weight: 600;
-      font-size: clamp(2rem, 6vw, 2.9rem);
-      letter-spacing: 0.04em;
-      margin: 0.15em 0 0.25em;
+    .avh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+    /* The Æ and its rings breathe at a resonant pace: 5.5 s in, 5.5 s out. */
+    .ahero { text-align: center; padding: clamp(10px, 3vw, 30px) 0 clamp(16px, 3vw, 28px); }
+    .abreath {
+      position: relative; width: clamp(124px, 24vw, 164px); aspect-ratio: 1;
+      margin: clamp(22px, 5vw, 40px) auto clamp(18px, 4vw, 30px);
+      display: grid; place-items: center;
+    }
+    .abreath::before {
+      content: ''; position: absolute; inset: -44%; border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(232, 194, 76, 0.34), rgba(232, 194, 76, 0.10) 55%, transparent);
+      animation: abreathe 11s ease-in-out infinite;
+    }
+    .aring {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 1px solid rgba(184, 149, 48, 0.45);
+      animation: abreathe 11s ease-in-out infinite;
+    }
+    .aring:nth-child(2) { inset: -17%; border-color: rgba(184, 149, 48, 0.28); animation-delay: 0.35s; }
+    .aring:nth-child(3) { inset: -35%; border-color: rgba(184, 149, 48, 0.15); animation-delay: 0.7s; }
+    .ahero .amark {
+      position: relative; margin: 0;
+      font-family: var(--serif); font-weight: 500; line-height: 1;
+      font-size: clamp(4rem, 11vw, 5.4rem); color: var(--accent);
+      animation: amark 11s ease-in-out infinite;
+    }
+    @keyframes abreathe {
+      0%, 100% { transform: scale(0.9); opacity: 0.55; }
+      50% { transform: scale(1.07); opacity: 1; }
+    }
+    @keyframes amark {
+      0%, 100% { transform: scale(0.97); text-shadow: 0 0 0 rgba(232, 194, 76, 0); }
+      50% { transform: scale(1.03); text-shadow: 0 0 30px rgba(232, 194, 76, 0.55); }
+    }
+    .acard .ahero h1 {
+      font-weight: 600; font-size: clamp(2.5rem, 6.6vw, 3.8rem); letter-spacing: 0.04em;
+      margin: 0 0 0.18em;
     }
     .ahero .atag {
-      color: var(--ink-soft);
-      font-size: 1.1rem;
-      max-width: 30em;
-      margin: 0 auto;
+      font-family: var(--serif); font-style: italic; font-weight: 500;
+      font-size: clamp(1.3rem, 3vw, 1.6rem); line-height: 1.35;
+      color: var(--ink-soft); max-width: 26em; margin: 0 auto;
     }
-    .ahr {
-      border: none; height: 1px; margin: 1.7em auto; width: 76%;
-      background: linear-gradient(to right, transparent, var(--accent-soft), transparent);
+    .ahero .alead { max-width: 34em; margin: 1.1em auto 0; }
+    .acta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; margin: 1.7em 0 0; }
+    .acue { margin: 1.5em 0 0; font-size: 0.86rem; color: var(--ink-soft); }
+
+    /* sections and project cards */
+    .asec { margin: clamp(30px, 6vw, 54px) 0 0; scroll-margin-top: 18px; }
+    .acard h2.asec-title {
+      display: flex; align-items: center; gap: 16px;
+      font-size: clamp(1.55rem, 3.6vw, 2rem); margin: 0 0 0.2em;
     }
-    /* .acard-qualified so they win over the general .acard ul / li rules */
-    .acard .aprojects {
-      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;
-      padding: 0; margin: 1.3em 0;
+    .asec-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, var(--accent-soft), transparent); }
+    .asec-intro { margin: 0; color: var(--ink-soft); }
+    .acard .agrid {
+      list-style: none; padding: 0; margin: 1.1em 0 0;
+      display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+    @media (max-width: 680px) { .acard .agrid { grid-template-columns: minmax(0, 1fr); } }
     .acard .aproj {
-      list-style: none; margin: 0; box-sizing: border-box;
-      border: 1px solid var(--card-border); border-radius: 14px;
-      padding: 15px 18px;
-      background: rgba(184, 149, 48, 0.05);
+      position: relative; margin: 0; box-sizing: border-box;
+      display: flex; flex-direction: column; align-items: flex-start;
+      padding: 22px 22px 20px;
+      background: var(--card); border: 1px solid var(--card-border); border-radius: 18px;
+      box-shadow: 0 1px 2px rgba(35, 34, 42, 0.04), 0 12px 30px -20px rgba(35, 34, 42, 0.28);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     }
     .aproj--wide { grid-column: 1 / -1; }
-    @media (max-width: 620px) { .acard .aprojects { grid-template-columns: minmax(0, 1fr); } }
-    .aproj > strong { font-family: var(--serif); font-size: 1.2rem; letter-spacing: 0.01em; }
-    .aproj .asub { margin: 0.6em 0 0; padding-left: 1.15em; font-size: 0.97rem; }
-    .aproj--feature {
-      background: rgba(184, 149, 48, 0.12);
-      border-color: var(--accent-soft);
-      padding: 20px 22px;
+    .acard .aproj--link:hover, .acard .aproj--link:focus-within {
+      transform: translateY(-3px); border-color: var(--accent-soft);
+      box-shadow: 0 2px 4px rgba(35, 34, 42, 0.05), 0 22px 44px -20px rgba(35, 34, 42, 0.34);
     }
-    .aproj--feature > strong { font-size: 1.6rem; }
-    .afeat-line {
-      display: block; margin-top: 0.85em; padding-top: 0.85em;
-      border-top: 1px solid var(--accent-soft);
+    .aico {
+      display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%;
+      margin-bottom: 12px; color: var(--accent);
+      background: radial-gradient(circle at 30% 28%, rgba(232, 194, 76, 0.26), rgba(184, 149, 48, 0.10));
     }
-    .afeat-line > strong { font-family: var(--serif); font-size: 1.2rem; letter-spacing: 0.01em; }
+    .aicon { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .aicon .afill { fill: currentColor; stroke: none; }
+    .acard .aproj h3 { font-size: 1.6rem; line-height: 1.1; margin: 0 0 0.35em; font-variant-numeric: lining-nums; } /* so Da1me's 1 is not read as an ı */
+    .acard .aproj h3 a { color: var(--ink); text-decoration: none; }
+    .acard .aproj h3 a:hover { color: var(--accent); }
+    /* project names are notranslate: standalone headings, so Google Translate would otherwise
+       turn Music into Música; descriptive titles (Medicine Wheel…) are left to translate */
+    /* the whole card follows its title's link; links in the text stay above it */
+    .aproj h3 a::after { content: ''; position: absolute; inset: 0; border-radius: 18px; }
+    .aproj h3 a:focus-visible { outline: none; }
+    .aproj h3 a:focus-visible::after { outline: 2px solid var(--accent-soft); outline-offset: 3px; }
+    .aproj p { margin: 0 0 0.7em; font-size: 0.99rem; }
+    .aproj p a { position: relative; z-index: 1; }
+    .aproj .ahost {
+      margin-top: auto; padding-top: 0.2em;
+      font-size: 0.76rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+    }
+    .aproj .ahost::after { content: '→'; display: inline-block; margin-left: 0.5em; transition: transform 0.25s ease; }
+    .aproj--link:hover .ahost::after { transform: translateX(4px); }
+
+    /* the flagship */
+    .acard .aproj--feature {
+      padding: clamp(24px, 4.4vw, 40px); overflow: hidden;
+      border-color: rgba(184, 149, 48, 0.5);
+      background: linear-gradient(120deg, #fff8e8 0%, var(--card) 62%);
+    }
+    .acard .aproj--feature h3 { font-size: clamp(2.2rem, 5vw, 2.9rem); }
+    .aproj--feature p { font-size: 1.04rem; }
+    .aproj--feature > :not(.awaves) { position: relative; max-width: 35em; }
     .aeyebrow {
-      display: block; margin-bottom: 0.35em;
+      display: block; margin-bottom: 0.4em;
       font-family: var(--sans); font-size: 0.72rem; font-weight: 600;
       letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent);
     }
+    .awaves {
+      position: absolute; right: -3%; top: 50%; width: 50%; height: 84%; transform: translateY(-50%);
+      fill: none; stroke: var(--accent-soft); stroke-width: 1.3; opacity: 0.55; pointer-events: none;
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 55%);
+      mask-image: linear-gradient(to right, transparent, #000 55%);
+    }
+    @media (max-width: 760px) { .awaves { display: none; } }
+
+    /* taking part */
+    .ainvite {
+      margin: clamp(38px, 7vw, 66px) 0 0; padding: clamp(26px, 5vw, 46px) clamp(18px, 5vw, 46px);
+      text-align: center; border-radius: 22px; border: 1px solid rgba(184, 149, 48, 0.4);
+      background: radial-gradient(120% 150% at 50% 0%, rgba(232, 194, 76, 0.24), rgba(232, 194, 76, 0.06) 58%, transparent), var(--card);
+    }
+    .acard .ainvite h2 { margin: 0 0 0.3em; }
+    .ainvite p { max-width: 34em; margin: 0 auto; color: var(--ink-soft); }
+    .aclose {
+      max-width: 30em; margin: clamp(30px, 6vw, 48px) auto 0.5em; text-align: center;
+      font-family: var(--serif); font-style: italic; font-size: 1.3rem; line-height: 1.45; color: var(--ink-soft);
+    }
     .acenter { text-align: center; }
     .amute { color: var(--ink-soft); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .abreath::before, .aring, .ahero .amark { animation: none; }
+      .acue { display: none; }
+      .acard .aproj, .aproj .ahost::after { transition: none; }
+      .acard .aproj--link:hover, .acard .aproj--link:focus-within { transform: none; }
+    }
   </style>
 
   <header class="ahero">
-    <p class="amark notranslate">Æ</p>
+    <div class="abreath" aria-hidden="true">
+      <span class="aring"></span><span class="aring"></span><span class="aring"></span>
+      <p class="amark notranslate">Æ</p>
+    </div>
     <h1 class="notranslate">Æterni Anima</h1>
     <p class="atag">Where science, art and technology converge for well-being — extending and enriching life.</p>
+    <p class="alead">An initiative, since 2020, promoting extended longevity through non-invasive improvements to health and performance.</p>
+    <div class="acta">
+      <a class="abtn abtn--primary" href="#projects">Explore the projects</a>
+      <a class="abtn" href="?about">About us</a>
+      <a class="abtn" id="fundUsL" href="">Get involved</a>
+    </div>
+    <p class="acue">Breathe with the Æ — in as it grows, out as it settles.</p>
   </header>
 
-  <hr class="ahr"/>
+  <section class="asec" id="projects">
+    <h2 class="avh">Projects</h2>
+    <ul class="agrid">
+      <li class="aproj aproj--wide aproj--feature aproj--link">
+        ${flagshipWaves}
+        <span class="aico">${i.biosyncare}</span>
+        <span class="aeyebrow">Flagship</span>
+        <h3 class="notranslate"><a href="https://biosyncare.com/">BioSynCare</a></h3>
+        <p>An app of carefully composed sessions — rhythmic sound, guided breathing and sensory design — for focus, relaxation, meditation and sleep preparation. It approaches sensory stimulation as non-invasive neuromodulation for health, well-being and performance.</p>
+        <p class="amute">Formerly Audiovisual Medicine.</p>
+        <span class="ahost">biosyncare.com</span>
+      </li>
+    </ul>
+  </section>
 
-  <p>Welcome. You can learn more <a href="?about">about this initiative</a>, <span id="fund-us"></span>, or explore the projects we develop and contribute to:</p>
+  <section class="asec">
+    <h2 class="asec-title">Open science</h2>
+    <p class="asec-intro">Shared, citable knowledge about sensory stimulation, open to everyone.</p>
+    <ul class="agrid">
+      <li class="aproj aproj--link">
+        <span class="aico">${i.sstim}</span>
+        <h3 class="notranslate"><a href="https://w3c-cg.github.io/sstim/">SSTIM</a></h3>
+        <p>The Sensory Stimulation Vocabulary: an open, evolving reference that connects research, technology and AI through citable identifiers, precise descriptions and transparent evidence. It is developed through the <a href="https://www.w3.org/groups/cg/sstim/">W3C Sensory Stimulation Vocabulary Community Group</a>, and BioSynCare adopts it and contributes to it.</p>
+        <span class="ahost">w3c-cg.github.io/sstim</span>
+      </li>
+      <li class="aproj aproj--link">
+        <span class="aico">${i.workbench}</span>
+        <h3 class="notranslate"><a href="https://w3c-cg.github.io/sstim/about/">SSTIM Workbench</a></h3>
+        <p>SSTIM's open reference app, formerly BSC Lab. Build sensory-stimulation patches in Patch Studio and examine the knowledge behind them, right in the browser — no account needed.</p>
+        <span class="ahost">w3c-cg.github.io/sstim/about</span>
+      </li>
+    </ul>
+  </section>
 
-  <ul class="aprojects">
-    <li class="aproj aproj--wide aproj--feature"><span class="aeyebrow">Flagship</span><strong><a href="https://biosyncare.com/">BioSynCare</a>:</strong> an app of carefully composed sessions — rhythmic sound, guided breathing and sensory design — for focus, relaxation, meditation and sleep preparation. It approaches sensory stimulation as non-invasive neuromodulation for health, well-being and performance. <span class="amute">Formerly Audiovisual Medicine.</span></li>
-    <li class="aproj aproj--wide"><span class="aeyebrow">Open science</span><strong><a href="https://w3c-cg.github.io/sstim/">SSTIM</a>:</strong> the Sensory Stimulation Vocabulary, an open, evolving reference that connects research, technology and AI through citable identifiers, precise descriptions and transparent evidence. It is developed through the <a href="https://www.w3.org/groups/cg/sstim/">W3C Sensory Stimulation Vocabulary Community Group</a>, and BioSynCare adopts it and contributes to it.<span class="afeat-line"><strong><a href="https://w3c-cg.github.io/sstim/about/">SSTIM Workbench</a>:</strong> SSTIM's open reference app, formerly BSC Lab. Build sensory-stimulation patches in Patch Studio and examine the knowledge behind them, right in the browser — no account needed.</span></li>
-    <li class="aproj"><strong><a href="https://pypi.org/project/music/">Music</a>:</strong> a Python library for the synthesis of mathematically precise sounds and musical structures.</li>
-    <li class="aproj"><strong>OurAquarium:</strong> navigating and harnessing your own social networks through audiovisual art — for example, making personalized music to share with your contacts and spread custom messages.</li>
-    <li class="aproj"><strong>Daimeantes:</strong> a simple platform to register insights and ideas in general.</li>
-    <li class="aproj"><strong>Notesourcing:</strong> an elaborate system to register notes and distill knowledge.</li>
-    <li class="aproj aproj--wide"><strong><a href="?daimesm">Daimist Science Manifesto</a>:</strong> integrating scientific knowledge and spiritual wisdom within the Santo Daime community.
-      <ul class="asub">
-        <li><strong><a href="https://da1me.github.io/">Da1me</a>:</strong> textual analyses of Santo Daime hymnals.</li>
-        <li><strong><a href="https://saoirineu.github.io/">São Irineu</a>:</strong> a platform dedicated to Daimist activities and knowledge.</li>
-        <li><strong>Medicine Wheel:</strong> an ancient map that teaches us to understand our lives as interconnected cycles.</li>
-        <li><strong>Daimists' Wellness Monitoring:</strong> tracking and analysis of daimists' health before and after the works.</li>
-      </ul>
-    </li>
-  </ul>
+  <section class="asec">
+    <h2 class="asec-title">Tools for creation and thought</h2>
+    <p class="asec-intro">Software for sound, for one's own social networks, and for ideas.</p>
+    <ul class="agrid">
+      <li class="aproj aproj--link">
+        <span class="aico">${i.music}</span>
+        <h3 class="notranslate"><a href="https://pypi.org/project/music/">Music</a></h3>
+        <p>A Python library for the synthesis of mathematically precise sounds and musical structures.</p>
+        <span class="ahost">pypi.org/project/music</span>
+      </li>
+      <li class="aproj">
+        <span class="aico">${i.aquarium}</span>
+        <h3 class="notranslate">OurAquarium</h3>
+        <p>Navigating and harnessing your own social networks through audiovisual art — for example, making personalized music to share with your contacts and spread custom messages.</p>
+      </li>
+      <li class="aproj">
+        <span class="aico">${i.daimeantes}</span>
+        <h3 class="notranslate">Daimeantes</h3>
+        <p>A simple platform to register insights and ideas in general.</p>
+      </li>
+      <li class="aproj">
+        <span class="aico">${i.notesourcing}</span>
+        <h3 class="notranslate">Notesourcing</h3>
+        <p>An elaborate system to register notes and distill knowledge.</p>
+      </li>
+    </ul>
+  </section>
 
-  <p>Explore these initiatives aimed at extending and enriching life, fostered for the benefit of every individual, group, and the Cosmos.</p>
+  <section class="asec">
+    <h2 class="asec-title">Daimist science</h2>
+    <p class="asec-intro">Integrating scientific knowledge and spiritual wisdom within the Santo Daime community.</p>
+    <ul class="agrid">
+      <li class="aproj aproj--wide aproj--link">
+        <span class="aico">${i.manifesto}</span>
+        <h3><a href="?daimesm">Daimist Science Manifesto</a></h3>
+        <p>How the rigor of scientific inquiry and the depth of spiritual pursuit uplift each other, and a call to amplify daimist contributions across the sciences. In English, Portuguese and Italian.</p>
+        <span class="ahost">Read the manifesto</span>
+      </li>
+      <li class="aproj aproj--link">
+        <span class="aico">${i.da1me}</span>
+        <h3 class="notranslate"><a href="https://da1me.github.io/">Da1me</a></h3>
+        <p>Textual analyses of Santo Daime hymnals.</p>
+        <span class="ahost">da1me.github.io</span>
+      </li>
+      <li class="aproj aproj--link">
+        <span class="aico">${i.saoirineu}</span>
+        <h3 class="notranslate"><a href="https://saoirineu.github.io/">São Irineu</a></h3>
+        <p>ICEFLU Europe's online portal for membership, churches, works and gatherings, with a structured body of knowledge on the Santo Daime.</p>
+        <span class="ahost">saoirineu.github.io</span>
+      </li>
+      <li class="aproj">
+        <span class="aico">${i.wheel}</span>
+        <h3>Medicine Wheel</h3>
+        <p>An ancient map that teaches us to understand our lives as interconnected cycles.</p>
+      </li>
+      <li class="aproj">
+        <span class="aico">${i.wellness}</span>
+        <h3>Daimists' Wellness Monitoring</h3>
+        <p>Tracking and analysis of daimists' health before and after the works.</p>
+      </li>
+    </ul>
+  </section>
 
+  <section class="ainvite">
+    <h2>Take part</h2>
+    <p>Share your experience, create with us, widen the circle or support the work: every contribution counts.</p>
+    <div class="acta">
+      <a class="abtn abtn--primary" id="joinL" href="">Get involved</a>
+      <a class="abtn" href="?angel">Support the initiative</a>
+      <a class="abtn" href="mailto:aeterni.anima@gmail.com">Write to us</a>
+    </div>
+  </section>
+
+  <p class="aclose">These initiatives aim at extending and enriching life, fostered for the benefit of every individual, group, and the Cosmos.</p>
   <p class="acenter">Thank you for visiting.</p>
   <p class="acenter amute">:::</p>
   `)
-  const wand = window.wand
-  const fundUs = document.getElementById('fund-us')
-  wand.$('<a/>', {
-    href: '',
-    id: 'fundUsL' // #contribL is the footer's link; ids must not repeat
-  }).html('fund us').appendTo(fundUs).click(() => {
-    wand.modal.show()
+  // #contribL is the footer's link to the same dialog; ids must not repeat
+  $('#fundUsL, #joinL').on('click', () => {
+    window.wand.modal.show()
     return false
   })
   $('#loading').hide()
@@ -2575,21 +2815,36 @@ e.about2 = () => {
     font-weight: 600;
   }
   .about-lead { font-size: 1.1rem; }
+  .about-head { text-align: center; margin-bottom: 1.3em; }
+  .about-head .amark { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 3.4rem; line-height: 1; color: var(--accent); }
+  .acard .about-head h2 { margin: 0.12em 0 0; }
+  .about-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; margin: 1.8em 0 1.2em; }
 </style>
-<h2>About Æterni Anima</h2>
+<header class="about-head">
+  <p class="amark notranslate" aria-hidden="true">Æ</p>
+  <h2>About Æterni Anima</h2>
+</header>
 <p class="about-lead"><strong>Æterni Anima</strong> is an initiative established in December 2020 to promote <span class="highlighted">extended longevity</span> through <span class="highlighted">non-invasive</span> improvements to health and performance. We integrate science, art and technology to foster <span class="highlighted">wellbeing</span> across a range of endeavors.</p>
 
 <p>Our flagship, <a href="https://biosyncare.com/">BioSynCare</a> (formerly Audiovisual Medicine), advances <span class="highlighted">sensory stimulation</span> for non-invasive neuromodulation of health, well-being and performance, through breathing and sound: an app of carefully composed sessions for focus, relaxation, meditation and sleep preparation.</p>
 
 <p>We also contribute to <a href="https://w3c-cg.github.io/sstim/">SSTIM</a>, the Sensory Stimulation Vocabulary: an <span class="highlighted">open, evolving reference</span> that connects research, technology and AI through citable identifiers, precise descriptions and transparent evidence. It is developed through the <a href="https://www.w3.org/groups/cg/sstim/">W3C Sensory Stimulation Vocabulary Community Group</a>, and BioSynCare adopts it. Its open reference app, <a href="https://w3c-cg.github.io/sstim/about/">SSTIM Workbench</a> (formerly BSC Lab), lets anyone build sensory-stimulation patches in Patch Studio and examine the knowledge behind them.</p>
 
-<p>Around this work we cultivate tools for <a href="https://pypi.org/project/music/">musical synthesis</a>, for harnessing one's own social networks, and for registering insights and distilling knowledge. Within the Santo Daime community, the <a href="?daimesm">Daimist Science Manifesto</a> guides work that unites scientific rigor with spiritual wisdom.</p>
+<p>Around this work we cultivate tools for <a href="https://pypi.org/project/music/">musical synthesis</a>, for harnessing one's own social networks, and for registering insights and distilling knowledge. Within the Santo Daime community, the <a href="?daimesm">Daimist Science Manifesto</a> guides work that unites scientific rigor with spiritual wisdom, from textual analyses of the hymnals in <a href="https://da1me.github.io/">Da1me</a> to <a href="https://saoirineu.github.io/">São Irineu</a>, ICEFLU Europe's online portal.</p>
 
 <p>Through our <strong>publishing activity</strong>, we curate and disseminate <span class="highlighted">transformative narratives</span>.</p>
 
 <p>We invite you to join us on this journey. Your participation is invaluable, and we look forward to sharing each step with you.</p>
+<div class="about-cta">
+  <a class="abtn abtn--primary" id="aboutJoinL" href="">Get involved</a>
+  <a class="abtn" href="./#projects">Explore the projects</a>
+</div>
 <p style="text-align:center;color:var(--ink-soft)">:::</p>
   `)
+  $('#aboutJoinL').on('click', () => {
+    window.wand.modal.show()
+    return false
+  })
   $('#loading').hide()
 }
 
@@ -2817,7 +3072,7 @@ e.bitcoin = () => {
   <h2>Donate using Bitcoins</h2>
 
   <p>Transfer any amount of bitcoins to the wallet in the address:
-  <b>bc1qjw72xa6c8c924j8aj8y737q56let8envx4j0xd</b>
+  <b>${bitcoinWallet}</b>
   </p>
 
   <p>

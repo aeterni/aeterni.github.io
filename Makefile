@@ -22,6 +22,11 @@ serve:
 lint:
 	npm run lint
 
+# redraw the favicon, touch icon and link-preview image from assets/brand/ae-mark.svg
+# (needs Google Chrome and the network; see tools/render-brand.mjs):
+brand:
+	node tools/render-brand.mjs
+
 fix:
 	npm run fixme
 
