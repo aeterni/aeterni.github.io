@@ -217,10 +217,20 @@ Luz e Paz ~
 }
 
 e.mkModal = content => {
+  // Escape, the close button and a click outside all close it, and focus goes back to
+  // whatever opened it, so the dialog works from a keyboard as well as a mouse.
+  let opener = null
+  const hide = () => {
+    $('#myModal').hide().css('display', 'none')
+    if (opener && document.contains(opener)) opener.focus()
+    opener = null
+  }
   $('<div/>', {
     id: 'myModal',
     class: 'modal',
     role: 'dialog',
+    'aria-modal': 'true',
+    'aria-labelledby': 'mtitle',
     css: {
       'overflow-y': 'initial !important'
     },
@@ -236,19 +246,16 @@ e.mkModal = content => {
     .append($('<div/>', {
       class: 'modal-content'
     })
-      .append($('<span/>', { class: 'close' }).html('&times;')
-        .on('click', () => {
-          $('#myModal').hide().css('display', 'none')
-        })
-      )
+      .append($('<button/>', { type: 'button', class: 'close', 'aria-label': 'Close' }).html('&times;').on('click', hide))
       .append($('<p/>', { id: 'mcontent' }))
       .append($('<p/>', { id: 'mfeedback' }))
     )
   window.onclick = function (event) {
-    if (event.target === $('#myModal')[0]) {
-      $('#myModal').hide().css('display', 'none')
-    }
+    if (event.target === $('#myModal')[0]) hide()
   }
+  $(document).on('keydown', event => {
+    if (event.key === 'Escape' && $('#myModal').is(':visible')) hide()
+  })
   $('#mcontent').html(`
   ${content || e.stdMsg}
   <br><br><br>:::
@@ -273,12 +280,13 @@ e.mkModal = content => {
     show: (ms, msg) => {
       // $('#mcontent').html((msg || e.stdMsg()) + '<br><br><br>:::')
       $('#mcontent').html((msg || e.stdMsg()))
+      $('#mcontent h2').first().attr('id', 'mtitle')
+      opener = document.activeElement
       $('#myModal').fadeIn(ms || 'slow') // show() // .css('display', 'block')
+      $('#myModal .close').trigger('focus')
       $('#contribL').fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200)
     },
-    hide: () => {
-      $('#myModal').hide().css('display', 'none')
-    }
+    hide
   }
 }
 

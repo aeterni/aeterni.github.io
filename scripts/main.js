@@ -30,8 +30,14 @@ window.wand = {
   unloadFuncs: []
 }
 
-// cleaning facebook auto added argument (aesthetics, cleaning for users):
-window.history.pushState('', '', window.location.search.split('&fbclid=')[0])
+// Social sites and newsletters add tracking parameters to shared links (?fbclid=…,
+// &utm_source=…). The router reads the first parameter as the page (and key=value as a
+// sync session), so they must go before it looks, or the page never loads.
+const kept = window.location.search.slice(1).split('&').filter(p => p && !/^(fbclid|gclid|utm_[a-z]+)=/.test(p))
+const cleanSearch = kept.length ? '?' + kept.join('&') : ''
+if (cleanSearch !== window.location.search) {
+  window.history.replaceState(null, '', window.location.pathname + cleanSearch + window.location.hash)
+}
 
 const uargs = wand.router.urlAllArguments()
 

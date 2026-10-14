@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page not found · Æterni Anima</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+    <script>
+// GitHub Pages serves this page for any missing path. A path that names one of the
+// site's pages (/about, /manifesto, /support) is sent on to it instead.
+(function () {
+  var pages = { about: '?about', manifesto: '?daimesm', daimesm: '?daimesm', support: '?angel', donate: '?angel', angel: '?angel' }
+  var key = location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase()
+  if (pages[key]) location.replace('/' + pages[key])
+})()
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet" />
+    <style>
+:root {
+  --bg: #f7f4ee;
+  --card: #fffdf9;
+  --card-border: #e8e2d4;
+  --ink: #23222a;
+  --ink-soft: #55524e;
+  --accent: #8a6d1d;
+  --serif: 'Cormorant Garamond', 'Palatino Linotype', Palatino, Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+html { background: var(--bg); }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: var(--sans);
+  color: var(--ink);
+  background: radial-gradient(1200px 560px at 50% -180px, rgba(232, 194, 76, 0.22), transparent 70%), var(--bg);
+}
+
+main {
+  box-sizing: border-box;
+  width: min(560px, 92vw);
+  padding: clamp(28px, 6vw, 48px);
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(35, 34, 42, 0.05), 0 12px 40px -12px rgba(35, 34, 42, 0.18);
+}
+
+.mark { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 4rem; line-height: 1; color: var(--accent); }
+h1 { margin: 0.3em 0 0.4em; font-family: var(--serif); font-weight: 600; font-size: 2rem; }
+p { margin: 0; line-height: 1.6; color: var(--ink-soft); }
+
+a {
+  display: inline-block;
+  margin-top: 1.4em;
+  padding: 0.6em 1.3em;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fffdf6;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+a:hover { background: #745a12; }
+a:focus-visible { outline: 2px solid #b89530; outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="mark notranslate" aria-hidden="true">Æ</p>
+      <h1>This page is not here</h1>
+      <p>The address may be mistyped, or the page may have moved.</p>
+      <a href="/">Go to the home page</a>
+    </main>
+  </body>
+</html>

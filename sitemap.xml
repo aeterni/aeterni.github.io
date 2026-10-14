@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The site's curated pages; the many older routes are kept but not listed. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://aeterni.github.io/</loc><lastmod>2026-10-14</lastmod></url>
+  <url><loc>https://aeterni.github.io/?about</loc><lastmod>2026-10-14</lastmod></url>
+  <url><loc>https://aeterni.github.io/?daimesm</loc><lastmod>2026-10-14</lastmod></url>
+  <url><loc>https://aeterni.github.io/?angel</loc><lastmod>2026-10-14</lastmod></url>
+</urlset>
