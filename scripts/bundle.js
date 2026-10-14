@@ -199660,6 +199660,7 @@ e.angel = () => {
     .agive { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 1.6em 0; }
     @media (max-width: 620px) { .agive { grid-template-columns: minmax(0, 1fr); } }
     .agive-opt { border: 1px solid var(--card-border); border-radius: 16px; padding: 18px 20px; background: rgba(184, 149, 48, 0.05); }
+    .agive-opt--wide { grid-column: 1 / -1; }
     .acard .agive-opt h3 { font-size: 1.4rem; margin: 0 0 0.2em; }
     .agive-opt p { margin: 0 0 0.5em; }
     .agive-opt img { display: block; width: 128px; height: 128px; margin: 0.6em 0; border-radius: 10px; border: 1px solid var(--card-border); background: #fff; image-rendering: pixelated; } /* half of 256: QR modules stay crisp */
@@ -199685,11 +199686,7 @@ e.angel = () => {
       <img src="assets/donation/qrBitcoin.png" alt="QR code of the Bitcoin wallet">
       <p><code>${bitcoinWallet}</code></p>
     </div>
-    <div class="agive-opt">
-      <h3>Pix</h3>
-      <p>In Brazil, use the Pix key <b>luz</b>.</p>
-    </div>
-    <div class="agive-opt">
+    <div class="agive-opt agive-opt--wide">
       <h3>Bank transfer and other coins</h3>
       <p>Write to us for a direct bank transfer, or to give in Ethereum or another currency.</p>
       <p><a href="mailto:aeterni.anima@gmail.com">aeterni.anima@gmail.com</a></p>
@@ -199939,14 +199936,10 @@ const projectIcons = {
   sstim: aicon('<circle cx="12" cy="12" r="2.3"/><circle cx="5" cy="6" r="1.8"/><circle cx="19" cy="6.5" r="1.8"/><circle cx="6" cy="18.5" r="1.8"/><circle cx="18.5" cy="18" r="1.8"/><path d="M6.4 7.2 10.3 10.6M17.6 7.6l-3.9 3M7.4 17.2l3-3.4M17.1 16.7l-3.2-3M6.8 6.1l10.4.3"/>'),
   workbench: aicon('<path d="M5 4v16M12 4v16M19 4v16"/><circle cx="5" cy="14" r="2.3" class="afill"/><circle cx="12" cy="8" r="2.3" class="afill"/><circle cx="19" cy="16" r="2.3" class="afill"/>'),
   music: aicon('<path d="M2 12c1.7-5.6 3.3-5.6 5 0s3.3 5.6 5 0 3.3-5.6 5 0 3.3 5.6 5 0"/>'),
-  aquarium: aicon('<path d="M21 12c-1.8 3.4-4.6 5.2-7.8 5.2-3 0-5.4-1.7-7.2-5.2 1.8-3.5 4.2-5.2 7.2-5.2 3.2 0 6 1.8 7.8 5.2Z"/><path d="M6 12 2.5 8.6v6.8Z"/><circle cx="16.6" cy="11" r=".95" class="afill"/>'),
-  daimeantes: aicon('<path d="M11 4c.7 5 3.4 7.7 8 8.3-4.6.6-7.3 3.3-8 8.3-.7-5-3.4-7.7-8-8.3 4.6-.6 7.3-3.3 8-8.3Z"/><path d="M19 2.8v3.4M17.3 4.5h3.4"/>'),
-  notesourcing: aicon('<rect x="4" y="3" width="12.5" height="15.5" rx="2"/><path d="M8.2 21h9.3a2 2 0 0 0 2-2V7.5"/><path d="M7.4 7.8h6M7.4 11h6M7.4 14.2h3.6"/>'),
   manifesto: aicon('<path d="M12 6.6C10.1 5 7.2 4.3 3.5 4.5v13c3.7-.2 6.6.5 8.5 2.1 1.9-1.6 4.8-2.3 8.5-2.1v-13c-3.7-.2-6.6.5-8.5 2.1Z"/><path d="M12 6.6v13"/>'),
   da1me: aicon('<path d="M3.5 6h11M3.5 10h8.5M3.5 14h5"/><circle cx="15.6" cy="15.4" r="3.8"/><path d="m18.4 18.2 2.8 2.8"/>'),
-  saoirineu: aicon('<path d="M18.8 15.6A8.3 8.3 0 1 1 9.6 3.9a6.6 6.6 0 0 0 9.2 11.7Z"/><path d="M16.9 3.6l2.6 4.5h-5.2ZM16.9 9.6l-2.6-4.5h5.2Z"/>'),
-  wheel: aicon('<circle cx="12" cy="12" r="8.6"/><path d="M12 3.4v17.2M3.4 12h17.2"/><circle cx="12" cy="12" r="1.7" class="afill"/>'),
-  wellness: aicon('<path d="M2.5 12.8h4.2l2.1-4.6 3.4 9.2 2.6-6.4 1.6 1.8h5.1"/>')
+  blog: aicon('<path d="M15.5 4.5l4 4L9 19H5v-4Z"/><path d="M13 7l4 4"/><path d="M13 20h7"/>'),
+  saoirineu: aicon('<path d="M18.8 15.6A8.3 8.3 0 1 1 9.6 3.9a6.6 6.6 0 0 0 9.2 11.7Z"/><path d="M16.9 3.6l2.6 4.5h-5.2ZM16.9 9.6l-2.6-4.5h5.2Z"/>')
 }
 
 // Nested waves behind the flagship's text: one sine at four amplitudes, like breaths.
@@ -200054,7 +200047,7 @@ e.welcome2 = () => {
     .acard .aproj h3 a { color: var(--ink); text-decoration: none; }
     .acard .aproj h3 a:hover { color: var(--accent); }
     /* project names are notranslate: standalone headings, so Google Translate would otherwise
-       turn Music into Música; descriptive titles (Medicine Wheel…) are left to translate */
+       turn Music into Música; descriptive titles (the Manifesto) are left to translate */
     /* the whole card follows its title's link; links in the text stay above it */
     .aproj h3 a::after { content: ''; position: absolute; inset: 0; border-radius: 18px; }
     .aproj h3 a:focus-visible { outline: none; }
@@ -200165,7 +200158,7 @@ e.welcome2 = () => {
 
   <section class="asec">
     <h2 class="asec-title">Tools for creation and thought</h2>
-    <p class="asec-intro">Software for sound, for one's own social networks, and for ideas.</p>
+    <p class="asec-intro">Software for musical creation, and essays on AI, spirituality and the senses.</p>
     <ul class="agrid">
       <li class="aproj aproj--link">
         <span class="aico">${i.music}</span>
@@ -200173,20 +200166,11 @@ e.welcome2 = () => {
         <p>A Python library for the synthesis of mathematically precise sounds and musical structures.</p>
         <span class="ahost">pypi.org/project/music</span>
       </li>
-      <li class="aproj">
-        <span class="aico">${i.aquarium}</span>
-        <h3 class="notranslate">OurAquarium</h3>
-        <p>Navigating and harnessing your own social networks through audiovisual art — for example, making personalized music to share with your contacts and spread custom messages.</p>
-      </li>
-      <li class="aproj">
-        <span class="aico">${i.daimeantes}</span>
-        <h3 class="notranslate">Daimeantes</h3>
-        <p>A simple platform to register insights and ideas in general.</p>
-      </li>
-      <li class="aproj">
-        <span class="aico">${i.notesourcing}</span>
-        <h3 class="notranslate">Notesourcing</h3>
-        <p>An elaborate system to register notes and distill knowledge.</p>
+      <li class="aproj aproj--link">
+        <span class="aico">${i.blog}</span>
+        <h3><a href="https://ttm.github.io/">Renato Fabbri's blog</a></h3>
+        <p>Essays, notes and small apps on AI, spirituality, sensory stimulation, networks and computer music.</p>
+        <span class="ahost">ttm.github.io</span>
       </li>
     </ul>
   </section>
@@ -200204,7 +200188,7 @@ e.welcome2 = () => {
       <li class="aproj aproj--link">
         <span class="aico">${i.da1me}</span>
         <h3 class="notranslate"><a href="https://da1me.github.io/">Da1me</a></h3>
-        <p>Textual analyses of Santo Daime hymnals.</p>
+        <p>Explore the Santo Daime hymnal corpus: word clouds, vocabulary statistics, hymnal similarity and an author affinity network. Free to browse.</p>
         <span class="ahost">da1me.github.io</span>
       </li>
       <li class="aproj aproj--link">
@@ -200212,16 +200196,6 @@ e.welcome2 = () => {
         <h3 class="notranslate"><a href="https://saoirineu.github.io/">São Irineu</a></h3>
         <p>ICEFLU Europe's online portal for membership, churches, works and gatherings, with a structured body of knowledge on the Santo Daime.</p>
         <span class="ahost">saoirineu.github.io</span>
-      </li>
-      <li class="aproj">
-        <span class="aico">${i.wheel}</span>
-        <h3>Medicine Wheel</h3>
-        <p>An ancient map that teaches us to understand our lives as interconnected cycles.</p>
-      </li>
-      <li class="aproj">
-        <span class="aico">${i.wellness}</span>
-        <h3>Daimists' Wellness Monitoring</h3>
-        <p>Tracking and analysis of daimists' health before and after the works.</p>
       </li>
     </ul>
   </section>
@@ -204215,7 +204189,7 @@ algumas ideias:
 <li>Aproxime uma pessoa ou entidade que possa ter interesse especial na iniciativa.</li>
 <li>Gere mídia sobre o Corpo de Luz (postagens, artigos jornalísticos...).</li>
 <li>Divulgue sobre o grupo ou trabalho.</li>
-<li>Doe ou ajude a arrecadar financeiramente (transfira para a chave PIX <b>luz</b> ou verifique <a href="?angel" target="_blank">as alternativas</a>).</li>
+<li>Doe ou ajude a arrecadar financeiramente (veja <a href="?angel" target="_blank">as formas de contribuir</a>).</li>
 <li>Ore para o Corpo de Luz e para o mundo.</li>
 <li>Cuide-se muito bem.</li>
 <li>Sugira mudanças sobre como conduzir o Corpo de Luz.</li>

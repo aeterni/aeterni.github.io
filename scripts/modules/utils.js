@@ -198,7 +198,7 @@ algumas ideias:
 <li>Aproxime uma pessoa ou entidade que possa ter interesse especial na iniciativa.</li>
 <li>Gere mídia sobre o Corpo de Luz (postagens, artigos jornalísticos...).</li>
 <li>Divulgue sobre o grupo ou trabalho.</li>
-<li>Doe ou ajude a arrecadar financeiramente (transfira para a chave PIX <b>luz</b> ou verifique <a href="?angel" target="_blank">as alternativas</a>).</li>
+<li>Doe ou ajude a arrecadar financeiramente (veja <a href="?angel" target="_blank">as formas de contribuir</a>).</li>
 <li>Ore para o Corpo de Luz e para o mundo.</li>
 <li>Cuide-se muito bem.</li>
 <li>Sugira mudanças sobre como conduzir o Corpo de Luz.</li>
