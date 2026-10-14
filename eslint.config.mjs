@@ -33,6 +33,7 @@ export default [
       'node_modules/**',
       'assets/**',
       'scripts/bundle.js',
+      'scripts/light.bundle.js',
       'you/scripts/ok/**',
       'you/pop_ok.js',
       '**/*.min.js',

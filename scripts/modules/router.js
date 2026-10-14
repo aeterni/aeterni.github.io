@@ -34,7 +34,8 @@ e.mkFooter = () => {
   wand.$.get('https://ipinfo.io/?token=a1cf42d7d11976', function (response) {
     wand.country = response.country
     wand.speaksPortuguese = ['BR', 'PT', 'AO', 'ST'].includes(wand.country)
-    if (window.location.href.includes('localhost')) return
+    // visit logging needs the full bundle's transfer module; the small bundle has none
+    if (window.location.href.includes('localhost') || !wand.transfer) return
     response.date = new Date()
     response.uargs = e.urlAllArguments()
     wand.transfer.fAll.wcosta(response).then(r => {

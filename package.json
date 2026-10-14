@@ -7,7 +7,7 @@
     "standard": "*"
   },
   "scripts": {
-    "build": "browserify scripts/main.js > scripts/bundle.js",
+    "build": "browserify scripts/main.js > scripts/bundle.js && browserify scripts/light.js > scripts/light.bundle.js",
     "dev": "nodemon app.js --exec 'npm run build && node'",
     "fixme": "standard --fix",
     "lint": "eslint .",

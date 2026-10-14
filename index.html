@@ -657,7 +657,7 @@ input:checked + .slideraa:after {
       <div class="aering"></div>
     </div>
     <!-- The landing, in plain HTML so it shows at once and without JavaScript; the bundle
-         (e.welcome2 in scripts/modules/test.js) only wires up its dialog buttons. -->
+         (e.welcome2 in scripts/modules/pages.js) only wires up its dialog buttons. -->
     <main id="ae-home" class="acard acard--home">
       <header class="ahero">
         <div class="abreath" aria-hidden="true">
@@ -779,7 +779,8 @@ function googleTranslateElementInit() {
   new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
 }
     </script>
-    <script type="module" src="scripts/bundle.js"></script>
+    <!-- the small bundle: it serves the curated pages and loads scripts/bundle.js for the rest -->
+    <script type="module" src="scripts/light.bundle.js"></script>
     <input id="file-input" type="file" name="name" style="display: none;" />
   </body>
 </html>
