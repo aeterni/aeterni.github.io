@@ -9,17 +9,32 @@
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
     <script>
 // GitHub Pages serves this page for any missing path. A path that names one of the
-// site's pages (/about, /manifesto, /support) is sent on to it instead.
+// site's pages (/about, /manifesto, /support) is sent on to it instead; otherwise the
+// page speaks the visitor's language, as the rest of the site does.
 (function () {
-  var pages = { about: '?about', manifesto: '?daimesm', daimesm: '?daimesm', support: '?angel', donate: '?angel', angel: '?angel' }
+  var lang = null
+  try { lang = localStorage.getItem('aeterni.lang') } catch (e) {}
+  if (lang !== 'en' && lang !== 'pt') {
+    lang = /^pt\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || '') ? 'pt' : 'en'
+  }
+  var pages = { about: '?about', manifesto: '?daimesm', daimesm: '?daimesm', support: '?angel', donate: '?angel', angel: '?angel', sobre: '?about', apoie: '?angel' }
   var key = location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase()
-  if (pages[key]) location.replace('/' + pages[key])
+  if (pages[key]) return location.replace('/' + pages[key] + (lang === 'pt' ? '&lang=pt' : ''))
+  document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en'
+  document.documentElement.className = 'lang-' + lang
+  if (lang === 'pt') document.title = 'Página não encontrada · Æterni Anima'
 })()
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet" />
+    <link rel="preload" href="/assets/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin />
     <style>
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url('/assets/fonts/cormorant-garamond-latin.woff2') format('woff2');
+}
+
 :root {
   --bg: #f7f4ee;
   --card: #fffdf9;
@@ -71,14 +86,24 @@ a {
 
 a:hover { background: #745a12; }
 a:focus-visible { outline: 2px solid #b89530; outline-offset: 3px; }
+
+[lang="pt-BR"].t, .lang-pt [lang="en"].t { display: none; }
+.lang-pt [lang="pt-BR"].t { display: block; }
     </style>
   </head>
   <body>
     <main>
-      <p class="mark notranslate" aria-hidden="true">Æ</p>
-      <h1>This page is not here</h1>
-      <p>The address may be mistyped, or the page may have moved.</p>
-      <a href="/">Go to the home page</a>
+      <p class="mark" aria-hidden="true">Æ</p>
+      <div class="t" lang="en">
+        <h1>This page is not here</h1>
+        <p>The address may be mistyped, or the page may have moved.</p>
+        <a href="/">Go to the home page</a>
+      </div>
+      <div class="t" lang="pt-BR">
+        <h1>Esta página não existe</h1>
+        <p>O endereço pode estar errado, ou a página pode ter mudado de lugar.</p>
+        <a href="/?lang=pt">Ir para a página inicial</a>
+      </div>
     </main>
   </body>
 </html>

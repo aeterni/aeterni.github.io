@@ -20,8 +20,9 @@ if (cleanSearch !== window.location.search) {
   window.history.replaceState(null, '', window.location.pathname + cleanSearch + window.location.hash)
 }
 
-// The first parameter names the page; one with a value (key=value) is a sync session.
-const [key, value = ''] = (kept[0] || '').split('=')
+// The first parameter names the page (lang= only picks the language, in index.html's
+// head); one with a value (key=value) is a sync session.
+const [key, value = ''] = (kept.find(p => !p.startsWith('lang=')) || '').split('=')
 const curated = new Map([
   ['', 'welcome2'], ['about', 'about2'], ['daimesm', 'daimesm'],
   ['angel', 'angel'], ['paypal', 'paypal'], ['bitcoin', 'bitcoin']

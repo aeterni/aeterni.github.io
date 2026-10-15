@@ -138,14 +138,12 @@ const groups = `<a href="https://www.facebook.com/groups/arcturianart" target="_
 <a href="https://www.facebook.com/groups/mentaliz" target="_blank">MMM</a>,
 <a href="https://chat.whatsapp.com/BztLyvWDEgW3C1mjXZTTrP" target="_blank">WM</a>`
 
-const groupArcturian = '<a href="https://www.facebook.com/groups/arcturianart" target="_blank">Arcturian Art</a>'
-const groupMentaliz = '<a href="https://www.facebook.com/groups/mentaliz" target="_blank">Mentaliz</a>'
-const groupWhatsapp = '<a href="https://chat.whatsapp.com/BztLyvWDEgW3C1mjXZTTrP" target="_blank">WhatsApp group</a>'
 const sstimGroup = '<a href="https://www.w3.org/groups/cg/sstim/" target="_blank">W3C Sensory Stimulation Vocabulary Community Group</a>'
 const sstimFix = label => `<a href="https://w3c-cg.github.io/sstim/contribute/" target="_blank">${label}</a>`
 
+// Æterni's dialog, in the page's language (set in index.html's head as html.lang-pt).
 e.stdMsg2 = () => {
-  if (window.wand.country === 'BR') {
+  if (document.documentElement.classList.contains('lang-pt')) {
     return `
     <h2>Envolva-se com a Æterni Anima</h2>
     <p>Toda contribuição conta, e há muitas formas de participar:</p>
@@ -153,9 +151,9 @@ e.stdMsg2 = () => {
         <li><strong>Conte sua experiência:</strong> diga-nos como as sessões e as ferramentas têm afetado você, e convide outros a fazerem o mesmo.</li>
         <li><strong>Crie e compartilhe:</strong> produza artefatos audiovisuais e distribua-os, enriquecendo o que temos a oferecer.</li>
         <li><strong>Amplie o círculo:</strong> aproxime parceiros, colaboradores e pessoas afins que possam se interessar por este trabalho.</li>
-        <li><strong>Participe de uma comunidade:</strong> junte-se ao ${groupArcturian}, ao ${groupMentaliz} ou ao nosso ${groupWhatsapp} — ou crie o seu.</li>
+        <li><strong>Reúna pessoas:</strong> leve estas práticas ao seu grupo ou à sua comunidade, e conte para nós como foi.</li>
         <li><strong>Contribua com o conhecimento aberto:</strong> participe do ${sstimGroup} ou ${sstimFix('sugira uma correção ao SSTIM')}.</li>
-        <li><strong>Apoie a iniciativa:</strong> <a href="?angel">contribua financeiramente</a> ou ofereça seu tempo e suas habilidades.</li>
+        <li><strong>Apoie a iniciativa:</strong> <a href="?angel&amp;lang=pt">contribua financeiramente</a> ou ofereça seu tempo e suas habilidades.</li>
         <li><strong>Mantenha contato:</strong> envie suas ideias e sugestões — elas orientam os próximos passos.</li>
     </ul>
     <p>Até o menor gesto faz diferença. Obrigado.</p>
@@ -168,7 +166,7 @@ e.stdMsg2 = () => {
       <li><strong>Share your experience:</strong> tell us how the sessions and tools have affected you, and invite others to do the same.</li>
       <li><strong>Create and share:</strong> make audiovisual artifacts and pass them on, enriching what we can offer.</li>
       <li><strong>Widen the circle:</strong> introduce partners, collaborators and kindred spirits who might care about this work.</li>
-      <li><strong>Join a community:</strong> take part in ${groupArcturian}, ${groupMentaliz} or our ${groupWhatsapp} — or start one of your own.</li>
+      <li><strong>Gather people:</strong> bring these practices to your own group or community, and tell us how it goes.</li>
       <li><strong>Shape open knowledge:</strong> join the ${sstimGroup}, or ${sstimFix('suggest a correction to SSTIM')}.</li>
       <li><strong>Support the initiative:</strong> <a href="?angel">contribute financially</a> or lend your time and skills.</li>
       <li><strong>Stay in touch:</strong> send us your thoughts and suggestions — they shape where this goes next.</li>
@@ -217,6 +215,7 @@ Luz e Paz ~
 }
 
 e.mkModal = content => {
+  const pt = document.documentElement.classList.contains('lang-pt')
   // Escape, the close button and a click outside all close it, and focus goes back to
   // whatever opened it, so the dialog works from a keyboard as well as a mouse.
   let opener = null
@@ -246,7 +245,7 @@ e.mkModal = content => {
     .append($('<div/>', {
       class: 'modal-content'
     })
-      .append($('<button/>', { type: 'button', class: 'close', 'aria-label': 'Close' }).html('&times;').on('click', hide))
+      .append($('<button/>', { type: 'button', class: 'close', 'aria-label': pt ? 'Fechar' : 'Close' }).html('&times;').on('click', hide))
       .append($('<p/>', { id: 'mcontent' }))
       .append($('<p/>', { id: 'mfeedback' }))
     )
@@ -264,17 +263,20 @@ e.mkModal = content => {
   const contactMail = 'aeterni.anima@gmail.com'
   const descArea = $('<textarea/>', {
     maxlength: 3200,
-    placeholder: 'Share your feedback or ideas… / Compartilhe seu feedback ou ideias…'
+    placeholder: pt ? 'Compartilhe seus comentários ou suas ideias…' : 'Share your feedback or ideas…',
+    'aria-label': pt ? 'Seus comentários' : 'Your feedback'
   }).appendTo('#mfeedback')
-  $('<button/>', { css: { margin: '1%' } }).html('Send / Enviar Feedback').on('click', () => {
+  $('<button/>', { css: { margin: '1%' } }).html(pt ? 'Enviar comentários' : 'Send feedback').on('click', () => {
     const text = descArea.val().trim()
     if (!text) return descArea.trigger('focus')
-    const subject = encodeURIComponent('Feedback — Æterni Anima')
+    const subject = encodeURIComponent(pt ? 'Comentários — Æterni Anima' : 'Feedback — Æterni Anima')
     window.location.href = `mailto:${contactMail}?subject=${subject}&body=${encodeURIComponent(text)}`
   }).appendTo('#mfeedback')
   $('<p/>', {
     css: { 'font-size': '0.92rem', 'margin-top': '0.6em' }
-  }).html(`This opens your email app. You can also write to <a href="mailto:${contactMail}">${contactMail}</a>.`)
+  }).html(pt
+    ? `Isto abre o seu aplicativo de e-mail. Você também pode escrever para <a href="mailto:${contactMail}">${contactMail}</a>.`
+    : `This opens your email app. You can also write to <a href="mailto:${contactMail}">${contactMail}</a>.`)
     .appendTo('#mfeedback')
   return {
     show: (ms, msg) => {
@@ -284,7 +286,6 @@ e.mkModal = content => {
       opener = document.activeElement
       $('#myModal').fadeIn(ms || 'slow') // show() // .css('display', 'block')
       $('#myModal .close').trigger('focus')
-      $('#contribL').fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200)
     },
     hide
   }

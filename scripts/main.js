@@ -40,6 +40,12 @@ if (cleanSearch !== window.location.search) {
 }
 
 const uargs = wand.router.urlAllArguments()
+// ?lang= picks the language (in index.html's head), not the page
+const langAt = uargs.keys.indexOf('lang')
+if (langAt !== -1) {
+  uargs.keys.splice(langAt, 1)
+  uargs.values.splice(langAt, 1)
+}
 
 // page is first arg key without value
 // meditation is the same, but starts with _ (version 1)

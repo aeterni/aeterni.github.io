@@ -4,34 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title class="notranslate">&#x00C6;terni Anima</title>
-    <script>
-// Which page this is, decided before anything paints. The landing is static HTML
-// below (main#ae-home) and shows at once; every other page waits for the bundle
-// behind the loading veil. Curated pages also get their own title and canonical URL.
-(function () {
-  var params = location.search.slice(1).split('&').filter(function (p) {
-    return p && !/^(fbclid|gclid|utm_[a-z]+)=/.test(p) // tracking added to shared links
-  })
-  var key = params.length ? params[0].split('=')[0] : ''
-  document.documentElement.classList.add(key ? 'ae-route' : 'ae-home')
-  var pages = {
-    '': ['\u00C6terni Anima', ''],
-    about: ['About \u00B7 \u00C6terni Anima', '?about'],
-    daimesm: ['Daimist Science Manifesto \u00B7 \u00C6terni Anima', '?daimesm'],
-    angel: ['Support \u00B7 \u00C6terni Anima', '?angel'],
-    paypal: ['Donate with PayPal \u00B7 \u00C6terni Anima', '?paypal'],
-    bitcoin: ['Donate with Bitcoin \u00B7 \u00C6terni Anima', '?bitcoin']
-  }
-  var page = pages[key]
-  if (!page) return
-  document.title = page[0]
-  var canonical = document.createElement('link')
-  canonical.rel = 'canonical'
-  canonical.href = 'https://aeterni.github.io/' + page[1]
-  document.head.appendChild(canonical)
-})()
-    </script>
-
     <meta name="description" content="Æterni Anima: science, art and technology for well-being and longevity — BioSynCare, contributions to the open SSTIM vocabulary, music synthesis and Daimist science." />
     <meta name="theme-color" content="#f7f4ee" />
     <link id="favicon" rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
@@ -65,16 +37,102 @@
   "image": "https://aeterni.github.io/assets/imgs/og-aeterni.jpg",
   "foundingDate": "2020-12",
   "description": "An initiative where science, art and technology converge for well-being and longevity. It develops BioSynCare and contributes to SSTIM, the open Sensory Stimulation Vocabulary.",
+  "member": [
+    { "@type": "Person", "name": "Renato Fabbri", "url": "https://ttm.github.io/" },
+    { "@type": "Person", "name": "Riccardo Berti" }
+  ],
   "brand": { "@type": "Brand", "name": "BioSynCare", "url": "https://biosyncare.com/" },
   "sameAs": ["https://w3id.org/sstim/organization/aeterni-anima"]
 }
     </script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+    <script>
+// Language and page, decided before anything paints.
+// Language: an explicit ?lang= wins and is remembered; then the remembered choice;
+// then the browser's preference. Portuguese addresses carry lang=pt, so a link keeps
+// its language when it is shared.
+// Page: the landing is static HTML below (main.ae-landing, one per language) and shows
+// at once; any other page waits for the small bundle behind the loading veil. Curated
+// pages get their own title, description and canonical URL, with the other language
+// as an alternate.
+(function () {
+  var params = location.search.slice(1).split('&').filter(function (p) {
+    return p && !/^(fbclid|gclid|utm_[a-z]+)=/.test(p) // tracking added to shared links
+  })
+  var lang = null
+  var route = params.filter(function (p) {
+    var m = /^lang=(en|pt)$/.exec(p)
+    if (m) lang = m[1]
+    return p.indexOf('lang=') !== 0
+  })
+  try {
+    if (lang) localStorage.setItem('aeterni.lang', lang)
+    else lang = localStorage.getItem('aeterni.lang')
+  } catch (e) {}
+  if (lang !== 'en' && lang !== 'pt') {
+    lang = /^pt\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || '') ? 'pt' : 'en'
+  }
+  var root = document.documentElement
+  root.lang = lang === 'pt' ? 'pt-BR' : 'en'
+  root.classList.add('lang-' + lang)
+  var key = route.length ? route[0].split('=')[0] : ''
+  root.classList.add(key ? 'ae-route' : 'ae-home')
+  if (lang === 'pt' && params.indexOf('lang=pt') === -1) {
+    history.replaceState(null, '', location.pathname + '?' + route.concat('lang=pt').join('&') + location.hash)
+  }
+  var pages = {
+    '': ['Æterni Anima', 'Æterni Anima', ''],
+    about: ['About', 'Sobre', '?about'],
+    daimesm: ['Daimist Science Manifesto', 'Manifesto da Ciência Daimista', '?daimesm'],
+    angel: ['Support', 'Apoie', '?angel'],
+    paypal: ['Donate with PayPal', 'Doe com PayPal', '?paypal'],
+    bitcoin: ['Donate with Bitcoin', 'Doe com Bitcoin', '?bitcoin']
+  }
+  if (!Object.prototype.hasOwnProperty.call(pages, key)) return
+  var page = pages[key]
+  var name = page[lang === 'pt' ? 1 : 0]
+  document.title = key ? name + ' · Æterni Anima' : name
+  if (lang === 'pt') {
+    document.querySelector('meta[name=description]').content = 'Æterni Anima: ciência, arte e tecnologia para o bem-estar e a longevidade — BioSynCare, contribuições ao vocabulário aberto SSTIM, síntese musical e ciência daimista.'
+  }
+  var en = 'https://aeterni.github.io/' + page[2]
+  var pt = 'https://aeterni.github.io/' + (page[2] ? page[2] + '&lang=pt' : '?lang=pt')
+  var add = function (rel, href, hreflang) {
+    var link = document.createElement('link')
+    link.rel = rel
+    link.href = href
+    if (hreflang) link.hreflang = hreflang
+    document.head.appendChild(link)
+  }
+  add('canonical', lang === 'pt' ? pt : en)
+  add('alternate', en, 'en')
+  add('alternate', pt, 'pt-BR')
+  add('alternate', en, 'x-default')
+})()
+    </script>
+
+    <link rel="preload" href="assets/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin />
 
     <style type="text/css">
+/* Cormorant Garamond (SIL Open Font License, assets/fonts/OFL.txt), served from this
+   site rather than from Google's: the Latin subset covers Æ and Portuguese */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url('assets/fonts/cormorant-garamond-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url('assets/fonts/cormorant-garamond-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   --bg: #f7f4ee;
   --card: #fffdf9;
@@ -110,10 +168,9 @@ body {
     radial-gradient(820px 480px at 100% 100%, rgba(184, 149, 48, 0.07), transparent 70%);
   background-repeat: no-repeat;
   color: var(--ink);
-  top: 0 !important; /* keeps the Google Translate banner from pushing the page down */
 }
 
-a:focus-visible, button:focus-visible, .flag_link:focus-visible {
+a:focus-visible, button:focus-visible {
   outline: 2px solid var(--accent-soft);
   outline-offset: 3px;
   border-radius: 4px;
@@ -231,17 +288,11 @@ a:focus-visible, button:focus-visible, .flag_link:focus-visible {
   text-decoration: none;
 }
 
-#afooter a b { font-weight: 600; }
+#afooter a { font-weight: 600; }
 
-#afooter .flag_link {
-  display: inline-flex;
-  align-items: center;
-  opacity: 0.85;
-  transition: opacity 0.2s ease;
-}
-
-#afooter .flag_link:hover { opacity: 1; }
-#afooter .fimg { height: 17px !important; border-radius: 3px; }
+/* the language switch: the current language is plain text, the other a link */
+#afooter .alangs { display: inline-flex; align-items: center; gap: 0.5em; color: var(--ink-soft); }
+#afooter .alangs [aria-current] { color: var(--ink); font-weight: 600; }
 
 /* ------- loading veil ------- */
 #loading {
@@ -357,10 +408,6 @@ a:focus-visible, button:focus-visible, .flag_link:focus-visible {
   text-decoration: none;
   cursor: pointer;
 }
-
-/* ------- Google Translate housekeeping ------- */
-#google_translate_element { display: none; }
-.skiptranslate { display: none; }
 
 /* ------- on/off switch used by the artifact control panels ------- */
 .switch {
@@ -479,6 +526,8 @@ input:checked + .slideraa:after {
 /* ------- headings of the About, Manifesto and support pages ------- */
 .apage-head { text-align: center; margin-bottom: 1.3em; }
 .apage-head .amark { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 3.4rem; line-height: 1; color: var(--accent); }
+.apage-head .amark a { color: inherit; text-decoration: none; } /* the Æ leads home */
+.apage-head .amark a:hover { color: var(--accent-soft); }
 .acard .apage-head h1, .acard .apage-head h2 { margin: 0.12em 0 0.3em; }
 .apage-lead { font-size: 1.1rem; max-width: 32em; margin: 0 auto; color: var(--ink-soft); }
 
@@ -494,8 +543,12 @@ input:checked + .slideraa:after {
 .modal-content button.close:hover { color: var(--ink); }
 
 /* ------- the landing: static HTML in main#ae-home, so it needs no bundle to show ------- */
-.ae-route #ae-home { display: none; }
+.ae-landing[data-lang="pt"] { display: none; }
+.lang-pt .ae-landing[data-lang="en"] { display: none; }
+.lang-pt .ae-landing[data-lang="pt"] { display: block; }
+.ae-route .ae-landing { display: none !important; }
 .ae-home #loading { display: none; }
+.asprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 /* The landing sits on the page itself instead of one card; each project gets its own. */
 .acard.acard--home {
@@ -587,14 +640,14 @@ input:checked + .slideraa:after {
 .acard .aproj h3 { font-size: 1.6rem; line-height: 1.1; margin: 0 0 0.35em; font-variant-numeric: lining-nums; } /* so Da1me's 1 is not read as an ı */
 .acard .aproj h3 a { color: var(--ink); text-decoration: none; }
 .acard .aproj h3 a:hover { color: var(--accent); }
-/* project names are notranslate: standalone headings, so Google Translate would otherwise
-   turn Music into Música; descriptive titles (the Manifesto) are left to translate */
+/* project names carry notranslate, so a browser's own page translation leaves them be */
 /* the whole card follows its title's link; links in the text stay above it */
 .aproj h3 a::after { content: ''; position: absolute; inset: 0; border-radius: 18px; }
 .aproj h3 a:focus-visible { outline: none; }
 .aproj h3 a:focus-visible::after { outline: 2px solid var(--accent-soft); outline-offset: 3px; }
 .aproj p { margin: 0 0 0.7em; font-size: 0.99rem; }
 .aproj p a { position: relative; z-index: 1; }
+.aproj .astores { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0 0 0.9em; }
 .aproj .ahost {
   margin-top: auto; padding-top: 0.2em;
   font-size: 0.76rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
@@ -651,6 +704,23 @@ input:checked + .slideraa:after {
     <noscript><style>#loading { display: none; }</style></noscript>
   </head>
   <body>
+    <!-- icons used by both landings: each defined once, drawn with <use> -->
+    <svg class="asprite" aria-hidden="true" focusable="false">
+      <symbol id="i-biosyncare" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="12" r="6" opacity=".72"/><circle cx="12" cy="12" r="9.6" opacity=".42"/></symbol>
+      <symbol id="i-sstim" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.3"/><circle cx="5" cy="6" r="1.8"/><circle cx="19" cy="6.5" r="1.8"/><circle cx="6" cy="18.5" r="1.8"/><circle cx="18.5" cy="18" r="1.8"/><path d="M6.4 7.2 10.3 10.6M17.6 7.6l-3.9 3M7.4 17.2l3-3.4M17.1 16.7l-3.2-3M6.8 6.1l10.4.3"/></symbol>
+      <symbol id="i-workbench" viewBox="0 0 24 24"><path d="M5 4v16M12 4v16M19 4v16"/><circle cx="5" cy="14" r="2.3" fill="currentColor" stroke="none"/><circle cx="12" cy="8" r="2.3" fill="currentColor" stroke="none"/><circle cx="19" cy="16" r="2.3" fill="currentColor" stroke="none"/></symbol>
+      <symbol id="i-music" viewBox="0 0 24 24"><path d="M2 12c1.7-5.6 3.3-5.6 5 0s3.3 5.6 5 0 3.3-5.6 5 0 3.3 5.6 5 0"/></symbol>
+      <symbol id="i-blog" viewBox="0 0 24 24"><path d="M15.5 4.5l4 4L9 19H5v-4Z"/><path d="M13 7l4 4"/><path d="M13 20h7"/></symbol>
+      <symbol id="i-manifesto" viewBox="0 0 24 24"><path d="M12 6.6C10.1 5 7.2 4.3 3.5 4.5v13c3.7-.2 6.6.5 8.5 2.1 1.9-1.6 4.8-2.3 8.5-2.1v-13c-3.7-.2-6.6.5-8.5 2.1Z"/><path d="M12 6.6v13"/></symbol>
+      <symbol id="i-da1me" viewBox="0 0 24 24"><path d="M3.5 6h11M3.5 10h8.5M3.5 14h5"/><circle cx="15.6" cy="15.4" r="3.8"/><path d="m18.4 18.2 2.8 2.8"/></symbol>
+      <symbol id="i-saoirineu" viewBox="0 0 24 24"><path d="M18.8 15.6A8.3 8.3 0 1 1 9.6 3.9a6.6 6.6 0 0 0 9.2 11.7Z"/><path d="M16.9 3.6l2.6 4.5h-5.2ZM16.9 9.6l-2.6-4.5h5.2Z"/></symbol>
+      <symbol id="i-waves" viewBox="0 0 420 220" preserveAspectRatio="none">
+        <path d="M0 110C35 34 70 34 105 110S175 186 210 110 280 34 315 110 385 186 420 110" opacity=".35"/>
+        <path d="M0 110C35 62 70 62 105 110S175 158 210 110 280 62 315 110 385 158 420 110"/>
+        <path d="M0 110C35 80 70 80 105 110S175 140 210 110 280 80 315 110 385 140 420 110" opacity=".7"/>
+        <path d="M0 110C35 95 70 95 105 110S175 125 210 110 280 95 315 110 385 125 420 110" opacity=".45"/>
+      </symbol>
+    </svg>
     <div id="loading">
       <div class="aeglyph notranslate">&#x00C6;</div>
       <div class="aename notranslate">&#x00C6;terni Anima</div>
@@ -658,7 +728,7 @@ input:checked + .slideraa:after {
     </div>
     <!-- The landing, in plain HTML so it shows at once and without JavaScript; the bundle
          (e.welcome2 in scripts/modules/pages.js) only wires up its dialog buttons. -->
-    <main id="ae-home" class="acard acard--home">
+    <main id="ae-home" class="acard acard--home ae-landing" data-lang="en">
       <header class="ahero">
         <div class="abreath" aria-hidden="true">
           <span class="aring"></span><span class="aring"></span><span class="aring"></span>
@@ -670,7 +740,7 @@ input:checked + .slideraa:after {
         <div class="acta">
           <a class="abtn abtn--primary" href="#projects">Explore the projects</a>
           <a class="abtn" href="?about">About us</a>
-          <a class="abtn" id="fundUsL" href="#take-part">Get involved</a>
+          <a class="abtn ae-involve" href="#take-part">Get involved</a>
         </div>
         <p class="acue">Breathe with the Æ — in as it grows, out as it settles.</p>
       </header>
@@ -679,17 +749,13 @@ input:checked + .slideraa:after {
         <h2 class="avh">Projects</h2>
         <ul class="agrid">
           <li class="aproj aproj--wide aproj--feature aproj--link">
-            <svg class="awaves" viewBox="0 0 420 220" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-              <path d="M0 110C35 34 70 34 105 110S175 186 210 110 280 34 315 110 385 186 420 110" opacity=".35"/>
-              <path d="M0 110C35 62 70 62 105 110S175 158 210 110 280 62 315 110 385 158 420 110"/>
-              <path d="M0 110C35 80 70 80 105 110S175 140 210 110 280 80 315 110 385 140 420 110" opacity=".7"/>
-              <path d="M0 110C35 95 70 95 105 110S175 125 210 110 280 95 315 110 385 125 420 110" opacity=".45"/>
-            </svg>
-            <span class="aico"><svg class="aicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="12" r="6" opacity=".72"/><circle cx="12" cy="12" r="9.6" opacity=".42"/></svg></span>
+            <svg class="awaves" aria-hidden="true" focusable="false"><use href="#i-waves"/></svg>
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-biosyncare"/></svg></span>
             <span class="aeyebrow">Flagship</span>
             <h3 class="notranslate"><a href="https://biosyncare.com/">BioSynCare</a></h3>
             <p>An app of carefully composed sessions — rhythmic sound, guided breathing and sensory design — for focus, relaxation, meditation and sleep preparation. It approaches sensory stimulation as non-invasive neuromodulation for health, well-being and performance.</p>
             <p class="amute">Formerly Audiovisual Medicine.</p>
+            <p class="astores"><a href="https://apps.apple.com/app/id6754856451">App Store</a><a href="https://play.google.com/store/apps/details?id=com.biosyncare.app">Google Play</a></p>
             <span class="ahost">biosyncare.com</span>
           </li>
         </ul>
@@ -700,13 +766,13 @@ input:checked + .slideraa:after {
         <p class="asec-intro">Shared, citable knowledge about sensory stimulation, open to everyone.</p>
         <ul class="agrid">
           <li class="aproj aproj--link">
-            <span class="aico"><svg class="aicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="2.3"/><circle cx="5" cy="6" r="1.8"/><circle cx="19" cy="6.5" r="1.8"/><circle cx="6" cy="18.5" r="1.8"/><circle cx="18.5" cy="18" r="1.8"/><path d="M6.4 7.2 10.3 10.6M17.6 7.6l-3.9 3M7.4 17.2l3-3.4M17.1 16.7l-3.2-3M6.8 6.1l10.4.3"/></svg></span>
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-sstim"/></svg></span>
             <h3 class="notranslate"><a href="https://w3c-cg.github.io/sstim/">SSTIM</a></h3>
             <p>The Sensory Stimulation Vocabulary: an open, evolving reference that connects research, technology and AI through citable identifiers, precise descriptions and transparent evidence. It is developed through the <a href="https://www.w3.org/groups/cg/sstim/">W3C Sensory Stimulation Vocabulary Community Group</a>, and BioSynCare adopts it and contributes to it.</p>
             <span class="ahost">w3c-cg.github.io/sstim</span>
           </li>
           <li class="aproj aproj--link">
-            <span class="aico"><svg class="aicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4v16M12 4v16M19 4v16"/><circle cx="5" cy="14" r="2.3" class="afill"/><circle cx="12" cy="8" r="2.3" class="afill"/><circle cx="19" cy="16" r="2.3" class="afill"/></svg></span>
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-workbench"/></svg></span>
             <h3 class="notranslate"><a href="https://w3c-cg.github.io/sstim/about/">SSTIM Workbench</a></h3>
             <p>SSTIM's open reference app, formerly BSC Lab. Build sensory-stimulation patches in Patch Studio and examine the knowledge behind them, right in the browser — no account needed.</p>
             <span class="ahost">w3c-cg.github.io/sstim/about</span>
@@ -719,13 +785,13 @@ input:checked + .slideraa:after {
         <p class="asec-intro">Software for musical creation, and essays on AI, spirituality and the senses.</p>
         <ul class="agrid">
           <li class="aproj aproj--link">
-            <span class="aico"><svg class="aicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12c1.7-5.6 3.3-5.6 5 0s3.3 5.6 5 0 3.3-5.6 5 0 3.3 5.6 5 0"/></svg></span>
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-music"/></svg></span>
             <h3 class="notranslate"><a href="https://pypi.org/project/music/">Music</a></h3>
             <p>A Python library for the synthesis of mathematically precise sounds and musical structures.</p>
             <span class="ahost">pypi.org/project/music</span>
           </li>
           <li class="aproj aproj--link">
-            <span class="aico"><svg class="aicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 4.5l4 4L9 19H5v-4Z"/><path d="M13 7l4 4"/><path d="M13 20h7"/></svg></span>
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-blog"/></svg></span>
             <h3><a href="https://ttm.github.io/">Renato Fabbri's blog</a></h3>
             <p>Essays, notes and small apps on AI, spirituality, sensory stimulation, networks and computer music.</p>
             <span class="ahost">ttm.github.io</span>
@@ -738,19 +804,19 @@ input:checked + .slideraa:after {
         <p class="asec-intro">Integrating scientific knowledge and spiritual wisdom within the Santo Daime community.</p>
         <ul class="agrid">
           <li class="aproj aproj--wide aproj--link">
-            <span class="aico"><svg class="aicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 6.6C10.1 5 7.2 4.3 3.5 4.5v13c3.7-.2 6.6.5 8.5 2.1 1.9-1.6 4.8-2.3 8.5-2.1v-13c-3.7-.2-6.6.5-8.5 2.1Z"/><path d="M12 6.6v13"/></svg></span>
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-manifesto"/></svg></span>
             <h3><a href="?daimesm">Daimist Science Manifesto</a></h3>
             <p>How the rigor of scientific inquiry and the depth of spiritual pursuit uplift each other, and a call to amplify daimist contributions across the sciences. In English, Portuguese and Italian.</p>
             <span class="ahost">Read the manifesto</span>
           </li>
           <li class="aproj aproj--link">
-            <span class="aico"><svg class="aicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 6h11M3.5 10h8.5M3.5 14h5"/><circle cx="15.6" cy="15.4" r="3.8"/><path d="m18.4 18.2 2.8 2.8"/></svg></span>
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-da1me"/></svg></span>
             <h3 class="notranslate"><a href="https://da1me.github.io/">Da1me</a></h3>
             <p>Explore the Santo Daime hymnal corpus: word clouds, vocabulary statistics, hymnal similarity and an author affinity network. Free to browse.</p>
             <span class="ahost">da1me.github.io</span>
           </li>
           <li class="aproj aproj--link">
-            <span class="aico"><svg class="aicon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.8 15.6A8.3 8.3 0 1 1 9.6 3.9a6.6 6.6 0 0 0 9.2 11.7Z"/><path d="M16.9 3.6l2.6 4.5h-5.2ZM16.9 9.6l-2.6-4.5h5.2Z"/></svg></span>
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-saoirineu"/></svg></span>
             <h3 class="notranslate"><a href="https://saoirineu.github.io/">São Irineu</a></h3>
             <p>ICEFLU Europe's online portal for membership, churches, works and gatherings, with a structured body of knowledge on the Santo Daime.</p>
             <span class="ahost">saoirineu.github.io</span>
@@ -762,7 +828,7 @@ input:checked + .slideraa:after {
         <h2>Take part</h2>
         <p>Share your experience, create with us, widen the circle or support the work: every contribution counts.</p>
         <div class="acta">
-          <a class="abtn abtn--primary" id="joinL" href="mailto:aeterni.anima@gmail.com?subject=Getting%20involved">Get involved</a>
+          <a class="abtn abtn--primary ae-involve" href="mailto:aeterni.anima@gmail.com?subject=Getting%20involved">Get involved</a>
           <a class="abtn" href="?angel">Support the initiative</a>
           <a class="abtn" href="mailto:aeterni.anima@gmail.com">Write to us</a>
         </div>
@@ -773,12 +839,118 @@ input:checked + .slideraa:after {
       <p class="acenter amute">:::</p>
 
     </main>
-    <script type="text/javascript">
-function googleTranslateElementInit() {
-  // new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,pt,de,zh-CN,ko,it,ja,ru,fr,es', layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL }, 'google_translate_element');
-  new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
-}
-    </script>
+    <!-- the same landing in Portuguese; keep the two in step -->
+    <main id="ae-home-pt" class="acard acard--home ae-landing" data-lang="pt" lang="pt-BR">
+      <header class="ahero">
+        <div class="abreath" aria-hidden="true">
+          <span class="aring"></span><span class="aring"></span><span class="aring"></span>
+          <p class="amark notranslate">Æ</p>
+        </div>
+        <h1 class="notranslate">Æterni Anima</h1>
+        <p class="atag">Onde ciência, arte e tecnologia convergem para o bem-estar — prolongando e enriquecendo a vida.</p>
+        <p class="alead">Uma iniciativa que, desde 2020, promove a longevidade estendida por meio de melhorias não invasivas na saúde e no desempenho.</p>
+        <div class="acta">
+          <a class="abtn abtn--primary" href="#projetos">Conheça os projetos</a>
+          <a class="abtn" href="?about&amp;lang=pt">Sobre nós</a>
+          <a class="abtn ae-involve" href="#participe">Envolva-se</a>
+        </div>
+        <p class="acue">Respire com o Æ — inspire enquanto ele cresce, expire enquanto ele se acalma.</p>
+      </header>
+
+      <section class="asec" id="projetos">
+        <h2 class="avh">Projetos</h2>
+        <ul class="agrid">
+          <li class="aproj aproj--wide aproj--feature aproj--link">
+            <svg class="awaves" aria-hidden="true" focusable="false"><use href="#i-waves"/></svg>
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-biosyncare"/></svg></span>
+            <span class="aeyebrow">Carro-chefe</span>
+            <h3 class="notranslate"><a href="https://biosyncare.com/">BioSynCare</a></h3>
+            <p>Um aplicativo de sessões cuidadosamente compostas — som rítmico, respiração guiada e design sensorial — para foco, relaxamento, meditação e preparação para o sono. Aborda a estimulação sensorial como neuromodulação não invasiva para a saúde, o bem-estar e o desempenho.</p>
+            <p class="amute">Antes chamado Audiovisual Medicine.</p>
+            <p class="astores"><a href="https://apps.apple.com/app/id6754856451">App Store</a><a href="https://play.google.com/store/apps/details?id=com.biosyncare.app">Google Play</a></p>
+            <span class="ahost">biosyncare.com</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="asec">
+        <h2 class="asec-title">Ciência aberta</h2>
+        <p class="asec-intro">Conhecimento compartilhado e citável sobre estimulação sensorial, aberto a todos.</p>
+        <ul class="agrid">
+          <li class="aproj aproj--link">
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-sstim"/></svg></span>
+            <h3 class="notranslate"><a href="https://w3c-cg.github.io/sstim/">SSTIM</a></h3>
+            <p>O Vocabulário de Estimulação Sensorial (Sensory Stimulation Vocabulary): uma referência aberta e em evolução que conecta pesquisa, tecnologia e IA por meio de identificadores citáveis, descrições precisas e evidências transparentes. É desenvolvido no <a href="https://www.w3.org/groups/cg/sstim/">W3C Sensory Stimulation Vocabulary Community Group</a>, e o BioSynCare o adota e contribui com ele.</p>
+            <span class="ahost">w3c-cg.github.io/sstim</span>
+          </li>
+          <li class="aproj aproj--link">
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-workbench"/></svg></span>
+            <h3 class="notranslate"><a href="https://w3c-cg.github.io/sstim/about/">SSTIM Workbench</a></h3>
+            <p>O aplicativo de referência aberto do SSTIM, antes chamado BSC Lab. Crie patches de estimulação sensorial no Patch Studio e examine o conhecimento por trás deles, direto no navegador — sem precisar de conta.</p>
+            <span class="ahost">w3c-cg.github.io/sstim/about</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="asec">
+        <h2 class="asec-title">Ferramentas para criação e pensamento</h2>
+        <p class="asec-intro">Software para criação musical, e ensaios sobre IA, espiritualidade e os sentidos.</p>
+        <ul class="agrid">
+          <li class="aproj aproj--link">
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-music"/></svg></span>
+            <h3 class="notranslate"><a href="https://pypi.org/project/music/">Music</a></h3>
+            <p>Uma biblioteca Python para a síntese de sons e estruturas musicais matematicamente precisos.</p>
+            <span class="ahost">pypi.org/project/music</span>
+          </li>
+          <li class="aproj aproj--link">
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-blog"/></svg></span>
+            <h3><a href="https://ttm.github.io/">Blog de Renato Fabbri</a></h3>
+            <p>Ensaios, notas e pequenos aplicativos sobre IA, espiritualidade, estimulação sensorial, redes e música computacional.</p>
+            <span class="ahost">ttm.github.io</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="asec">
+        <h2 class="asec-title">Ciência daimista</h2>
+        <p class="asec-intro">Integrando conhecimento científico e sabedoria espiritual na comunidade do Santo Daime.</p>
+        <ul class="agrid">
+          <li class="aproj aproj--wide aproj--link">
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-manifesto"/></svg></span>
+            <h3><a href="?daimesm&amp;lang=pt">Manifesto da Ciência Daimista</a></h3>
+            <p>Como o rigor da investigação científica e a profundidade da busca espiritual se elevam mutuamente, e um chamado para ampliar as contribuições daimistas em todas as ciências. Em português, inglês e italiano.</p>
+            <span class="ahost">Leia o manifesto</span>
+          </li>
+          <li class="aproj aproj--link">
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-da1me"/></svg></span>
+            <h3 class="notranslate"><a href="https://da1me.github.io/">Da1me</a></h3>
+            <p>Explore o acervo de hinários do Santo Daime: nuvens de palavras, estatísticas de vocabulário, semelhança entre hinários e uma rede de afinidade entre autores. Acesso livre.</p>
+            <span class="ahost">da1me.github.io</span>
+          </li>
+          <li class="aproj aproj--link">
+            <span class="aico"><svg class="aicon" aria-hidden="true" focusable="false"><use href="#i-saoirineu"/></svg></span>
+            <h3 class="notranslate"><a href="https://saoirineu.github.io/">São Irineu</a></h3>
+            <p>O portal online da ICEFLU Europa para membros, igrejas, trabalhos e encontros, com um acervo estruturado de conhecimento sobre o Santo Daime.</p>
+            <span class="ahost">saoirineu.github.io</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="ainvite" id="participe">
+        <h2>Participe</h2>
+        <p>Compartilhe sua experiência, crie conosco, amplie o círculo ou apoie o trabalho: toda contribuição conta.</p>
+        <div class="acta">
+          <a class="abtn abtn--primary ae-involve" href="mailto:aeterni.anima@gmail.com?subject=Quero%20participar">Envolva-se</a>
+          <a class="abtn" href="?angel&amp;lang=pt">Apoie a iniciativa</a>
+          <a class="abtn" href="mailto:aeterni.anima@gmail.com">Escreva para nós</a>
+        </div>
+      </section>
+
+      <p class="aclose">Estas iniciativas buscam prolongar e enriquecer a vida, cultivadas em benefício de cada indivíduo, de cada grupo e do Cosmos.</p>
+      <p class="acenter">Obrigado pela visita.</p>
+      <p class="acenter amute">:::</p>
+
+    </main>
     <!-- the small bundle: it serves the curated pages and loads scripts/bundle.js for the rest -->
     <script type="module" src="scripts/light.bundle.js"></script>
     <input id="file-input" type="file" name="name" style="display: none;" />

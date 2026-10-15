@@ -6,7 +6,7 @@ const e = module.exports
 const pn = decodeURIComponent(window.location.href)
 const u = new URL(pn)
 
-const urlArgument = e.urlArgument = (arg, rotOrFun) => {
+e.urlArgument = (arg, rotOrFun) => {
   const a = u.searchParams.get(arg)
   if (typeof rotOrFun === 'function' && a) {
     rotOrFun()
@@ -31,33 +31,29 @@ e.urlAllArguments = () => {
 }
 
 e.mkFooter = () => {
-  wand.$.get('https://ipinfo.io/?token=a1cf42d7d11976', function (response) {
-    wand.country = response.country
-    wand.speaksPortuguese = ['BR', 'PT', 'AO', 'ST'].includes(wand.country)
-    // visit logging needs the full bundle's transfer module; the small bundle has none
-    if (window.location.href.includes('localhost') || !wand.transfer) return
-    response.date = new Date()
-    response.uargs = e.urlAllArguments()
-    wand.transfer.fAll.wcosta(response).then(r => {
-      if (!r || !r.insertedId) return // visit logging is dormant
-      window.sessionL = r
-      wand.unloadFuncs.unshift(e => {
-        wand.transfer.fAll.ucosta({ _id: r.insertedId }, { dateLeft: new Date() })
+  // The visitor's country only serves the older routes (sync sessions word their messages
+  // by it, and the dormant visit logging), all in the full bundle: the small bundle that
+  // serves the curated pages sends nobody's address to a third party.
+  if (wand.transfer) {
+    wand.$.get('https://ipinfo.io/?token=a1cf42d7d11976', function (response) {
+      wand.country = response.country
+      wand.speaksPortuguese = ['BR', 'PT', 'AO', 'ST'].includes(wand.country)
+      if (window.location.href.includes('localhost')) return
+      response.date = new Date()
+      response.uargs = e.urlAllArguments()
+      wand.transfer.fAll.wcosta(response).then(r => {
+        if (!r || !r.insertedId) return // visit logging is dormant
+        window.sessionL = r
+        wand.unloadFuncs.unshift(e => {
+          wand.transfer.fAll.ucosta({ _id: r.insertedId }, { dateLeft: new Date() })
+        })
+        setInterval(() => {
+          wand.transfer.fAll.ucosta({ _id: r.insertedId }, { lastSeen: new Date() })
+        }, 3 * 60 * 1000)
       })
-      setInterval(() => {
-        wand.transfer.fAll.ucosta({ _id: r.insertedId }, { lastSeen: new Date() })
-      }, 3 * 60 * 1000)
-    })
-  }, 'jsonp')
-  wand.$('body').on('DOMNodeInserted', 'div', function () {
-    if (wand.$(this).hasClass('skiptranslate')) wand.$(this).hide()
-  })
-  wand.modal = utils.mkModal()
-  const isMobile = utils.mobileAndTabletCheck()
-  function sWord () {
-    const wlist = ['support', 'back', 'encourage', 'strengthen', 'assist', 'boost']
-    return utils.chooseUnique(wlist, 1)
+    }, 'jsonp')
   }
+  wand.modal = utils.mkModal()
   const ft = wand.$('<div/>', {
     id: 'afooter',
     css: {
@@ -70,44 +66,30 @@ e.mkFooter = () => {
       width: 'auto'
     }
   }).appendTo('body')
-  const lflag = urlArgument('lang') ? `&lang=${urlArgument('lang')}` : ''
-  wand.$('<a/>', {
-    href: `?about${lflag}`,
-    id: 'abouta',
-    css: {
-      display: 'inline-block'
-    }
-  // The space sits inside the notranslate span on purpose: Google Translate trims the
-  // whitespace at the edges of the text it translates, which glued "deÆterni" together.
-  }).html(`<b>Regarding<span class="notranslate"> ${['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname) ? 'Æterni' : 'AV Medicine'}</span></b>`).appendTo(ft)
-  // wand.$('<div/>', { css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft).html(' | ')
-  wand.$('<a/>', {
-    // href: `?angel${lflag}`,
-    // target: '_blank',
-    href: '',
-    id: 'contribL',
-    css: {
-      display: 'inline-block'
-    }
-  }).html(`<b>${sWord()} this initiative</b>`).appendTo(ft).click(() => {
+  const involve = label => wand.$('<a/>', { href: '', id: 'contribL' }).text(label).appendTo(ft).click(() => {
     wand.modal.show()
     return false
   })
-  wand.$('body', {
-    css: {
-      'background-color': '#dddddd'
+  if (!['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    wand.$('<a/>', { href: '?about', id: 'abouta' }).text('Regarding AV Medicine').appendTo(ft)
+    involve('support this initiative')
+    return
+  }
+  // The language is set in index.html's head (html.lang-pt); Portuguese links carry it.
+  const pt = document.documentElement.classList.contains('lang-pt')
+  wand.$('<a/>', { href: pt ? './?lang=pt' : './', id: 'homea' }).text(pt ? 'Início' : 'Home').appendTo(ft)
+  wand.$('<a/>', { href: `?about${pt ? '&lang=pt' : ''}`, id: 'abouta' }).text(pt ? 'Sobre a Æterni' : 'Regarding Æterni').appendTo(ft)
+  involve(pt ? 'Envolva-se' : 'Get involved')
+  // this same page in each language; the current one is plain text
+  const here = window.location.search.slice(1).split('&').filter(p => p && !p.startsWith('lang='))
+  const langs = wand.$('<span/>', { class: 'alangs' }).appendTo(ft)
+  for (const [code, tag, name] of [['en', 'en', 'English'], ['pt', 'pt-BR', 'Português']]) {
+    if (code === 'pt') wand.$('<span/>', { 'aria-hidden': 'true' }).text('·').appendTo(langs)
+    if ((code === 'pt') === pt) {
+      wand.$('<span/>', { lang: tag, 'aria-current': 'true' }).text(name).appendTo(langs)
+    } else {
+      wand.$('<a/>', { href: '?' + here.concat(`lang=${code}`).join('&'), lang: tag, hreflang: tag }).text(name).appendTo(langs)
     }
-  })
-  // wand.$('<div/>', {
-  //   id: 'disqus_thread',
-  //   css: {
-  //     margin: '0 auto',
-  //     padding: '1%',
-  //     width: '50%'
-  //   }
-  // }).appendTo('body')
-  if (['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname)) {
-    if (!urlArgument('nolang')) lang(ft)
   }
   // uncomment to enable disqus
   // todo: debug to load correct discussions in each page
@@ -133,105 +115,6 @@ function disqus (id) {
   asec.appendChild(s)
 }
 window.disqus = disqus
-
-function lang (ft2) {
-  // const ft = wand.$('<div/>', { id: 'afooter', css: { width: '100%', display: 'flex', 'white-space': 'nowrap', 'overflow-x': 'auto' } }).appendTo('body')
-  // wand.$('<div/>', { class: 'notranslate', css: { display: 'inline-block', 'margin-left': '30%', float: 'left' } }).appendTo(ft).html('language:')
-  // wand.$('<div/>', { id: 'google_translate_element', class: 'notranslate', css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo('body').hide()
-
-  // wand.$('<div/>', { css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo('#abouta').html(' / lang: ')
-  // const ft = wand.$('<div/>', {
-  //   id: 'afooter2',
-  //   css: {
-  //     display: 'flex',
-  //     // 'white-space': 'nowrap',
-  //     // 'overflow-x': 'auto',
-  //     // margin: '0 auto',
-  //     // padding: '8px',
-  //     // height: '100%',
-  //     width: '100%'
-  //   }
-  // }).appendTo(ft2).hide()
-  // const ft = ft2
-  wand.$('<div/>', { id: 'google_translate_element' }).appendTo('body') // .hide()
-  wand.$('<script/>', {
-    type: 'text/javascript',
-    src: '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
-  }).appendTo('body')
-  // const adiv = wand.$('<div/>', { class: 'flag' }).appendTo(ft)
-  wand.$('<div/>', {
-    class: 'flag_link eng',
-    'data-lang': 'en',
-    title: 'English',
-    id: 'menusa',
-    css: {
-    //   flex: '33.3%'
-      cursor: 'pointer'
-    }
-  }).insertAfter('#abouta') // appendTo(ft)
-    .append(wand.$('<img/>', {
-      // src: 'assets/flags/uk.png',
-      class: 'fimg',
-      src: 'assets/flags/uk2.svg',
-      css: {
-        // display: 'inline',
-        // width: '50%',
-        // flex: '33.3%',
-        // margin: '0 100%',
-        // height: '100%'
-        height: ft2.height()
-      }
-    }))
-  wand.$('<div/>', {
-    class: 'flag_link por',
-    'data-lang': 'pt',
-    title: 'Português',
-    id: 'mptbr',
-    css: {
-      // flex: '33.3%'
-      cursor: 'pointer'
-    }
-  }).insertAfter('#abouta') // appendTo(ft)
-    .append(wand.$('<img/>', {
-      // src: 'assets/flags/br.png',
-      class: 'fimg',
-      src: 'assets/flags/br2.svg',
-      css: {
-        // display: 'inline',
-        // width: '50%',
-        // margin: '0 100%',
-        // height: '100%'
-        height: ft2.height()
-      }
-    }))
-  const afun = e => {
-    Array.prototype.forEach.call(iels, e => { e.style.border = '' })
-    window.eee = e
-    e.firstChild.style.border = '2px solid #ff0000'
-    const lang = e.getAttribute('data-lang')
-    const languageSelect = document.querySelector('select.goog-te-combo')
-    languageSelect.value = lang
-    languageSelect.dispatchEvent(new window.Event('change'))
-  }
-  const iels = document.getElementsByClassName('fimg')
-  const els = document.getElementsByClassName('flag_link')
-  window.elss = els
-  Array.prototype.forEach.call(els, function (e) {
-    e.addEventListener('click', function () {
-      afun(e)
-      const content = wand.$('#contribL').text()
-      let count = 0
-      const iid = setInterval(() => {
-        if (count > 2 || wand.$('#contribL').text() !== content) return clearInterval(iid)
-        afun(e)
-        count++
-      }, 500)
-      // afun(e)
-    })
-  })
-}
-
-e.lang = lang
 
 e.timeArgument = () => {
   const dd = new Date()

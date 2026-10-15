@@ -191167,6 +191167,12 @@ if (cleanSearch !== window.location.search) {
 }
 
 const uargs = wand.router.urlAllArguments()
+// ?lang= picks the language (in index.html's head), not the page
+const langAt = uargs.keys.indexOf('lang')
+if (langAt !== -1) {
+  uargs.keys.splice(langAt, 1)
+  uargs.values.splice(langAt, 1)
+}
 
 // page is first arg key without value
 // meditation is the same, but starts with _ (version 1)
@@ -197428,38 +197434,37 @@ const utils = require('./utils.js')
 
 const e = module.exports
 
-const link = (text, path) => {
-  const ua = wand.router.urlArgument
-  const lflag = ua('lang') ? `&lang=${ua('lang')}` : ''
-  return `<a href="?${path + lflag}">${text}</a>`
-}
+// Each page is written in English and Portuguese. Which one shows is decided in
+// index.html's head (html.lang-pt), from ?lang=, the visitor's earlier choice or the
+// browser; Portuguese pages keep lang=pt in their links.
+const pt = () => document.documentElement.classList.contains('lang-pt')
+const tr = (en, ptText) => pt() ? ptText : en
 
-// The landing is static HTML in index.html (main#ae-home), so it shows before this
-// bundle arrives and without JavaScript. Here it only gains its dialog buttons, whose
-// hrefs (#take-part, a mailto) are what a reader without JavaScript follows instead.
+const link = (text, path) => `<a href="?${path}${pt() ? '&amp;lang=pt' : ''}">${text}</a>`
+
+// the Æ that heads each page, leading home
+const mark = () => `<p class="amark notranslate"><a href="${pt() ? './?lang=pt' : './'}" aria-label="${tr('Æterni Anima home page', 'Página inicial da Æterni Anima')}">Æ</a></p>`
+
+// every "Get involved" button opens the dialog; its href is what a reader without
+// JavaScript follows instead
+const involve = () => $('.ae-involve').on('click', () => {
+  wand.modal.show()
+  return false
+})
+
+// The landing is static HTML in index.html (main.ae-landing, one per language), so it
+// shows before this bundle arrives and without JavaScript. Here it only gains its
+// dialog buttons.
 e.welcome2 = () => {
   document.documentElement.classList.remove('ae-route') // e.g. after a stripped ?fbclid
   document.documentElement.classList.add('ae-home')
-  // #contribL is the footer's link to the same dialog; ids must not repeat
-  $('#fundUsL, #joinL').on('click', () => {
-    window.wand.modal.show()
-    return false
-  })
+  involve()
   $('#loading').hide()
 }
 
-e.about2 = () => {
-  utils.stdDiv().html(`
-  <style>
-  .highlighted {
-    color: var(--accent);
-    font-weight: 600;
-  }
-  .about-lead { font-size: 1.1rem; }
-  .about-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; margin: 1.8em 0 1.2em; }
-</style>
+const aboutEn = () => `
 <header class="apage-head">
-  <p class="amark notranslate" aria-hidden="true">Æ</p>
+  ${mark()}
   <h2>About Æterni Anima</h2>
 </header>
 <p class="about-lead"><strong>Æterni Anima</strong> is an initiative established in December 2020 to promote <span class="highlighted">extended longevity</span> through <span class="highlighted">non-invasive</span> improvements to health and performance. We integrate science, art and technology to foster <span class="highlighted">well-being</span> across a range of endeavors.</p>
@@ -197472,17 +197477,89 @@ e.about2 = () => {
 
 <p>Through our <strong>publishing activity</strong>, we curate and disseminate <span class="highlighted">transformative narratives</span>.</p>
 
+<h3>Who we are</h3>
+<div class="apeople">
+  <div class="aperson">
+    <h4>Renato Fabbri</h4>
+    <p class="arole">Physicist · Software architect · Composer</p>
+    <p>Renato leads the research and the architecture of the initiative's projects. His path includes an MSc in Applied Physics on the psychophysical description of music in digital audio, a PhD in Computational Physics, open-source work such as the <a href="https://pypi.org/project/music/">Music</a> library, and more than twenty years of practice with brainwave entrainment and resonance breathing.</p>
+    <p><a href="https://ttm.github.io/">ttm.github.io</a></p>
+  </div>
+  <div class="aperson">
+    <h4>Riccardo Berti</h4>
+    <p class="arole">Lead developer · Product engineering · Musician</p>
+    <p>Riccardo leads much of BioSynCare's app development, its releases and the day-to-day support of its users, turning protocol ideas into a stable product and bringing a musician's ear to how the sessions sound and feel.</p>
+  </div>
+</div>
+
+<h3>Earlier communities</h3>
+<p>The initiative has also gathered people in the Facebook groups <a href="https://www.facebook.com/groups/arcturianart">Arcturian Art</a> and <a href="https://www.facebook.com/groups/mentaliz">Mentaliz</a>, and in a WhatsApp group. These communities are no longer active; they remain part of our history.</p>
+
 <p>We invite you to join us on this journey. Your participation is invaluable, and we look forward to sharing each step with you.</p>
 <div class="about-cta">
-  <a class="abtn abtn--primary" id="aboutJoinL" href="">Get involved</a>
+  <a class="abtn abtn--primary ae-involve" href="mailto:aeterni.anima@gmail.com?subject=Getting%20involved">Get involved</a>
   <a class="abtn" href="./#projects">Explore the projects</a>
+</div>`
+
+const aboutPt = () => `
+<header class="apage-head">
+  ${mark()}
+  <h2>Sobre a Æterni Anima</h2>
+</header>
+<p class="about-lead"><strong>Æterni Anima</strong> é uma iniciativa criada em dezembro de 2020 para promover a <span class="highlighted">longevidade estendida</span> por meio de melhorias <span class="highlighted">não invasivas</span> na saúde e no desempenho. Integramos ciência, arte e tecnologia para cultivar o <span class="highlighted">bem-estar</span> em diversas frentes.</p>
+
+<p>Nosso carro-chefe, o <a href="https://biosyncare.com/">BioSynCare</a> (antes chamado Audiovisual Medicine), desenvolve a <span class="highlighted">estimulação sensorial</span> para a neuromodulação não invasiva da saúde, do bem-estar e do desempenho, por meio da respiração e do som: um aplicativo de sessões cuidadosamente compostas para foco, relaxamento, meditação e preparação para o sono.</p>
+
+<p>Também contribuímos com o <a href="https://w3c-cg.github.io/sstim/">SSTIM</a>, o Vocabulário de Estimulação Sensorial: uma <span class="highlighted">referência aberta e em evolução</span> que conecta pesquisa, tecnologia e IA por meio de identificadores citáveis, descrições precisas e evidências transparentes. Ele é desenvolvido no <a href="https://www.w3.org/groups/cg/sstim/">W3C Sensory Stimulation Vocabulary Community Group</a>, e o BioSynCare o adota. Seu aplicativo de referência aberto, o <a href="https://w3c-cg.github.io/sstim/about/">SSTIM Workbench</a> (antes chamado BSC Lab), permite que qualquer pessoa crie patches de estimulação sensorial no Patch Studio e examine o conhecimento por trás deles.</p>
+
+<p>Em torno desse trabalho, cultivamos ferramentas para a <a href="https://pypi.org/project/music/">síntese musical</a>, para explorar as próprias redes sociais e para registrar ideias e destilar conhecimento. Na comunidade do Santo Daime, o <a href="?daimesm&amp;lang=pt">Manifesto da Ciência Daimista</a> orienta um trabalho que une rigor científico e sabedoria espiritual, das análises textuais dos hinários no <a href="https://da1me.github.io/">Da1me</a> ao <a href="https://saoirineu.github.io/">São Irineu</a>, o portal online da ICEFLU Europa.</p>
+
+<p>Por meio da nossa <strong>atividade editorial</strong>, selecionamos e divulgamos <span class="highlighted">narrativas transformadoras</span>.</p>
+
+<h3>Quem somos</h3>
+<div class="apeople">
+  <div class="aperson">
+    <h4>Renato Fabbri</h4>
+    <p class="arole">Físico · Arquiteto de software · Compositor</p>
+    <p>Renato conduz a pesquisa e a arquitetura dos projetos da iniciativa. Sua trajetória inclui um mestrado em Física Aplicada sobre a descrição psicofísica da música em áudio digital, um doutorado em Física Computacional, trabalho em software livre como a biblioteca <a href="https://pypi.org/project/music/">Music</a> e mais de vinte anos de prática com sincronização de ondas cerebrais (brainwave entrainment) e respiração de ressonância.</p>
+    <p><a href="https://ttm.github.io/">ttm.github.io</a></p>
+  </div>
+  <div class="aperson">
+    <h4>Riccardo Berti</h4>
+    <p class="arole">Desenvolvedor líder · Engenharia de produto · Músico</p>
+    <p>Riccardo conduz grande parte do desenvolvimento do aplicativo BioSynCare, de seus lançamentos e do suporte diário aos usuários, transformando ideias de protocolo em um produto estável e trazendo um ouvido de músico para o som e a sensação das sessões.</p>
+  </div>
 </div>
+
+<h3>Comunidades anteriores</h3>
+<p>A iniciativa também reuniu pessoas nos grupos do Facebook <a href="https://www.facebook.com/groups/arcturianart">Arcturian Art</a> e <a href="https://www.facebook.com/groups/mentaliz">Mentaliz</a>, e em um grupo de WhatsApp. Essas comunidades não estão mais ativas; permanecem como parte da nossa história.</p>
+
+<p>Convidamos você a se juntar a nós nesta jornada. Sua participação é inestimável, e esperamos compartilhar cada passo com você.</p>
+<div class="about-cta">
+  <a class="abtn abtn--primary ae-involve" href="mailto:aeterni.anima@gmail.com?subject=Quero%20participar">Envolva-se</a>
+  <a class="abtn" href="./?lang=pt#projetos">Conheça os projetos</a>
+</div>`
+
+e.about2 = () => {
+  utils.stdDiv().html(`
+  <style>
+  .highlighted {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .about-lead { font-size: 1.1rem; }
+  .about-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; margin: 1.8em 0 1.2em; }
+  .acard .apeople { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0.8em 0 1.6em; }
+  @media (max-width: 620px) { .acard .apeople { grid-template-columns: minmax(0, 1fr); } }
+  .aperson { border: 1px solid var(--card-border); border-radius: 16px; padding: 18px 20px; background: rgba(184, 149, 48, 0.05); }
+  .acard .aperson h4 { margin: 0; font-family: var(--serif); font-size: 1.45rem; font-weight: 600; line-height: 1.15; }
+  .aperson .arole { margin: 0.2em 0 0.7em; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .aperson p { margin: 0 0 0.6em; }
+</style>
+${pt() ? aboutPt() : aboutEn()}
 <p style="text-align:center;color:var(--ink-soft)">:::</p>
   `)
-  $('#aboutJoinL').on('click', () => {
-    window.wand.modal.show()
-    return false
-  })
+  involve()
   $('#loading').hide()
 }
 
@@ -197493,7 +197570,8 @@ e.daimesm = () => {
     ['pt', 'Português', 'https://docs.google.com/document/d/e/2PACX-1vThmHtC_yOpTkvSU6VwNFgCxzYXlHQ8wSmjybWaO6f1IoRUaxqDORew3wuksNiYPAt7S7AKi5vyCkGU/pub?embedded=true', 'https://docs.google.com/document/d/1K3sc0B19SniNYUGnO1kqnoWfuqc1lvKdjCAxzs4OZl0/edit'],
     ['it', 'Italiano', 'https://docs.google.com/document/d/e/2PACX-1vTEYxSd69ObcqKcwcs1RgTzOna7hPZfMLOkob4D-A522TADpWKZd6BK_E6hD7YpHiVx5hJIElI3n3MI/pub?embedded=true', 'https://docs.google.com/document/d/1WrAOawnLW0FZd5-ubCo6HH5u1TiQG5TkR1O2nZPHSnQ/edit']
   ]
-  const buttons = langs.map(l => `<button type="button" class="dsm-lang" data-lang="${l[0]}">${l[1]}</button>`).join('')
+  const buttons = langs.map(l => `<button type="button" class="dsm-lang" data-lang="${l[0]}" lang="${l[0]}">${l[1]}</button>`).join('')
+  const title = tr('Daimist Science Manifesto', 'Manifesto da Ciência Daimista')
   utils.stdDiv().html(`
   <style>
     .dsm-intro { text-align: center; color: var(--ink-soft); max-width: 34em; margin: 0.4em auto 1.4em; }
@@ -197516,16 +197594,16 @@ e.daimesm = () => {
   </style>
 
   <header class="apage-head">
-    <p class="amark notranslate" aria-hidden="true">Æ</p>
-    <h1>Daimist Science Manifesto</h1>
+    ${mark()}
+    <h1>${title}</h1>
   </header>
-  <p class="dsm-intro">Read the manifesto below, or open it in Google&nbsp;Docs to leave comments and contribute.</p>
+  <p class="dsm-intro">${tr('Read the manifesto below, or open it in Google&nbsp;Docs to leave comments and contribute.', 'Leia o manifesto abaixo ou abra-o no Google&nbsp;Docs para deixar comentários e contribuir.')}</p>
 
   <div class="dsm-langs">${buttons}</div>
 
   <div id="dsm-view" class="dsm-frame-wrap"></div>
 
-  <p class="dsm-comment"><a id="dsm-edit" href="#" target="_blank" rel="noopener">Open this version in Google Docs to comment &#8599;</a></p>
+  <p class="dsm-comment"><a id="dsm-edit" href="#" target="_blank" rel="noopener">${tr('Open this version in Google Docs to comment', 'Abra esta versão no Google Docs para comentar')} &#8599;</a></p>
   <p style="text-align:center;color:var(--ink-soft)">:::</p>
   `)
 
@@ -197535,23 +197613,23 @@ e.daimesm = () => {
   // The published embed keeps the document's page margins, which leave a phone a
   // column a few words wide; Google's mobile view of the same document reflows instead.
   const narrow = window.matchMedia('(max-width: 640px)')
-  let current = 'en'
+  let current = pt() ? 'pt' : 'en'
   const show = code => {
     current = code
     const d = byLang[code]
     $('.dsm-lang').removeClass('is-active').filter(`[data-lang="${code}"]`).addClass('is-active')
     if (d.pub) {
       const src = narrow.matches ? d.edit.replace(/\/edit.*$/, '/mobilebasic') : d.pub
-      $('#dsm-view').html(`<iframe src="${src}" title="Daimist Science Manifesto (${d.label})"></iframe>`)
+      $('#dsm-view').html(`<iframe src="${src}" title="${title} (${d.label})"></iframe>`)
     } else {
-      $('#dsm-view').html(`<div class="dsm-pending">The ${d.label} version is open for reading and comments in Google Docs — use the link below.</div>`)
+      $('#dsm-view').html(`<div class="dsm-pending">${tr(`The ${d.label} version is open for reading and comments in Google Docs — use the link below.`, `A versão (${d.label}) está aberta para leitura e comentários no Google Docs — use o link abaixo.`)}</div>`)
     }
     $('#dsm-edit').attr('href', d.edit)
   }
 
   $('.dsm-lang').on('click', function () { show($(this).data('lang')) })
   narrow.addEventListener('change', () => show(current))
-  show('en')
+  show(current)
 
   $('#loading').hide()
 }
@@ -197573,43 +197651,40 @@ e.angel = () => {
     .agive-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; margin: 1.4em 0 1.2em; }
   </style>
   <header class="apage-head">
-    <p class="amark notranslate" aria-hidden="true">Æ</p>
-    <h2>Support Æterni Anima</h2>
-    <p class="apage-lead">Your support keeps these projects alive and growing. Every gift, of any size, makes a difference.</p>
+    ${mark()}
+    <h2>${tr('Support Æterni Anima', 'Apoie a Æterni Anima')}</h2>
+    <p class="apage-lead">${tr('Your support keeps these projects alive and growing. Every gift, of any size, makes a difference.', 'Seu apoio mantém estes projetos vivos e crescendo. Toda doação, de qualquer valor, faz diferença.')}</p>
   </header>
 
   <div class="agive">
     <div class="agive-opt">
       <h3>PayPal</h3>
-      <p>Give any amount by card or through PayPal.</p>
-      <img src="assets/donation/qrPaypal.png" alt="QR code for donating through PayPal">
-      <p>${link('Donate with PayPal', 'paypal')}</p>
+      <p>${tr('Give any amount by card or through PayPal.', 'Doe qualquer valor com cartão ou pelo PayPal.')}</p>
+      <img src="assets/donation/qrPaypal.png" alt="${tr('QR code for donating through PayPal', 'Código QR para doar pelo PayPal')}">
+      <p>${link(tr('Donate with PayPal', 'Doar com PayPal'), 'paypal')}</p>
     </div>
     <div class="agive-opt">
       <h3>Bitcoin</h3>
-      <p>Send any amount to our wallet:</p>
-      <img src="assets/donation/qrBitcoin.png" alt="QR code of the Bitcoin wallet">
+      <p>${tr('Send any amount to our wallet:', 'Envie qualquer valor para a nossa carteira:')}</p>
+      <img src="assets/donation/qrBitcoin.png" alt="${tr('QR code of the Bitcoin wallet', 'Código QR da carteira de Bitcoin')}">
       <p><code>${bitcoinWallet}</code></p>
     </div>
     <div class="agive-opt agive-opt--wide">
-      <h3>Bank transfer and other coins</h3>
-      <p>Write to us for a direct bank transfer, or to give in Ethereum or another currency.</p>
+      <h3>${tr('Bank transfer and other coins', 'Transferência bancária e outras moedas')}</h3>
+      <p>${tr('Write to us for a direct bank transfer, or to give in Ethereum or another currency.', 'Escreva para nós para uma transferência bancária direta, ou para doar em Ethereum ou em outra moeda.')}</p>
       <p><a href="mailto:aeterni.anima@gmail.com">aeterni.anima@gmail.com</a></p>
     </div>
   </div>
 
-  <h3>Give your time and ideas</h3>
-  <p>Send us feedback on your experience with Æterni and ideas for enhancements or derivatives, or join the coordination, creation and tech tasks.</p>
+  <h3>${tr('Give your time and ideas', 'Doe seu tempo e suas ideias')}</h3>
+  <p>${tr('Send us feedback on your experience with Æterni and ideas for enhancements or derivatives, or join the coordination, creation and tech tasks.', 'Envie-nos comentários sobre sua experiência com a Æterni e ideias de melhorias ou de novos desdobramentos, ou junte-se às tarefas de coordenação, criação e tecnologia.')}</p>
   <div class="agive-cta">
-    <a class="abtn abtn--primary" id="angelJoinL" href="">Ways to take part</a>
-    <a class="abtn" href="mailto:aeterni.anima@gmail.com">Write to us</a>
+    <a class="abtn abtn--primary ae-involve" href="mailto:aeterni.anima@gmail.com">${tr('Ways to take part', 'Formas de participar')}</a>
+    <a class="abtn" href="mailto:aeterni.anima@gmail.com">${tr('Write to us', 'Escreva para nós')}</a>
   </div>
-  <p style="text-align:center">Thank you.</p>
+  <p style="text-align:center">${tr('Thank you.', 'Obrigado.')}</p>
   `)
-  $('#angelJoinL').on('click', () => {
-    window.wand.modal.show()
-    return false
-  })
+  involve()
   $('canvas').hide()
   $('#loading').hide()
 }
@@ -197627,21 +197702,21 @@ e.paypal = () => {
   utils.stdDiv().html(`
   ${payStyle}
   <header class="apage-head">
-    <p class="amark notranslate" aria-hidden="true">Æ</p>
-    <h2>Donate with PayPal</h2>
-    <p class="apage-lead">Give any amount, by card or with your PayPal account.</p>
+    ${mark()}
+    <h2>${tr('Donate with PayPal', 'Doe com PayPal')}</h2>
+    <p class="apage-lead">${tr('Give any amount, by card or with your PayPal account.', 'Doe qualquer valor, com cartão ou com sua conta PayPal.')}</p>
   </header>
   <div class="apay">
   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
     <input type="hidden" name="cmd" value="_donations" />
     <input type="hidden" name="business" value="CWRTXTJF9C3N6" />
     <input type="hidden" name="currency_code" value="BRL" />
-    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+    <input type="image" src="https://www.paypalobjects.com/${tr('en_US', 'pt_BR')}/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="${tr('PayPal - The safer, easier way to pay online!', 'PayPal - a maneira fácil e segura de pagar online!')}" alt="${tr('Donate with PayPal button', 'Botão Doar com PayPal')}" />
     <img alt="" border="0" src="https://www.paypal.com/pt_BR/i/scr/pixel.gif" width="1" height="1" />
   </form>
-  <p class="amute">Or scan this code with your phone:</p>
-  <img class="aqr" src="assets/donation/qrPaypal.png" alt="QR code for donating through PayPal">
-  <p class="aback">${link('← All the ways to support Æterni Anima', 'angel')}</p>
+  <p class="amute">${tr('Or scan this code with your phone:', 'Ou escaneie este código com o celular:')}</p>
+  <img class="aqr" src="assets/donation/qrPaypal.png" alt="${tr('QR code for donating through PayPal', 'Código QR para doar pelo PayPal')}">
+  <p class="aback">${link(tr('← All the ways to support Æterni Anima', '← Todas as formas de apoiar a Æterni Anima'), 'angel')}</p>
   </div>
   `)
   $('#loading').hide()
@@ -197651,14 +197726,14 @@ e.bitcoin = () => {
   utils.stdDiv().html(`
   ${payStyle}
   <header class="apage-head">
-    <p class="amark notranslate" aria-hidden="true">Æ</p>
-    <h2>Donate with Bitcoin</h2>
-    <p class="apage-lead">Send any amount to our wallet.</p>
+    ${mark()}
+    <h2>${tr('Donate with Bitcoin', 'Doe com Bitcoin')}</h2>
+    <p class="apage-lead">${tr('Send any amount to our wallet.', 'Envie qualquer valor para a nossa carteira.')}</p>
   </header>
   <div class="apay">
   <p><code>${bitcoinWallet}</code></p>
-  <img class="aqr" src="assets/donation/qrBitcoin.png" alt="QR code of the Bitcoin wallet">
-  <p class="aback">${link('← All the ways to support Æterni Anima', 'angel')}</p>
+  <img class="aqr" src="assets/donation/qrBitcoin.png" alt="${tr('QR code of the Bitcoin wallet', 'Código QR da carteira de Bitcoin')}">
+  <p class="aback">${link(tr('← All the ways to support Æterni Anima', '← Todas as formas de apoiar a Æterni Anima'), 'angel')}</p>
   </div>
   `)
   $('#loading').hide()
@@ -197673,7 +197748,7 @@ const e = module.exports
 const pn = decodeURIComponent(window.location.href)
 const u = new URL(pn)
 
-const urlArgument = e.urlArgument = (arg, rotOrFun) => {
+e.urlArgument = (arg, rotOrFun) => {
   const a = u.searchParams.get(arg)
   if (typeof rotOrFun === 'function' && a) {
     rotOrFun()
@@ -197698,33 +197773,29 @@ e.urlAllArguments = () => {
 }
 
 e.mkFooter = () => {
-  wand.$.get('https://ipinfo.io/?token=a1cf42d7d11976', function (response) {
-    wand.country = response.country
-    wand.speaksPortuguese = ['BR', 'PT', 'AO', 'ST'].includes(wand.country)
-    // visit logging needs the full bundle's transfer module; the small bundle has none
-    if (window.location.href.includes('localhost') || !wand.transfer) return
-    response.date = new Date()
-    response.uargs = e.urlAllArguments()
-    wand.transfer.fAll.wcosta(response).then(r => {
-      if (!r || !r.insertedId) return // visit logging is dormant
-      window.sessionL = r
-      wand.unloadFuncs.unshift(e => {
-        wand.transfer.fAll.ucosta({ _id: r.insertedId }, { dateLeft: new Date() })
+  // The visitor's country only serves the older routes (sync sessions word their messages
+  // by it, and the dormant visit logging), all in the full bundle: the small bundle that
+  // serves the curated pages sends nobody's address to a third party.
+  if (wand.transfer) {
+    wand.$.get('https://ipinfo.io/?token=a1cf42d7d11976', function (response) {
+      wand.country = response.country
+      wand.speaksPortuguese = ['BR', 'PT', 'AO', 'ST'].includes(wand.country)
+      if (window.location.href.includes('localhost')) return
+      response.date = new Date()
+      response.uargs = e.urlAllArguments()
+      wand.transfer.fAll.wcosta(response).then(r => {
+        if (!r || !r.insertedId) return // visit logging is dormant
+        window.sessionL = r
+        wand.unloadFuncs.unshift(e => {
+          wand.transfer.fAll.ucosta({ _id: r.insertedId }, { dateLeft: new Date() })
+        })
+        setInterval(() => {
+          wand.transfer.fAll.ucosta({ _id: r.insertedId }, { lastSeen: new Date() })
+        }, 3 * 60 * 1000)
       })
-      setInterval(() => {
-        wand.transfer.fAll.ucosta({ _id: r.insertedId }, { lastSeen: new Date() })
-      }, 3 * 60 * 1000)
-    })
-  }, 'jsonp')
-  wand.$('body').on('DOMNodeInserted', 'div', function () {
-    if (wand.$(this).hasClass('skiptranslate')) wand.$(this).hide()
-  })
-  wand.modal = utils.mkModal()
-  const isMobile = utils.mobileAndTabletCheck()
-  function sWord () {
-    const wlist = ['support', 'back', 'encourage', 'strengthen', 'assist', 'boost']
-    return utils.chooseUnique(wlist, 1)
+    }, 'jsonp')
   }
+  wand.modal = utils.mkModal()
   const ft = wand.$('<div/>', {
     id: 'afooter',
     css: {
@@ -197737,44 +197808,30 @@ e.mkFooter = () => {
       width: 'auto'
     }
   }).appendTo('body')
-  const lflag = urlArgument('lang') ? `&lang=${urlArgument('lang')}` : ''
-  wand.$('<a/>', {
-    href: `?about${lflag}`,
-    id: 'abouta',
-    css: {
-      display: 'inline-block'
-    }
-  // The space sits inside the notranslate span on purpose: Google Translate trims the
-  // whitespace at the edges of the text it translates, which glued "deÆterni" together.
-  }).html(`<b>Regarding<span class="notranslate"> ${['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname) ? 'Æterni' : 'AV Medicine'}</span></b>`).appendTo(ft)
-  // wand.$('<div/>', { css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo(ft).html(' | ')
-  wand.$('<a/>', {
-    // href: `?angel${lflag}`,
-    // target: '_blank',
-    href: '',
-    id: 'contribL',
-    css: {
-      display: 'inline-block'
-    }
-  }).html(`<b>${sWord()} this initiative</b>`).appendTo(ft).click(() => {
+  const involve = label => wand.$('<a/>', { href: '', id: 'contribL' }).text(label).appendTo(ft).click(() => {
     wand.modal.show()
     return false
   })
-  wand.$('body', {
-    css: {
-      'background-color': '#dddddd'
+  if (!['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    wand.$('<a/>', { href: '?about', id: 'abouta' }).text('Regarding AV Medicine').appendTo(ft)
+    involve('support this initiative')
+    return
+  }
+  // The language is set in index.html's head (html.lang-pt); Portuguese links carry it.
+  const pt = document.documentElement.classList.contains('lang-pt')
+  wand.$('<a/>', { href: pt ? './?lang=pt' : './', id: 'homea' }).text(pt ? 'Início' : 'Home').appendTo(ft)
+  wand.$('<a/>', { href: `?about${pt ? '&lang=pt' : ''}`, id: 'abouta' }).text(pt ? 'Sobre a Æterni' : 'Regarding Æterni').appendTo(ft)
+  involve(pt ? 'Envolva-se' : 'Get involved')
+  // this same page in each language; the current one is plain text
+  const here = window.location.search.slice(1).split('&').filter(p => p && !p.startsWith('lang='))
+  const langs = wand.$('<span/>', { class: 'alangs' }).appendTo(ft)
+  for (const [code, tag, name] of [['en', 'en', 'English'], ['pt', 'pt-BR', 'Português']]) {
+    if (code === 'pt') wand.$('<span/>', { 'aria-hidden': 'true' }).text('·').appendTo(langs)
+    if ((code === 'pt') === pt) {
+      wand.$('<span/>', { lang: tag, 'aria-current': 'true' }).text(name).appendTo(langs)
+    } else {
+      wand.$('<a/>', { href: '?' + here.concat(`lang=${code}`).join('&'), lang: tag, hreflang: tag }).text(name).appendTo(langs)
     }
-  })
-  // wand.$('<div/>', {
-  //   id: 'disqus_thread',
-  //   css: {
-  //     margin: '0 auto',
-  //     padding: '1%',
-  //     width: '50%'
-  //   }
-  // }).appendTo('body')
-  if (['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname)) {
-    if (!urlArgument('nolang')) lang(ft)
   }
   // uncomment to enable disqus
   // todo: debug to load correct discussions in each page
@@ -197800,105 +197857,6 @@ function disqus (id) {
   asec.appendChild(s)
 }
 window.disqus = disqus
-
-function lang (ft2) {
-  // const ft = wand.$('<div/>', { id: 'afooter', css: { width: '100%', display: 'flex', 'white-space': 'nowrap', 'overflow-x': 'auto' } }).appendTo('body')
-  // wand.$('<div/>', { class: 'notranslate', css: { display: 'inline-block', 'margin-left': '30%', float: 'left' } }).appendTo(ft).html('language:')
-  // wand.$('<div/>', { id: 'google_translate_element', class: 'notranslate', css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo('body').hide()
-
-  // wand.$('<div/>', { css: { display: 'inline-block', 'margin-left': '1%', float: 'left' } }).appendTo('#abouta').html(' / lang: ')
-  // const ft = wand.$('<div/>', {
-  //   id: 'afooter2',
-  //   css: {
-  //     display: 'flex',
-  //     // 'white-space': 'nowrap',
-  //     // 'overflow-x': 'auto',
-  //     // margin: '0 auto',
-  //     // padding: '8px',
-  //     // height: '100%',
-  //     width: '100%'
-  //   }
-  // }).appendTo(ft2).hide()
-  // const ft = ft2
-  wand.$('<div/>', { id: 'google_translate_element' }).appendTo('body') // .hide()
-  wand.$('<script/>', {
-    type: 'text/javascript',
-    src: '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
-  }).appendTo('body')
-  // const adiv = wand.$('<div/>', { class: 'flag' }).appendTo(ft)
-  wand.$('<div/>', {
-    class: 'flag_link eng',
-    'data-lang': 'en',
-    title: 'English',
-    id: 'menusa',
-    css: {
-    //   flex: '33.3%'
-      cursor: 'pointer'
-    }
-  }).insertAfter('#abouta') // appendTo(ft)
-    .append(wand.$('<img/>', {
-      // src: 'assets/flags/uk.png',
-      class: 'fimg',
-      src: 'assets/flags/uk2.svg',
-      css: {
-        // display: 'inline',
-        // width: '50%',
-        // flex: '33.3%',
-        // margin: '0 100%',
-        // height: '100%'
-        height: ft2.height()
-      }
-    }))
-  wand.$('<div/>', {
-    class: 'flag_link por',
-    'data-lang': 'pt',
-    title: 'Português',
-    id: 'mptbr',
-    css: {
-      // flex: '33.3%'
-      cursor: 'pointer'
-    }
-  }).insertAfter('#abouta') // appendTo(ft)
-    .append(wand.$('<img/>', {
-      // src: 'assets/flags/br.png',
-      class: 'fimg',
-      src: 'assets/flags/br2.svg',
-      css: {
-        // display: 'inline',
-        // width: '50%',
-        // margin: '0 100%',
-        // height: '100%'
-        height: ft2.height()
-      }
-    }))
-  const afun = e => {
-    Array.prototype.forEach.call(iels, e => { e.style.border = '' })
-    window.eee = e
-    e.firstChild.style.border = '2px solid #ff0000'
-    const lang = e.getAttribute('data-lang')
-    const languageSelect = document.querySelector('select.goog-te-combo')
-    languageSelect.value = lang
-    languageSelect.dispatchEvent(new window.Event('change'))
-  }
-  const iels = document.getElementsByClassName('fimg')
-  const els = document.getElementsByClassName('flag_link')
-  window.elss = els
-  Array.prototype.forEach.call(els, function (e) {
-    e.addEventListener('click', function () {
-      afun(e)
-      const content = wand.$('#contribL').text()
-      let count = 0
-      const iid = setInterval(() => {
-        if (count > 2 || wand.$('#contribL').text() !== content) return clearInterval(iid)
-        afun(e)
-        count++
-      }, 500)
-      // afun(e)
-    })
-  })
-}
-
-e.lang = lang
 
 e.timeArgument = () => {
   const dd = new Date()
@@ -203877,14 +203835,12 @@ const groups = `<a href="https://www.facebook.com/groups/arcturianart" target="_
 <a href="https://www.facebook.com/groups/mentaliz" target="_blank">MMM</a>,
 <a href="https://chat.whatsapp.com/BztLyvWDEgW3C1mjXZTTrP" target="_blank">WM</a>`
 
-const groupArcturian = '<a href="https://www.facebook.com/groups/arcturianart" target="_blank">Arcturian Art</a>'
-const groupMentaliz = '<a href="https://www.facebook.com/groups/mentaliz" target="_blank">Mentaliz</a>'
-const groupWhatsapp = '<a href="https://chat.whatsapp.com/BztLyvWDEgW3C1mjXZTTrP" target="_blank">WhatsApp group</a>'
 const sstimGroup = '<a href="https://www.w3.org/groups/cg/sstim/" target="_blank">W3C Sensory Stimulation Vocabulary Community Group</a>'
 const sstimFix = label => `<a href="https://w3c-cg.github.io/sstim/contribute/" target="_blank">${label}</a>`
 
+// Æterni's dialog, in the page's language (set in index.html's head as html.lang-pt).
 e.stdMsg2 = () => {
-  if (window.wand.country === 'BR') {
+  if (document.documentElement.classList.contains('lang-pt')) {
     return `
     <h2>Envolva-se com a Æterni Anima</h2>
     <p>Toda contribuição conta, e há muitas formas de participar:</p>
@@ -203892,9 +203848,9 @@ e.stdMsg2 = () => {
         <li><strong>Conte sua experiência:</strong> diga-nos como as sessões e as ferramentas têm afetado você, e convide outros a fazerem o mesmo.</li>
         <li><strong>Crie e compartilhe:</strong> produza artefatos audiovisuais e distribua-os, enriquecendo o que temos a oferecer.</li>
         <li><strong>Amplie o círculo:</strong> aproxime parceiros, colaboradores e pessoas afins que possam se interessar por este trabalho.</li>
-        <li><strong>Participe de uma comunidade:</strong> junte-se ao ${groupArcturian}, ao ${groupMentaliz} ou ao nosso ${groupWhatsapp} — ou crie o seu.</li>
+        <li><strong>Reúna pessoas:</strong> leve estas práticas ao seu grupo ou à sua comunidade, e conte para nós como foi.</li>
         <li><strong>Contribua com o conhecimento aberto:</strong> participe do ${sstimGroup} ou ${sstimFix('sugira uma correção ao SSTIM')}.</li>
-        <li><strong>Apoie a iniciativa:</strong> <a href="?angel">contribua financeiramente</a> ou ofereça seu tempo e suas habilidades.</li>
+        <li><strong>Apoie a iniciativa:</strong> <a href="?angel&amp;lang=pt">contribua financeiramente</a> ou ofereça seu tempo e suas habilidades.</li>
         <li><strong>Mantenha contato:</strong> envie suas ideias e sugestões — elas orientam os próximos passos.</li>
     </ul>
     <p>Até o menor gesto faz diferença. Obrigado.</p>
@@ -203907,7 +203863,7 @@ e.stdMsg2 = () => {
       <li><strong>Share your experience:</strong> tell us how the sessions and tools have affected you, and invite others to do the same.</li>
       <li><strong>Create and share:</strong> make audiovisual artifacts and pass them on, enriching what we can offer.</li>
       <li><strong>Widen the circle:</strong> introduce partners, collaborators and kindred spirits who might care about this work.</li>
-      <li><strong>Join a community:</strong> take part in ${groupArcturian}, ${groupMentaliz} or our ${groupWhatsapp} — or start one of your own.</li>
+      <li><strong>Gather people:</strong> bring these practices to your own group or community, and tell us how it goes.</li>
       <li><strong>Shape open knowledge:</strong> join the ${sstimGroup}, or ${sstimFix('suggest a correction to SSTIM')}.</li>
       <li><strong>Support the initiative:</strong> <a href="?angel">contribute financially</a> or lend your time and skills.</li>
       <li><strong>Stay in touch:</strong> send us your thoughts and suggestions — they shape where this goes next.</li>
@@ -203956,6 +203912,7 @@ Luz e Paz ~
 }
 
 e.mkModal = content => {
+  const pt = document.documentElement.classList.contains('lang-pt')
   // Escape, the close button and a click outside all close it, and focus goes back to
   // whatever opened it, so the dialog works from a keyboard as well as a mouse.
   let opener = null
@@ -203985,7 +203942,7 @@ e.mkModal = content => {
     .append($('<div/>', {
       class: 'modal-content'
     })
-      .append($('<button/>', { type: 'button', class: 'close', 'aria-label': 'Close' }).html('&times;').on('click', hide))
+      .append($('<button/>', { type: 'button', class: 'close', 'aria-label': pt ? 'Fechar' : 'Close' }).html('&times;').on('click', hide))
       .append($('<p/>', { id: 'mcontent' }))
       .append($('<p/>', { id: 'mfeedback' }))
     )
@@ -204003,17 +203960,20 @@ e.mkModal = content => {
   const contactMail = 'aeterni.anima@gmail.com'
   const descArea = $('<textarea/>', {
     maxlength: 3200,
-    placeholder: 'Share your feedback or ideas… / Compartilhe seu feedback ou ideias…'
+    placeholder: pt ? 'Compartilhe seus comentários ou suas ideias…' : 'Share your feedback or ideas…',
+    'aria-label': pt ? 'Seus comentários' : 'Your feedback'
   }).appendTo('#mfeedback')
-  $('<button/>', { css: { margin: '1%' } }).html('Send / Enviar Feedback').on('click', () => {
+  $('<button/>', { css: { margin: '1%' } }).html(pt ? 'Enviar comentários' : 'Send feedback').on('click', () => {
     const text = descArea.val().trim()
     if (!text) return descArea.trigger('focus')
-    const subject = encodeURIComponent('Feedback — Æterni Anima')
+    const subject = encodeURIComponent(pt ? 'Comentários — Æterni Anima' : 'Feedback — Æterni Anima')
     window.location.href = `mailto:${contactMail}?subject=${subject}&body=${encodeURIComponent(text)}`
   }).appendTo('#mfeedback')
   $('<p/>', {
     css: { 'font-size': '0.92rem', 'margin-top': '0.6em' }
-  }).html(`This opens your email app. You can also write to <a href="mailto:${contactMail}">${contactMail}</a>.`)
+  }).html(pt
+    ? `Isto abre o seu aplicativo de e-mail. Você também pode escrever para <a href="mailto:${contactMail}">${contactMail}</a>.`
+    : `This opens your email app. You can also write to <a href="mailto:${contactMail}">${contactMail}</a>.`)
     .appendTo('#mfeedback')
   return {
     show: (ms, msg) => {
@@ -204023,7 +203983,6 @@ e.mkModal = content => {
       opener = document.activeElement
       $('#myModal').fadeIn(ms || 'slow') // show() // .css('display', 'block')
       $('#myModal .close').trigger('focus')
-      $('#contribL').fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200)
     },
     hide
   }
