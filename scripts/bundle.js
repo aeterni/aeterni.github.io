@@ -191238,7 +191238,7 @@ window.onbeforeunload = e => wand.unloadFuncs.forEach(f => f(e))
 
 wand.router.mkFooter()
 
-},{"./modules/conductor":693,"./modules/maestro.js":700,"./modules/med":704,"./modules/monk":709,"./modules/net.js":711,"./modules/router.js":713,"./modules/test.js":714,"./modules/transfer.js":715,"./modules/utils.js":716,"jquery":354}],693:[function(require,module,exports){
+},{"./modules/conductor":693,"./modules/maestro.js":700,"./modules/med":704,"./modules/monk":709,"./modules/net.js":711,"./modules/router.js":713,"./modules/test.js":714,"./modules/transfer.js":715,"./modules/utils.js":717,"jquery":354}],693:[function(require,module,exports){
 module.exports = {
   Tithorea: require('./tithorea.js').Tithorea,
   Sync: require('./sync.js').Sync,
@@ -191740,7 +191740,7 @@ module.exports.Sync = class {
   }
 }
 
-},{"../net.js":711,"../utils.js":716,"./nameGen.js":694,"./utils.js":697,"chroma-js":181,"dat.gui":194,"graphology-utils/subgraph":283,"jquery":354,"showdown":597,"tone":669}],696:[function(require,module,exports){
+},{"../net.js":711,"../utils.js":717,"./nameGen.js":694,"./utils.js":697,"chroma-js":181,"dat.gui":194,"graphology-utils/subgraph":283,"jquery":354,"showdown":597,"tone":669}],696:[function(require,module,exports){
 const $ = require('jquery')
 const chroma = require('chroma-js')
 
@@ -191929,7 +191929,7 @@ module.exports.Tithorea = class {
   }
 }
 
-},{"../net.js":711,"../router.js":713,"../transfer.js":715,"../utils.js":716,"./utils.js":697,"chroma-js":181,"jquery":354}],697:[function(require,module,exports){
+},{"../net.js":711,"../router.js":713,"../transfer.js":715,"../utils.js":717,"./utils.js":697,"chroma-js":181,"jquery":354}],697:[function(require,module,exports){
 /* global wand */
 const e = module.exports
 const PIXI = e.PIXI = require('pixi.js')
@@ -192802,7 +192802,7 @@ module.exports.You = class {
   }
 }
 
-},{"../net.js":711,"../router.js":713,"../transfer.js":715,"../utils.js":716,"./utils.js":697,"jquery":354}],699:[function(require,module,exports){
+},{"../net.js":711,"../router.js":713,"../transfer.js":715,"../utils.js":717,"./utils.js":697,"jquery":354}],699:[function(require,module,exports){
 const losdheaders = { authorization: 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwcm9kLXVzZXItY2xpZW50OnJmYWJicmkiLCJpc3MiOiJhZ2VudDpyZmFiYnJpOjo5YTc5MjA0OC00MDU0LTQ1NzQtODI5OS04MzU2NTVmZjk1NTYiLCJpYXQiOjE1NjA5Mzc2NDcsInJvbGUiOlsidXNlcl9hcGlfcmVhZCIsInVzZXJfYXBpX3dyaXRlIl0sImdlbmVyYWwtcHVycG9zZSI6dHJ1ZSwic2FtbCI6e319.MWcLAY_4bA20A6S8J2f8W2aHEQOrSw-yPCx1dBQHz97krLaRtiS7Yb9IUU1_gNYUO6x7y5fjvO1hB4hteCB1iQ' }
 
 module.exports = { losdheaders }
@@ -192949,7 +192949,7 @@ e.recOffline = (fun, dur, bitdepth, filename) => {
   }
 }
 
-},{"./utils.js":716,"tone":669,"wavefile":689}],701:[function(require,module,exports){
+},{"./utils.js":717,"tone":669,"wavefile":689}],701:[function(require,module,exports){
 const PIXI = require('pixi.js')
 const t = require('tone')
 const $ = require('jquery')
@@ -193787,7 +193787,7 @@ e.Med = class {
   // }
 }
 
-},{"../maestro.js":700,"../net.js":711,"../router.js":713,"../transfer.js":715,"../utils.js":716,"./common.js":702,"dat.gui":194,"jquery":354,"nosleep.js":505,"pixi.js":542,"tone":669}],702:[function(require,module,exports){
+},{"../maestro.js":700,"../net.js":711,"../router.js":713,"../transfer.js":715,"../utils.js":717,"./common.js":702,"dat.gui":194,"jquery":354,"nosleep.js":505,"pixi.js":542,"tone":669}],702:[function(require,module,exports){
 const e = module.exports
 
 e.waveforms = {
@@ -194822,7 +194822,7 @@ ${lw()}.
   }
 }
 
-},{"../maestro.js":700,"../router.js":713,"../transfer.js":715,"../utils.js":716,"./common.js":702,"@eastdesire/jscolor":2,"flatpickr":241,"jquery":354}],704:[function(require,module,exports){
+},{"../maestro.js":700,"../router.js":713,"../transfer.js":715,"../utils.js":717,"./common.js":702,"@eastdesire/jscolor":2,"flatpickr":241,"jquery":354}],704:[function(require,module,exports){
 module.exports = {
   model: require('./model1').meditation,
   Model2: require('./model2').Med,
@@ -195950,7 +195950,7 @@ ${lw()}.
   }
 }
 
-},{"../maestro.js":700,"../router.js":713,"../transfer.js":715,"../utils.js":716,"./common.js":702,"@eastdesire/jscolor":2,"flatpickr":241,"jquery":354}],706:[function(require,module,exports){
+},{"../maestro.js":700,"../router.js":713,"../transfer.js":715,"../utils.js":717,"./common.js":702,"@eastdesire/jscolor":2,"flatpickr":241,"jquery":354}],706:[function(require,module,exports){
 const t = require('tone')
 const $ = require('jquery')
 const PIXI = require('pixi.js')
@@ -196447,7 +196447,7 @@ function tgui (synth, synthR, synthM, sampler) {
   })
 }
 
-},{"../maestro.js":700,"../router.js":713,"../transfer.js":715,"../utils.js":716,"dat.gui":194,"jquery":354,"pixi.js":542,"tone":669}],707:[function(require,module,exports){
+},{"../maestro.js":700,"../router.js":713,"../transfer.js":715,"../utils.js":717,"dat.gui":194,"jquery":354,"pixi.js":542,"tone":669}],707:[function(require,module,exports){
 const PIXI = require('pixi.js')
 const c = require('chroma-js')
 
@@ -196857,7 +196857,7 @@ module.exports.verses = () => {
   })
 }
 
-},{"../utils.js":716,"./prayers.js":710,"jquery":354}],710:[function(require,module,exports){
+},{"../utils.js":717,"./prayers.js":710,"jquery":354}],710:[function(require,module,exports){
 module.exports = {
   abertura: `
         Pedimos a você Deus Pai, Jesus Cristo, e Espírito Santo,
@@ -197423,14 +197423,13 @@ e.assignCC = net => net.forEachNode((n, a) => {
   }
 })
 
-},{"./router.js":713,"./utils":716,"graphology":284,"graphology-communities-louvain":246,"graphology-components":247,"graphology-generators/random":251,"graphology-layout":258,"graphology-layout-forceatlas2":255,"graphology-metrics":268,"graphology-metrics/degree":263,"graphology-utils/subgraph":283,"pixi.js":542}],712:[function(require,module,exports){
+},{"./router.js":713,"./utils":717,"graphology":284,"graphology-communities-louvain":246,"graphology-components":247,"graphology-generators/random":251,"graphology-layout":258,"graphology-layout-forceatlas2":255,"graphology-metrics":268,"graphology-metrics/degree":263,"graphology-utils/subgraph":283,"pixi.js":542}],712:[function(require,module,exports){
 /* global wand */
 // The site's curated pages: the landing's wiring, About, the Daimist Science
-// Manifesto, and the support, PayPal and Bitcoin pages. They need jQuery and a few
-// helpers only, so the small bundle (scripts/light.js) serves them on its own; test.js
+// Manifesto, and the support, PayPal and Bitcoin pages. They are plain DOM, so the
+// small bundle (scripts/light.js) serves them without jQuery or any library; test.js
 // re-exports them, and the full bundle routes them as before.
-const $ = require('jquery')
-const utils = require('./utils.js')
+const { langHref } = require('./ui.js')
 
 const e = module.exports
 
@@ -197445,11 +197444,35 @@ const link = (text, path) => `<a href="?${path}${pt() ? '&amp;lang=pt' : ''}">${
 // the Æ that heads each page, leading home
 const mark = () => `<p class="amark notranslate"><a href="${pt() ? './?lang=pt' : './'}" aria-label="${tr('Æterni Anima home page', 'Página inicial da Æterni Anima')}">Æ</a></p>`
 
+// the other language, at the top of every page (the footer offers both, further down);
+// the address carries the visitor's own parameters, so it is escaped for the attribute
+const attr = text => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+const otherLang = () => pt()
+  ? `<a class="alang-top" href="${attr(langHref('en'))}" lang="en" hreflang="en">English</a>`
+  : `<a class="alang-top" href="${attr(langHref('pt'))}" lang="pt-BR" hreflang="pt-BR">Português</a>`
+
+// each page is one card: the page's main content
+const page = html => {
+  const main = document.createElement('main')
+  main.className = 'acard apage'
+  main.innerHTML = otherLang() + html
+  document.body.appendChild(main)
+  return main
+}
+
+// the loading veil, lifted once the page is in place
+const ready = () => {
+  const veil = document.getElementById('loading')
+  if (veil) veil.style.display = 'none'
+}
+
 // every "Get involved" button opens the dialog; its href is what a reader without
 // JavaScript follows instead
-const involve = () => $('.ae-involve').on('click', () => {
-  wand.modal.show()
-  return false
+const involve = () => document.querySelectorAll('.ae-involve').forEach(button => {
+  button.addEventListener('click', event => {
+    event.preventDefault()
+    wand.modal.show()
+  })
 })
 
 // The landing is static HTML in index.html (main.ae-landing, one per language), so it
@@ -197459,13 +197482,13 @@ e.welcome2 = () => {
   document.documentElement.classList.remove('ae-route') // e.g. after a stripped ?fbclid
   document.documentElement.classList.add('ae-home')
   involve()
-  $('#loading').hide()
+  ready()
 }
 
 const aboutEn = () => `
 <header class="apage-head">
   ${mark()}
-  <h2>About Æterni Anima</h2>
+  <h1>About Æterni Anima</h1>
 </header>
 <p class="about-lead"><strong>Æterni Anima</strong> is an initiative established in December 2020 to promote <span class="highlighted">extended longevity</span> through <span class="highlighted">non-invasive</span> improvements to health and performance. We integrate science, art and technology to foster <span class="highlighted">well-being</span> across a range of endeavors.</p>
 
@@ -197477,22 +197500,22 @@ const aboutEn = () => `
 
 <p>Through our <strong>publishing activity</strong>, we curate and disseminate <span class="highlighted">transformative narratives</span>.</p>
 
-<h3>Who we are</h3>
+<h2 class="asub">Who we are</h2>
 <div class="apeople">
   <div class="aperson">
-    <h4>Renato Fabbri</h4>
+    <h3>Renato Fabbri</h3>
     <p class="arole">Physicist · Software architect · Composer</p>
     <p>Renato leads the research and the architecture of the initiative's projects. His path includes an MSc in Applied Physics on the psychophysical description of music in digital audio, a PhD in Computational Physics, open-source work such as the <a href="https://pypi.org/project/music/">Music</a> library, and more than twenty years of practice with brainwave entrainment and resonance breathing.</p>
     <p><a href="https://ttm.github.io/">ttm.github.io</a></p>
   </div>
   <div class="aperson">
-    <h4>Riccardo Berti</h4>
+    <h3>Riccardo Berti</h3>
     <p class="arole">Lead developer · Product engineering · Musician</p>
     <p>Riccardo leads much of BioSynCare's app development, its releases and the day-to-day support of its users, turning protocol ideas into a stable product and bringing a musician's ear to how the sessions sound and feel.</p>
   </div>
 </div>
 
-<h3>Earlier communities</h3>
+<h2 class="asub">Earlier communities</h2>
 <p>The initiative has also gathered people in the Facebook groups <a href="https://www.facebook.com/groups/arcturianart">Arcturian Art</a> and <a href="https://www.facebook.com/groups/mentaliz">Mentaliz</a>, and in a WhatsApp group. These communities are no longer active; they remain part of our history.</p>
 
 <p>We invite you to join us on this journey. Your participation is invaluable, and we look forward to sharing each step with you.</p>
@@ -197504,7 +197527,7 @@ const aboutEn = () => `
 const aboutPt = () => `
 <header class="apage-head">
   ${mark()}
-  <h2>Sobre a Æterni Anima</h2>
+  <h1>Sobre a Æterni Anima</h1>
 </header>
 <p class="about-lead"><strong>Æterni Anima</strong> é uma iniciativa criada em dezembro de 2020 para promover a <span class="highlighted">longevidade estendida</span> por meio de melhorias <span class="highlighted">não invasivas</span> na saúde e no desempenho. Integramos ciência, arte e tecnologia para cultivar o <span class="highlighted">bem-estar</span> em diversas frentes.</p>
 
@@ -197516,22 +197539,22 @@ const aboutPt = () => `
 
 <p>Por meio da nossa <strong>atividade editorial</strong>, selecionamos e divulgamos <span class="highlighted">narrativas transformadoras</span>.</p>
 
-<h3>Quem somos</h3>
+<h2 class="asub">Quem somos</h2>
 <div class="apeople">
   <div class="aperson">
-    <h4>Renato Fabbri</h4>
+    <h3>Renato Fabbri</h3>
     <p class="arole">Físico · Arquiteto de software · Compositor</p>
     <p>Renato conduz a pesquisa e a arquitetura dos projetos da iniciativa. Sua trajetória inclui um mestrado em Física Aplicada sobre a descrição psicofísica da música em áudio digital, um doutorado em Física Computacional, trabalho em software livre como a biblioteca <a href="https://pypi.org/project/music/">Music</a> e mais de vinte anos de prática com sincronização de ondas cerebrais (brainwave entrainment) e respiração de ressonância.</p>
     <p><a href="https://ttm.github.io/">ttm.github.io</a></p>
   </div>
   <div class="aperson">
-    <h4>Riccardo Berti</h4>
+    <h3>Riccardo Berti</h3>
     <p class="arole">Desenvolvedor líder · Engenharia de produto · Músico</p>
     <p>Riccardo conduz grande parte do desenvolvimento do aplicativo BioSynCare, de seus lançamentos e do suporte diário aos usuários, transformando ideias de protocolo em um produto estável e trazendo um ouvido de músico para o som e a sensação das sessões.</p>
   </div>
 </div>
 
-<h3>Comunidades anteriores</h3>
+<h2 class="asub">Comunidades anteriores</h2>
 <p>A iniciativa também reuniu pessoas nos grupos do Facebook <a href="https://www.facebook.com/groups/arcturianart">Arcturian Art</a> e <a href="https://www.facebook.com/groups/mentaliz">Mentaliz</a>, e em um grupo de WhatsApp. Essas comunidades não estão mais ativas; permanecem como parte da nossa história.</p>
 
 <p>Convidamos você a se juntar a nós nesta jornada. Sua participação é inestimável, e esperamos compartilhar cada passo com você.</p>
@@ -197541,7 +197564,7 @@ const aboutPt = () => `
 </div>`
 
 e.about2 = () => {
-  utils.stdDiv().html(`
+  page(`
   <style>
   .highlighted {
     color: var(--accent);
@@ -197552,7 +197575,7 @@ e.about2 = () => {
   .acard .apeople { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0.8em 0 1.6em; }
   @media (max-width: 620px) { .acard .apeople { grid-template-columns: minmax(0, 1fr); } }
   .aperson { border: 1px solid var(--card-border); border-radius: 16px; padding: 18px 20px; background: rgba(184, 149, 48, 0.05); }
-  .acard .aperson h4 { margin: 0; font-family: var(--serif); font-size: 1.45rem; font-weight: 600; line-height: 1.15; }
+  .acard .aperson h3 { margin: 0; font-family: var(--serif); font-size: 1.45rem; font-weight: 600; line-height: 1.15; }
   .aperson .arole { margin: 0.2em 0 0.7em; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
   .aperson p { margin: 0 0 0.6em; }
 </style>
@@ -197560,7 +197583,7 @@ ${pt() ? aboutPt() : aboutEn()}
 <p style="text-align:center;color:var(--ink-soft)">:::</p>
   `)
   involve()
-  $('#loading').hide()
+  ready()
 }
 
 e.daimesm = () => {
@@ -197570,9 +197593,9 @@ e.daimesm = () => {
     ['pt', 'Português', 'https://docs.google.com/document/d/e/2PACX-1vThmHtC_yOpTkvSU6VwNFgCxzYXlHQ8wSmjybWaO6f1IoRUaxqDORew3wuksNiYPAt7S7AKi5vyCkGU/pub?embedded=true', 'https://docs.google.com/document/d/1K3sc0B19SniNYUGnO1kqnoWfuqc1lvKdjCAxzs4OZl0/edit'],
     ['it', 'Italiano', 'https://docs.google.com/document/d/e/2PACX-1vTEYxSd69ObcqKcwcs1RgTzOna7hPZfMLOkob4D-A522TADpWKZd6BK_E6hD7YpHiVx5hJIElI3n3MI/pub?embedded=true', 'https://docs.google.com/document/d/1WrAOawnLW0FZd5-ubCo6HH5u1TiQG5TkR1O2nZPHSnQ/edit']
   ]
-  const buttons = langs.map(l => `<button type="button" class="dsm-lang" data-lang="${l[0]}" lang="${l[0]}">${l[1]}</button>`).join('')
+  const buttons = langs.map(l => `<button type="button" class="dsm-lang" data-lang="${l[0]}" lang="${l[0]}" aria-pressed="false">${l[1]}</button>`).join('')
   const title = tr('Daimist Science Manifesto', 'Manifesto da Ciência Daimista')
-  utils.stdDiv().html(`
+  page(`
   <style>
     .dsm-intro { text-align: center; color: var(--ink-soft); max-width: 34em; margin: 0.4em auto 1.4em; }
     .dsm-langs { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 1.1em; }
@@ -197583,12 +197606,20 @@ e.daimesm = () => {
       transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
     .dsm-lang:hover { border-color: var(--accent-soft); color: var(--accent); }
-    .dsm-lang.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .dsm-lang.is-active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
     .dsm-frame-wrap {
+      position: relative;
       border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden;
       background: #fff; box-shadow: var(--shadow);
     }
-    .dsm-frame-wrap iframe { display: block; width: 100%; height: min(78vh, 900px); border: 0; }
+    .dsm-frame-wrap iframe { position: relative; display: block; width: 100%; height: min(78vh, 900px); border: 0; }
+    /* Google takes a moment to send the document: until then, say so */
+    .dsm-frame-wrap::before {
+      content: attr(data-loading); position: absolute; inset: 0; padding-top: 4em; text-align: center;
+      font-size: 0.95rem; color: #6b675f;
+    }
+    .dsm-frame-wrap:not(.is-loaded) iframe { opacity: 0; }
+    .dsm-frame-wrap.is-loaded::before { content: none; }
     .dsm-pending { padding: 2.6em 1.5em; text-align: center; color: var(--ink-soft); }
     .dsm-comment { text-align: center; margin-top: 1.1em; color: var(--ink-soft); }
   </style>
@@ -197601,7 +197632,7 @@ e.daimesm = () => {
 
   <div class="dsm-langs">${buttons}</div>
 
-  <div id="dsm-view" class="dsm-frame-wrap"></div>
+  <div id="dsm-view" class="dsm-frame-wrap" data-loading="${tr('Loading the manifesto…', 'Carregando o manifesto…')}"></div>
 
   <p class="dsm-comment"><a id="dsm-edit" href="#" target="_blank" rel="noopener">${tr('Open this version in Google Docs to comment', 'Abra esta versão no Google Docs para comentar')} &#8599;</a></p>
   <p style="text-align:center;color:var(--ink-soft)">:::</p>
@@ -197613,70 +197644,99 @@ e.daimesm = () => {
   // The published embed keeps the document's page margins, which leave a phone a
   // column a few words wide; Google's mobile view of the same document reflows instead.
   const narrow = window.matchMedia('(max-width: 640px)')
+  const view = document.getElementById('dsm-view')
+  const langButtons = document.querySelectorAll('.dsm-lang')
   let current = pt() ? 'pt' : 'en'
   const show = code => {
     current = code
     const d = byLang[code]
-    $('.dsm-lang').removeClass('is-active').filter(`[data-lang="${code}"]`).addClass('is-active')
+    langButtons.forEach(button => {
+      button.classList.toggle('is-active', button.dataset.lang === code)
+      button.setAttribute('aria-pressed', button.dataset.lang === code)
+    })
+    view.classList.remove('is-loaded')
     if (d.pub) {
       const src = narrow.matches ? d.edit.replace(/\/edit.*$/, '/mobilebasic') : d.pub
-      $('#dsm-view').html(`<iframe src="${src}" title="${title} (${d.label})"></iframe>`)
+      view.innerHTML = `<iframe src="${src}" title="${title} (${d.label})"></iframe>`
+      view.querySelector('iframe').addEventListener('load', () => view.classList.add('is-loaded'))
     } else {
-      $('#dsm-view').html(`<div class="dsm-pending">${tr(`The ${d.label} version is open for reading and comments in Google Docs — use the link below.`, `A versão (${d.label}) está aberta para leitura e comentários no Google Docs — use o link abaixo.`)}</div>`)
+      view.innerHTML = `<div class="dsm-pending">${tr(`The ${d.label} version is open for reading and comments in Google Docs — use the link below.`, `A versão (${d.label}) está aberta para leitura e comentários no Google Docs — use o link abaixo.`)}</div>`
+      view.classList.add('is-loaded')
     }
-    $('#dsm-edit').attr('href', d.edit)
+    document.getElementById('dsm-edit').href = d.edit
   }
 
-  $('.dsm-lang').on('click', function () { show($(this).data('lang')) })
+  langButtons.forEach(button => button.addEventListener('click', () => show(button.dataset.lang)))
   narrow.addEventListener('change', () => show(current))
   show(current)
 
-  $('#loading').hide()
+  ready()
 }
 
 const bitcoinWallet = 'bc1qjw72xa6c8c924j8aj8y737q56let8envx4j0xd'
 
+// The wallet's address, with a button that copies it. The QR codes are SVG, sharp at any
+// size; the Bitcoin one holds a bitcoin: link, which a phone's camera offers to open in
+// a wallet app. They were made with `npx qrcode@1.5.4 -t svg -e M -q 2 -o <file> <text>`
+// (the PayPal one encodes the form below as a link); check any new one by scanning it.
+const wallet = () => `<p class="awallet"><code>${bitcoinWallet}</code><button type="button" class="acopy" aria-live="polite">${tr('Copy', 'Copiar')}</button></p>`
+const qr = (name, alt) => `<img class="aqr" src="assets/donation/qr-${name}.svg" width="128" height="128" alt="${alt}">`
+const qrPaypal = () => qr('paypal', tr('QR code for donating through PayPal', 'Código QR para doar pelo PayPal'))
+const qrBitcoin = () => qr('bitcoin', tr('QR code of the Bitcoin wallet', 'Código QR da carteira de Bitcoin'))
+
+const copyWallet = () => document.querySelectorAll('.acopy').forEach(button => {
+  button.addEventListener('click', () => {
+    const copied = () => {
+      button.textContent = tr('Copied', 'Copiado')
+      setTimeout(() => { button.textContent = tr('Copy', 'Copiar') }, 2400)
+    }
+    // without the clipboard, select the address, ready to copy by hand
+    const select = () => window.getSelection().selectAllChildren(button.previousElementSibling)
+    if (navigator.clipboard) navigator.clipboard.writeText(bitcoinWallet).then(copied, select)
+    else select()
+  })
+})
+
 e.angel = () => {
   // PagSeguro's donation button stopped working when it became PagBank
-  utils.stdDiv().html(`
+  page(`
   <style>
     .agive { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 1.6em 0; }
     @media (max-width: 620px) { .agive { grid-template-columns: minmax(0, 1fr); } }
     .agive-opt { border: 1px solid var(--card-border); border-radius: 16px; padding: 18px 20px; background: rgba(184, 149, 48, 0.05); }
     .agive-opt--wide { grid-column: 1 / -1; }
-    .acard .agive-opt h3 { font-size: 1.4rem; margin: 0 0 0.2em; }
+    .acard .agive-opt h2 { font-size: 1.4rem; margin: 0 0 0.2em; }
     .agive-opt p { margin: 0 0 0.5em; }
-    .agive-opt img { display: block; width: 128px; height: 128px; margin: 0.6em 0; border-radius: 10px; border: 1px solid var(--card-border); background: #fff; image-rendering: pixelated; } /* half of 256: QR modules stay crisp */
-    .agive-opt code { font-size: 0.82rem; word-break: break-all; }
+    .agive-opt .aqr { margin: 0.6em 0; }
     .agive-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; margin: 1.4em 0 1.2em; }
   </style>
   <header class="apage-head">
     ${mark()}
-    <h2>${tr('Support Æterni Anima', 'Apoie a Æterni Anima')}</h2>
+    <h1>${tr('Support Æterni Anima', 'Apoie a Æterni Anima')}</h1>
     <p class="apage-lead">${tr('Your support keeps these projects alive and growing. Every gift, of any size, makes a difference.', 'Seu apoio mantém estes projetos vivos e crescendo. Toda doação, de qualquer valor, faz diferença.')}</p>
   </header>
 
   <div class="agive">
     <div class="agive-opt">
-      <h3>PayPal</h3>
+      <h2>PayPal</h2>
       <p>${tr('Give any amount by card or through PayPal.', 'Doe qualquer valor com cartão ou pelo PayPal.')}</p>
-      <img src="assets/donation/qrPaypal.png" alt="${tr('QR code for donating through PayPal', 'Código QR para doar pelo PayPal')}">
+      ${qrPaypal()}
       <p>${link(tr('Donate with PayPal', 'Doar com PayPal'), 'paypal')}</p>
     </div>
     <div class="agive-opt">
-      <h3>Bitcoin</h3>
+      <h2>Bitcoin</h2>
       <p>${tr('Send any amount to our wallet:', 'Envie qualquer valor para a nossa carteira:')}</p>
-      <img src="assets/donation/qrBitcoin.png" alt="${tr('QR code of the Bitcoin wallet', 'Código QR da carteira de Bitcoin')}">
-      <p><code>${bitcoinWallet}</code></p>
+      ${qrBitcoin()}
+      ${wallet()}
     </div>
     <div class="agive-opt agive-opt--wide">
-      <h3>${tr('Bank transfer and other coins', 'Transferência bancária e outras moedas')}</h3>
+      <h2>${tr('Bank transfer and other coins', 'Transferência bancária e outras moedas')}</h2>
       <p>${tr('Write to us for a direct bank transfer, or to give in Ethereum or another currency.', 'Escreva para nós para uma transferência bancária direta, ou para doar em Ethereum ou em outra moeda.')}</p>
       <p><a href="mailto:aeterni.anima@gmail.com">aeterni.anima@gmail.com</a></p>
     </div>
   </div>
 
-  <h3>${tr('Give your time and ideas', 'Doe seu tempo e suas ideias')}</h3>
+  <h2 class="asub">${tr('Give your time and ideas', 'Doe seu tempo e suas ideias')}</h2>
   <p>${tr('Send us feedback on your experience with Æterni and ideas for enhancements or derivatives, or join the coordination, creation and tech tasks.', 'Envie-nos comentários sobre sua experiência com a Æterni e ideias de melhorias ou de novos desdobramentos, ou junte-se às tarefas de coordenação, criação e tecnologia.')}</p>
   <div class="agive-cta">
     <a class="abtn abtn--primary ae-involve" href="mailto:aeterni.anima@gmail.com">${tr('Ways to take part', 'Formas de participar')}</a>
@@ -197685,25 +197745,28 @@ e.angel = () => {
   <p style="text-align:center">${tr('Thank you.', 'Obrigado.')}</p>
   `)
   involve()
-  $('canvas').hide()
-  $('#loading').hide()
+  copyWallet()
+  document.querySelectorAll('canvas').forEach(canvas => { canvas.style.display = 'none' })
+  ready()
 }
 
 // shared by the PayPal and Bitcoin pages
 const payStyle = `<style>
   .apay { text-align: center; }
-  .apay form { margin: 1em 0 1.4em; }
-  .apay .aqr { display: block; width: 128px; height: 128px; margin: 0.6em auto 1em; border-radius: 10px; border: 1px solid var(--card-border); background: #fff; image-rendering: pixelated; }
-  .apay code { font-size: 0.9rem; word-break: break-all; }
+  .apay form { margin: 1.2em 0 1.6em; }
+  .apay .aqr { margin: 0.6em auto 1em; }
+  .apay .awallet { justify-content: center; }
   .apay .aback { margin-top: 1.6em; }
 </style>`
 
 e.paypal = () => {
-  utils.stdDiv().html(`
+  // our own button, not PayPal's image and tracking pixel: nothing reaches PayPal
+  // until the visitor chooses to donate
+  page(`
   ${payStyle}
   <header class="apage-head">
     ${mark()}
-    <h2>${tr('Donate with PayPal', 'Doe com PayPal')}</h2>
+    <h1>${tr('Donate with PayPal', 'Doe com PayPal')}</h1>
     <p class="apage-lead">${tr('Give any amount, by card or with your PayPal account.', 'Doe qualquer valor, com cartão ou com sua conta PayPal.')}</p>
   </header>
   <div class="apay">
@@ -197711,42 +197774,48 @@ e.paypal = () => {
     <input type="hidden" name="cmd" value="_donations" />
     <input type="hidden" name="business" value="CWRTXTJF9C3N6" />
     <input type="hidden" name="currency_code" value="BRL" />
-    <input type="image" src="https://www.paypalobjects.com/${tr('en_US', 'pt_BR')}/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="${tr('PayPal - The safer, easier way to pay online!', 'PayPal - a maneira fácil e segura de pagar online!')}" alt="${tr('Donate with PayPal button', 'Botão Doar com PayPal')}" />
-    <img alt="" border="0" src="https://www.paypal.com/pt_BR/i/scr/pixel.gif" width="1" height="1" />
+    <button type="submit" class="abtn abtn--primary">${tr('Donate with PayPal', 'Doar com PayPal')}</button>
   </form>
   <p class="amute">${tr('Or scan this code with your phone:', 'Ou escaneie este código com o celular:')}</p>
-  <img class="aqr" src="assets/donation/qrPaypal.png" alt="${tr('QR code for donating through PayPal', 'Código QR para doar pelo PayPal')}">
+  ${qrPaypal()}
   <p class="aback">${link(tr('← All the ways to support Æterni Anima', '← Todas as formas de apoiar a Æterni Anima'), 'angel')}</p>
   </div>
   `)
-  $('#loading').hide()
+  ready()
 }
 
 e.bitcoin = () => {
-  utils.stdDiv().html(`
+  page(`
   ${payStyle}
   <header class="apage-head">
     ${mark()}
-    <h2>${tr('Donate with Bitcoin', 'Doe com Bitcoin')}</h2>
+    <h1>${tr('Donate with Bitcoin', 'Doe com Bitcoin')}</h1>
     <p class="apage-lead">${tr('Send any amount to our wallet.', 'Envie qualquer valor para a nossa carteira.')}</p>
   </header>
   <div class="apay">
-  <p><code>${bitcoinWallet}</code></p>
-  <img class="aqr" src="assets/donation/qrBitcoin.png" alt="${tr('QR code of the Bitcoin wallet', 'Código QR da carteira de Bitcoin')}">
+  ${wallet()}
+  ${qrBitcoin()}
   <p class="aback">${link(tr('← All the ways to support Æterni Anima', '← Todas as formas de apoiar a Æterni Anima'), 'angel')}</p>
   </div>
   `)
-  $('#loading').hide()
+  copyWallet()
+  ready()
 }
 
-},{"./utils.js":716,"jquery":354}],713:[function(require,module,exports){
+},{"./ui.js":716}],713:[function(require,module,exports){
 /* global wand */
-const utils = require('./utils.js')
+const ui = require('./ui.js')
 
 const e = module.exports
 
-const pn = decodeURIComponent(window.location.href)
-const u = new URL(pn)
+// A link mangled on its way (a cut-off %-escape) cannot be decoded; read it as it came
+// rather than stop every page, which would leave the visitor on the loading veil.
+let u
+try {
+  u = new URL(decodeURIComponent(window.location.href))
+} catch {
+  u = new URL(window.location.href)
+}
 
 e.urlArgument = (arg, rotOrFun) => {
   const a = u.searchParams.get(arg)
@@ -197795,42 +197864,36 @@ e.mkFooter = () => {
       })
     }, 'jsonp')
   }
-  wand.modal = utils.mkModal()
-  const ft = wand.$('<div/>', {
-    id: 'afooter',
-    css: {
-      display: 'flex',
-      'white-space': 'nowrap',
-      'overflow-x': 'auto',
-      margin: '0 auto',
-      padding: '8px',
-      'text-align': 'center',
-      width: 'auto'
-    }
-  }).appendTo('body')
-  const involve = label => wand.$('<a/>', { href: '', id: 'contribL' }).text(label).appendTo(ft).click(() => {
-    wand.modal.show()
-    return false
-  })
+  wand.modal = ui.mkModal()
+  // plain DOM, as the small bundle has no jQuery
+  const add = (parent, tag, attrs, text) => {
+    const n = document.createElement(tag)
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v)
+    n.textContent = text
+    return parent.appendChild(n)
+  }
+  const ft = add(document.body, 'footer', { id: 'afooter' }, '')
+  ft.style.cssText = 'display: flex; white-space: nowrap; overflow-x: auto; margin: 0 auto; padding: 8px; text-align: center; width: auto'
+  // it opens the dialog, so it is a button that looks like the links beside it
+  const involve = label => add(ft, 'button', { type: 'button', id: 'contribL' }, label).addEventListener('click', () => wand.modal.show())
   if (!['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname)) {
-    wand.$('<a/>', { href: '?about', id: 'abouta' }).text('Regarding AV Medicine').appendTo(ft)
+    add(ft, 'a', { href: '?about', id: 'abouta' }, 'Regarding AV Medicine')
     involve('support this initiative')
     return
   }
   // The language is set in index.html's head (html.lang-pt); Portuguese links carry it.
   const pt = document.documentElement.classList.contains('lang-pt')
-  wand.$('<a/>', { href: pt ? './?lang=pt' : './', id: 'homea' }).text(pt ? 'Início' : 'Home').appendTo(ft)
-  wand.$('<a/>', { href: `?about${pt ? '&lang=pt' : ''}`, id: 'abouta' }).text(pt ? 'Sobre a Æterni' : 'Regarding Æterni').appendTo(ft)
+  add(ft, 'a', { href: pt ? './?lang=pt' : './', id: 'homea' }, pt ? 'Início' : 'Home')
+  add(ft, 'a', { href: `?about${pt ? '&lang=pt' : ''}`, id: 'abouta' }, pt ? 'Sobre a Æterni' : 'About Æterni')
   involve(pt ? 'Envolva-se' : 'Get involved')
   // this same page in each language; the current one is plain text
-  const here = window.location.search.slice(1).split('&').filter(p => p && !p.startsWith('lang='))
-  const langs = wand.$('<span/>', { class: 'alangs' }).appendTo(ft)
+  const langs = add(ft, 'span', { class: 'alangs' }, '')
   for (const [code, tag, name] of [['en', 'en', 'English'], ['pt', 'pt-BR', 'Português']]) {
-    if (code === 'pt') wand.$('<span/>', { 'aria-hidden': 'true' }).text('·').appendTo(langs)
+    if (code === 'pt') add(langs, 'span', { 'aria-hidden': 'true' }, '·')
     if ((code === 'pt') === pt) {
-      wand.$('<span/>', { lang: tag, 'aria-current': 'true' }).text(name).appendTo(langs)
+      add(langs, 'span', { lang: tag, 'aria-current': 'true' }, name)
     } else {
-      wand.$('<a/>', { href: '?' + here.concat(`lang=${code}`).join('&'), lang: tag, hreflang: tag }).text(name).appendTo(langs)
+      add(langs, 'a', { href: ui.langHref(code), lang: tag, hreflang: tag }, name)
     }
   }
   // uncomment to enable disqus
@@ -197874,7 +197937,7 @@ e.timeArgument = () => {
   return dd
 }
 
-},{"./utils.js":716}],714:[function(require,module,exports){
+},{"./ui.js":716}],714:[function(require,module,exports){
 const PIXI = require('pixi.js')
 const forceAtlas2 = require('graphology-layout-forceatlas2')
 
@@ -203473,7 +203536,7 @@ function mkMember (p) {
   }
 }
 
-},{"./conductor":693,"./maestro.js":700,"./med":704,"./monk":709,"./net.js":711,"./pages.js":712,"./router.js":713,"./transfer.js":715,"./utils.js":716,"@eastdesire/jscolor":2,"@fortawesome/fontawesome-free/js/all.js":3,"dat.gui":194,"flatpickr":241,"graphology-layout-forceatlas2":255,"jira-client":353,"jquery":354,"linkifyjs/html":360,"paginationjs":511,"percom":539,"pixi.js":542,"stats-js":623,"tone":669,"wavefile":689}],715:[function(require,module,exports){
+},{"./conductor":693,"./maestro.js":700,"./med":704,"./monk":709,"./net.js":711,"./pages.js":712,"./router.js":713,"./transfer.js":715,"./utils.js":717,"@eastdesire/jscolor":2,"@fortawesome/fontawesome-free/js/all.js":3,"dat.gui":194,"flatpickr":241,"graphology-layout-forceatlas2":255,"jira-client":353,"jquery":354,"linkifyjs/html":360,"paginationjs":511,"percom":539,"pixi.js":542,"stats-js":623,"tone":669,"wavefile":689}],715:[function(require,module,exports){
 // Data access.
 //
 // This used to talk to five MongoDB Atlas databases directly from the browser,
@@ -203695,6 +203758,185 @@ e.fAll = new FindAll()
 // fAll.ttm({ sid: { $exists: true } }, { sid: 1 }, 'test').then(r => console.log(r.map(i => i.sid)))
 
 },{"./losdheaders.js":699,"superagent":662}],716:[function(require,module,exports){
+// The dialog that every "Get involved" button opens, and its texts. It is plain DOM, so
+// the small bundle needs no jQuery; utils.js re-exports these for the full bundle, whose
+// older routes also reach into #myModal and #mcontent directly, so the dialog keeps
+// that structure.
+const e = module.exports
+
+const pt = () => document.documentElement.classList.contains('lang-pt')
+
+// the address of this same page in another language ('en' or 'pt')
+e.langHref = code => '?' + window.location.search.slice(1).split('&')
+  .filter(p => p && !p.startsWith('lang='))
+  .concat(`lang=${code}`).join('&')
+
+const groups = `<a href="https://www.facebook.com/groups/arcturianart" target="_blank">AAA</a>,
+<a href="https://www.facebook.com/groups/mentaliz" target="_blank">MMM</a>,
+<a href="https://chat.whatsapp.com/BztLyvWDEgW3C1mjXZTTrP" target="_blank">WM</a>`
+
+const sstimGroup = '<a href="https://www.w3.org/groups/cg/sstim/" target="_blank">W3C Sensory Stimulation Vocabulary Community Group</a>'
+const sstimFix = label => `<a href="https://w3c-cg.github.io/sstim/contribute/" target="_blank">${label}</a>`
+
+// Æterni's dialog, in the page's language (set in index.html's head as html.lang-pt).
+e.stdMsg2 = () => {
+  if (pt()) {
+    return `
+    <h2>Envolva-se com a Æterni Anima</h2>
+    <p>Toda contribuição conta, e há muitas formas de participar:</p>
+    <ul>
+        <li><strong>Conte sua experiência:</strong> diga-nos como as sessões e as ferramentas têm afetado você, e convide outros a fazerem o mesmo.</li>
+        <li><strong>Crie e compartilhe:</strong> produza artefatos audiovisuais e distribua-os, enriquecendo o que temos a oferecer.</li>
+        <li><strong>Amplie o círculo:</strong> aproxime parceiros, colaboradores e pessoas afins que possam se interessar por este trabalho.</li>
+        <li><strong>Reúna pessoas:</strong> leve estas práticas ao seu grupo ou à sua comunidade, e conte para nós como foi.</li>
+        <li><strong>Contribua com o conhecimento aberto:</strong> participe do ${sstimGroup} ou ${sstimFix('sugira uma correção ao SSTIM')}.</li>
+        <li><strong>Apoie a iniciativa:</strong> <a href="?angel&amp;lang=pt">contribua financeiramente</a> ou ofereça seu tempo e suas habilidades.</li>
+        <li><strong>Mantenha contato:</strong> envie suas ideias e sugestões — elas orientam os próximos passos.</li>
+    </ul>
+    <p>Até o menor gesto faz diferença. Obrigado.</p>
+    `
+  }
+  return `
+  <h2>Get involved with Æterni Anima</h2>
+  <p>Every contribution counts, and there are many ways to take part:</p>
+  <ul>
+      <li><strong>Share your experience:</strong> tell us how the sessions and tools have affected you, and invite others to do the same.</li>
+      <li><strong>Create and share:</strong> make audiovisual artifacts and pass them on, enriching what we can offer.</li>
+      <li><strong>Widen the circle:</strong> introduce partners, collaborators and kindred spirits who might care about this work.</li>
+      <li><strong>Gather people:</strong> bring these practices to your own group or community, and tell us how it goes.</li>
+      <li><strong>Shape open knowledge:</strong> join the ${sstimGroup}, or ${sstimFix('suggest a correction to SSTIM')}.</li>
+      <li><strong>Support the initiative:</strong> <a href="?angel">contribute financially</a> or lend your time and skills.</li>
+      <li><strong>Stay in touch:</strong> send us your thoughts and suggestions — they shape where this goes next.</li>
+  </ul>
+  <p>Even the smallest gesture makes a difference. Thank you.</p>
+  `
+}
+
+e.stdMsg = () => {
+  if (['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    return e.stdMsg2()
+  }
+  if (window.wand.country === 'BR') {
+    return `
+
+<h2>Fortaleça o seu Corpo de Luz</h2>
+
+algumas ideias:
+
+<ul>
+<li>escreva relatando como tem sido as sessões para você: elas tem te ajudado? De que forma?</li>
+<li>Incentive outros membros a escreverem relatos das experiências deles.</li>
+<li>Traga pessoas para vibrarem no Corpo de Luz.</li>
+<li>Ajude a manter/gerir um dos grupos existentes (e.g. ${groups}).</li>
+<li>Crie um novo grupo.</li>
+<li>Crie Artefatos Audiovisuais para serem usados nas sessões.</li>
+<li>Aproxime uma pessoa ou entidade que possa ter interesse especial na iniciativa.</li>
+<li>Gere mídia sobre o Corpo de Luz (postagens, artigos jornalísticos...).</li>
+<li>Divulgue sobre o grupo ou trabalho.</li>
+<li>Doe ou ajude a arrecadar financeiramente (veja <a href="?angel" target="_blank">as formas de contribuir</a>).</li>
+<li>Ore para o Corpo de Luz e para o mundo.</li>
+<li>Cuide-se muito bem.</li>
+<li>Sugira mudanças sobre como conduzir o Corpo de Luz.</li>
+</ul>
+
+Faça contato!<br>
+Luz e Paz ~
+`
+  }
+  return `
+<div id="main-content" class="wiki-content group">
+  <h1 id="Contact-nuova-Getintouch">Get in touch</h1><p>Some ways to help:</p><ul><li><p><strong>Get in touch to share ideas and ask questions:</strong> we’d love to know from you what works better and what can be improved.</p></li><li><p><strong>Share your sequences: </strong>we offer a few sequences to show how it works, but the potential of Audiovisual medicine is huge. If you’ve found a sequence you want to share, please do and we may credit you and put your sequence online for everyone to benefit.</p></li><li><p><strong>Do it together:</strong> Audiovisual Medicine works great when you’re alone, but works even better when done in group. Try it during your yoga or meditation group session, or in your study group.</p></li><li><p><strong>Share it:</strong> with someone or a group that could benefit from AM sessions. Share it online and among your friends and coworkers!</p></li><li><p><strong>Fund it:</strong> yourself or put us in contact with an organization that can fund AM.
+  <li><strong>Something else:</strong> We’re always looking for new means to spread the benefits of Audiovisual Medicine</p></li></ul>
+</div>
+`
+}
+
+const node = (tag, props, html) => {
+  const n = Object.assign(document.createElement(tag), props)
+  if (html !== undefined) n.innerHTML = html
+  return n
+}
+
+e.mkModal = content => {
+  const ptLang = pt()
+  // Escape, the close button and a click outside all close it; Tab stays inside it while
+  // it is open; and focus goes back to whatever opened it, so the dialog works from a
+  // keyboard as well as a mouse.
+  let opener = null
+  const modal = node('div', { id: 'myModal', className: 'modal' })
+  modal.setAttribute('role', 'dialog')
+  modal.setAttribute('aria-modal', 'true')
+  modal.setAttribute('aria-labelledby', 'mtitle')
+  const visible = () => modal.getClientRects().length > 0
+  const hide = () => {
+    modal.style.display = 'none'
+    if (opener && document.contains(opener)) opener.focus()
+    opener = null
+  }
+  const close = node('button', { type: 'button', className: 'close' }, '&times;')
+  close.setAttribute('aria-label', ptLang ? 'Fechar' : 'Close')
+  close.addEventListener('click', hide)
+  const box = node('div', { className: 'modal-content' })
+  box.append(close, node('p', { id: 'mcontent' }, content || e.stdMsg()), node('p', { id: 'mfeedback' }))
+  modal.append(box)
+  document.body.append(modal)
+  window.onclick = function (event) {
+    if (event.target === modal) hide()
+  }
+  document.addEventListener('keydown', event => {
+    if (!visible()) return
+    if (event.key === 'Escape') return hide()
+    if (event.key !== 'Tab') return
+    const stops = [...box.querySelectorAll('a[href], button, textarea')].filter(n => n.getClientRects().length)
+    const first = stops[0]
+    const last = stops[stops.length - 1]
+    const inside = box.contains(document.activeElement)
+    if (event.shiftKey && (!inside || document.activeElement === first)) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && (!inside || document.activeElement === last)) {
+      event.preventDefault()
+      first.focus()
+    }
+  })
+  // feedback is sent by email: the former database backend (mongodb stitch) is gone.
+  const contactMail = 'aeterni.anima@gmail.com'
+  const descArea = node('textarea', {
+    maxLength: 3200,
+    placeholder: ptLang ? 'Compartilhe seus comentários ou suas ideias…' : 'Share your feedback or ideas…'
+  })
+  descArea.setAttribute('aria-label', ptLang ? 'Seus comentários' : 'Your feedback')
+  const send = node('button', { type: 'button' }, ptLang ? 'Enviar comentários' : 'Send feedback')
+  send.style.margin = '1%'
+  send.addEventListener('click', () => {
+    const text = descArea.value.trim()
+    if (!text) return descArea.focus()
+    const subject = encodeURIComponent(ptLang ? 'Comentários — Æterni Anima' : 'Feedback — Æterni Anima')
+    window.location.href = `mailto:${contactMail}?subject=${subject}&body=${encodeURIComponent(text)}`
+  })
+  const note = node('p', {}, ptLang
+    ? `Isto abre o seu aplicativo de e-mail. Você também pode escrever para <a href="mailto:${contactMail}">${contactMail}</a>.`
+    : `This opens your email app. You can also write to <a href="mailto:${contactMail}">${contactMail}</a>.`)
+  note.style.cssText = 'font-size: 0.92rem; margin-top: 0.6em'
+  document.getElementById('mfeedback').append(descArea, send, note)
+  return {
+    show: (ms, msg) => {
+      const text = document.getElementById('mcontent')
+      text.innerHTML = msg || e.stdMsg()
+      const title = text.querySelector('h2')
+      if (title) title.id = 'mtitle'
+      opener = document.activeElement
+      modal.style.display = 'block'
+      // a fade, as jQuery's fadeIn gave it ('slow' was 600 ms); older routes pass their own
+      const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (modal.animate) modal.animate([{ opacity: 0 }, { opacity: 1 }], { duration: still ? 0 : ms || 600 })
+      close.focus()
+    },
+    hide
+  }
+}
+
+},{}],717:[function(require,module,exports){
 const e = module.exports
 const $ = require('jquery')
 const monk = require('./monk')
@@ -203831,162 +204073,12 @@ e.permutations = {
   none: a => a
 }
 
-const groups = `<a href="https://www.facebook.com/groups/arcturianart" target="_blank">AAA</a>,
-<a href="https://www.facebook.com/groups/mentaliz" target="_blank">MMM</a>,
-<a href="https://chat.whatsapp.com/BztLyvWDEgW3C1mjXZTTrP" target="_blank">WM</a>`
-
-const sstimGroup = '<a href="https://www.w3.org/groups/cg/sstim/" target="_blank">W3C Sensory Stimulation Vocabulary Community Group</a>'
-const sstimFix = label => `<a href="https://w3c-cg.github.io/sstim/contribute/" target="_blank">${label}</a>`
-
-// Æterni's dialog, in the page's language (set in index.html's head as html.lang-pt).
-e.stdMsg2 = () => {
-  if (document.documentElement.classList.contains('lang-pt')) {
-    return `
-    <h2>Envolva-se com a Æterni Anima</h2>
-    <p>Toda contribuição conta, e há muitas formas de participar:</p>
-    <ul>
-        <li><strong>Conte sua experiência:</strong> diga-nos como as sessões e as ferramentas têm afetado você, e convide outros a fazerem o mesmo.</li>
-        <li><strong>Crie e compartilhe:</strong> produza artefatos audiovisuais e distribua-os, enriquecendo o que temos a oferecer.</li>
-        <li><strong>Amplie o círculo:</strong> aproxime parceiros, colaboradores e pessoas afins que possam se interessar por este trabalho.</li>
-        <li><strong>Reúna pessoas:</strong> leve estas práticas ao seu grupo ou à sua comunidade, e conte para nós como foi.</li>
-        <li><strong>Contribua com o conhecimento aberto:</strong> participe do ${sstimGroup} ou ${sstimFix('sugira uma correção ao SSTIM')}.</li>
-        <li><strong>Apoie a iniciativa:</strong> <a href="?angel&amp;lang=pt">contribua financeiramente</a> ou ofereça seu tempo e suas habilidades.</li>
-        <li><strong>Mantenha contato:</strong> envie suas ideias e sugestões — elas orientam os próximos passos.</li>
-    </ul>
-    <p>Até o menor gesto faz diferença. Obrigado.</p>
-    `
-  }
-  return `
-  <h2>Get Involved with Æterni Anima</h2>
-  <p>Every contribution counts, and there are many ways to take part:</p>
-  <ul>
-      <li><strong>Share your experience:</strong> tell us how the sessions and tools have affected you, and invite others to do the same.</li>
-      <li><strong>Create and share:</strong> make audiovisual artifacts and pass them on, enriching what we can offer.</li>
-      <li><strong>Widen the circle:</strong> introduce partners, collaborators and kindred spirits who might care about this work.</li>
-      <li><strong>Gather people:</strong> bring these practices to your own group or community, and tell us how it goes.</li>
-      <li><strong>Shape open knowledge:</strong> join the ${sstimGroup}, or ${sstimFix('suggest a correction to SSTIM')}.</li>
-      <li><strong>Support the initiative:</strong> <a href="?angel">contribute financially</a> or lend your time and skills.</li>
-      <li><strong>Stay in touch:</strong> send us your thoughts and suggestions — they shape where this goes next.</li>
-  </ul>
-  <p>Even the smallest gesture makes a difference. Thank you.</p>
-  `
-}
-
-e.stdMsg = () => {
-  if (['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname)) {
-    return e.stdMsg2()
-  }
-  if (window.wand.country === 'BR') {
-    return `
-
-<h2>Fortaleça o seu Corpo de Luz</h2>
-
-algumas ideias:
-
-<ul>
-<li>escreva relatando como tem sido as sessões para você: elas tem te ajudado? De que forma?</li>
-<li>Incentive outros membros a escreverem relatos das experiências deles.</li>
-<li>Traga pessoas para vibrarem no Corpo de Luz.</li>
-<li>Ajude a manter/gerir um dos grupos existentes (e.g. ${groups}).</li>
-<li>Crie um novo grupo.</li>
-<li>Crie Artefatos Audiovisuais para serem usados nas sessões.</li>
-<li>Aproxime uma pessoa ou entidade que possa ter interesse especial na iniciativa.</li>
-<li>Gere mídia sobre o Corpo de Luz (postagens, artigos jornalísticos...).</li>
-<li>Divulgue sobre o grupo ou trabalho.</li>
-<li>Doe ou ajude a arrecadar financeiramente (veja <a href="?angel" target="_blank">as formas de contribuir</a>).</li>
-<li>Ore para o Corpo de Luz e para o mundo.</li>
-<li>Cuide-se muito bem.</li>
-<li>Sugira mudanças sobre como conduzir o Corpo de Luz.</li>
-</ul>
-
-Faça contato!<br>
-Luz e Paz ~
-`
-  }
-  return `
-<div id="main-content" class="wiki-content group">
-  <h1 id="Contact-nuova-Getintouch">Get in touch</h1><p>Some ways to help:</p><ul><li><p><strong>Get in touch to share ideas and ask questions:</strong> we’d love to know from you what works better and what can be improved.</p></li><li><p><strong>Share your sequences: </strong>we offer a few sequences to show how it works, but the potential of Audiovisual medicine is huge. If you’ve found a sequence you want to share, please do and we may credit you and put your sequence online for everyone to benefit.</p></li><li><p><strong>Do it together:</strong> Audiovisual Medicine works great when you’re alone, but works even better when done in group. Try it during your yoga or meditation group session, or in your study group.</p></li><li><p><strong>Share it:</strong> with someone or a group that could benefit from AM sessions. Share it online and among your friends and coworkers!</p></li><li><p><strong>Fund it:</strong> yourself or put us in contact with an organization that can fund AM.
-  <li><strong>Something else:</strong> We’re always looking for new means to spread the benefits of Audiovisual Medicine</p></li></ul>
-</div>
-`
-}
-
-e.mkModal = content => {
-  const pt = document.documentElement.classList.contains('lang-pt')
-  // Escape, the close button and a click outside all close it, and focus goes back to
-  // whatever opened it, so the dialog works from a keyboard as well as a mouse.
-  let opener = null
-  const hide = () => {
-    $('#myModal').hide().css('display', 'none')
-    if (opener && document.contains(opener)) opener.focus()
-    opener = null
-  }
-  $('<div/>', {
-    id: 'myModal',
-    class: 'modal',
-    role: 'dialog',
-    'aria-modal': 'true',
-    'aria-labelledby': 'mtitle',
-    css: {
-      'overflow-y': 'initial !important'
-    },
-    show: {
-      effect: 'fade',
-      duration: 2000
-    },
-    hide: {
-      effect: 'fade',
-      duration: 2000
-    }
-  }).appendTo('body')
-    .append($('<div/>', {
-      class: 'modal-content'
-    })
-      .append($('<button/>', { type: 'button', class: 'close', 'aria-label': pt ? 'Fechar' : 'Close' }).html('&times;').on('click', hide))
-      .append($('<p/>', { id: 'mcontent' }))
-      .append($('<p/>', { id: 'mfeedback' }))
-    )
-  window.onclick = function (event) {
-    if (event.target === $('#myModal')[0]) hide()
-  }
-  $(document).on('keydown', event => {
-    if (event.key === 'Escape' && $('#myModal').is(':visible')) hide()
-  })
-  $('#mcontent').html(`
-  ${content || e.stdMsg}
-  <br><br><br>:::
-  `)
-  // feedback is sent by email: the former database backend (mongodb stitch) is gone.
-  const contactMail = 'aeterni.anima@gmail.com'
-  const descArea = $('<textarea/>', {
-    maxlength: 3200,
-    placeholder: pt ? 'Compartilhe seus comentários ou suas ideias…' : 'Share your feedback or ideas…',
-    'aria-label': pt ? 'Seus comentários' : 'Your feedback'
-  }).appendTo('#mfeedback')
-  $('<button/>', { css: { margin: '1%' } }).html(pt ? 'Enviar comentários' : 'Send feedback').on('click', () => {
-    const text = descArea.val().trim()
-    if (!text) return descArea.trigger('focus')
-    const subject = encodeURIComponent(pt ? 'Comentários — Æterni Anima' : 'Feedback — Æterni Anima')
-    window.location.href = `mailto:${contactMail}?subject=${subject}&body=${encodeURIComponent(text)}`
-  }).appendTo('#mfeedback')
-  $('<p/>', {
-    css: { 'font-size': '0.92rem', 'margin-top': '0.6em' }
-  }).html(pt
-    ? `Isto abre o seu aplicativo de e-mail. Você também pode escrever para <a href="mailto:${contactMail}">${contactMail}</a>.`
-    : `This opens your email app. You can also write to <a href="mailto:${contactMail}">${contactMail}</a>.`)
-    .appendTo('#mfeedback')
-  return {
-    show: (ms, msg) => {
-      // $('#mcontent').html((msg || e.stdMsg()) + '<br><br><br>:::')
-      $('#mcontent').html((msg || e.stdMsg()))
-      $('#mcontent h2').first().attr('id', 'mtitle')
-      opener = document.activeElement
-      $('#myModal').fadeIn(ms || 'slow') // show() // .css('display', 'block')
-      $('#myModal .close').trigger('focus')
-    },
-    hide
-  }
-}
+// The dialog and its texts live in ui.js, which the small bundle loads without this
+// module; the older routes keep finding them here.
+const ui = require('./ui.js')
+e.stdMsg2 = ui.stdMsg2
+e.stdMsg = ui.stdMsg
+e.mkModal = ui.mkModal
 
 e.confirmExit = () => {
   window.wand.unloadFuncs.push(e => {
@@ -204244,4 +204336,4 @@ e.randScale2 = (bezier = false) => {
 
 e.copyToClipboard = require('copy-to-clipboard')
 
-},{"./monk":709,"chroma-js":181,"copy-to-clipboard":185,"jquery":354,"stats-js":623}]},{},[692]);
+},{"./monk":709,"./ui.js":716,"chroma-js":181,"copy-to-clipboard":185,"jquery":354,"stats-js":623}]},{},[692]);

@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title class="notranslate">&#x00C6;terni Anima</title>
     <meta name="description" content="Æterni Anima: science, art and technology for well-being and longevity — BioSynCare, contributions to the open SSTIM vocabulary, music synthesis and Daimist science." />
-    <meta name="theme-color" content="#f7f4ee" />
+    <meta name="theme-color" content="#f7f4ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121117" media="(prefers-color-scheme: dark)" />
     <link id="favicon" rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 
@@ -54,7 +55,7 @@
 // Page: the landing is static HTML below (main.ae-landing, one per language) and shows
 // at once; any other page waits for the small bundle behind the loading veil. Curated
 // pages get their own title, description and canonical URL, with the other language
-// as an alternate.
+// as an alternate, and html.ae-curated, which lets them follow a dark system theme.
 (function () {
   var params = location.search.slice(1).split('&').filter(function (p) {
     return p && !/^(fbclid|gclid|utm_[a-z]+)=/.test(p) // tracking added to shared links
@@ -75,10 +76,20 @@
   var root = document.documentElement
   root.lang = lang === 'pt' ? 'pt-BR' : 'en'
   root.classList.add('lang-' + lang)
-  var key = route.length ? route[0].split('=')[0] : ''
+  var first = route.length ? route[0].split('=') : ['']
+  var key = first[0]
   root.classList.add(key ? 'ae-route' : 'ae-home')
   if (lang === 'pt' && params.indexOf('lang=pt') === -1) {
     history.replaceState(null, '', location.pathname + '?' + route.concat('lang=pt').join('&') + location.hash)
+  }
+  if (!key) { // the landing's tagline is in italic, at the top
+    var font = document.createElement('link')
+    font.rel = 'preload'
+    font.as = 'font'
+    font.type = 'font/woff2'
+    font.crossOrigin = 'anonymous'
+    font.href = 'assets/fonts/cormorant-garamond-italic-latin.woff2'
+    document.head.appendChild(font)
   }
   var pages = {
     '': ['Æterni Anima', 'Æterni Anima', ''],
@@ -88,7 +99,12 @@
     paypal: ['Donate with PayPal', 'Doe com PayPal', '?paypal'],
     bitcoin: ['Donate with Bitcoin', 'Doe com Bitcoin', '?bitcoin']
   }
-  if (!Object.prototype.hasOwnProperty.call(pages, key)) return
+  // a key with a value (key=value) is a sync session, not the page of that name
+  if (!Object.prototype.hasOwnProperty.call(pages, key) || first[1]) {
+    document.querySelector('meta[name=theme-color][media*=dark]').content = '#f7f4ee'
+    return
+  }
+  root.classList.add('ae-curated')
   var page = pages[key]
   var name = page[lang === 'pt' ? 1 : 0]
   document.title = key ? name + ' · Æterni Anima' : name
@@ -141,11 +157,51 @@
   --ink-soft: #55524e;
   --accent: #8a6d1d;
   --accent-soft: #b89530;
+  --accent-strong: #745a12;
+  --on-accent: #fffdf6;
   --link: #4a4494;
   --link-hover: #8a6d1d;
+  --btn-hover: #fbf3df;
+  --field: #fff;
+  --glow: rgba(232, 194, 76, 0.22);
+  --glow-low: rgba(184, 149, 48, 0.07);
+  --feature: #fff8e8;
+  --invite: rgba(232, 194, 76, 0.24);
+  --backdrop: rgba(35, 34, 42, 0.45);
   --shadow: 0 1px 2px rgba(35, 34, 42, 0.05), 0 12px 40px -12px rgba(35, 34, 42, 0.18);
+  --shadow-card: 0 1px 2px rgba(35, 34, 42, 0.04), 0 12px 30px -20px rgba(35, 34, 42, 0.28);
+  --shadow-card-up: 0 2px 4px rgba(35, 34, 42, 0.05), 0 22px 44px -20px rgba(35, 34, 42, 0.34);
   --serif: 'Cormorant Garamond', 'Palatino Linotype', Palatino, Georgia, serif;
   --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Night: the same gold on a deep ink, when the system asks for dark. Only the curated
+   pages (html.ae-curated, set in the head script) follow it; the older routes were
+   drawn for light and keep it. */
+@media (prefers-color-scheme: dark) {
+  html.ae-curated {
+    color-scheme: dark;
+    --bg: #121117;
+    --card: #1a1920;
+    --card-border: #2e2b34;
+    --ink: #ece7dc;
+    --ink-soft: #b3ab9f;
+    --accent: #d8b458;
+    --accent-strong: #e8c873;
+    --on-accent: #17150e;
+    --link: #aca6f4;
+    --link-hover: #e2c26b;
+    --btn-hover: rgba(232, 194, 76, 0.1);
+    --field: #121117;
+    --glow: rgba(232, 194, 76, 0.12);
+    --glow-low: rgba(184, 149, 48, 0.06);
+    --feature: #29231a;
+    --invite: rgba(232, 194, 76, 0.14);
+    --backdrop: rgba(6, 5, 10, 0.72);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 40px -14px rgba(0, 0, 0, 0.7);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 30px -20px rgba(0, 0, 0, 0.8);
+    --shadow-card-up: 0 2px 4px rgba(0, 0, 0, 0.4), 0 22px 44px -20px rgba(0, 0, 0, 0.9);
+  }
 }
 
 html {
@@ -164,8 +220,8 @@ body {
   background-color: var(--bg);
   /* a warm dawn above every page, and a faint echo at the bottom */
   background-image:
-    radial-gradient(1200px 560px at 50% -180px, rgba(232, 194, 76, 0.22), transparent 70%),
-    radial-gradient(820px 480px at 100% 100%, rgba(184, 149, 48, 0.07), transparent 70%);
+    radial-gradient(1200px 560px at 50% -180px, var(--glow), transparent 70%),
+    radial-gradient(820px 480px at 100% 100%, var(--glow-low), transparent 70%);
   background-repeat: no-repeat;
   color: var(--ink);
 }
@@ -192,11 +248,12 @@ a:focus-visible, button:focus-visible {
   line-height: 1.2;
   letter-spacing: 0.01em;
   text-decoration: none;
+  cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .abtn:hover, .acard a.abtn:hover {
-  background: #fbf3df;
+  background: var(--btn-hover);
   border-color: var(--accent);
   color: var(--accent);
   transform: translateY(-1px);
@@ -205,14 +262,14 @@ a:focus-visible, button:focus-visible {
 .abtn--primary, .acard a.abtn--primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fffdf6;
+  color: var(--on-accent);
   box-shadow: 0 8px 20px -10px rgba(138, 109, 29, 0.7);
 }
 
 .abtn--primary:hover, .acard a.abtn--primary:hover {
-  background: #745a12;
-  border-color: #745a12;
-  color: #fffdf6;
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: var(--on-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -290,6 +347,20 @@ a:focus-visible, button:focus-visible {
 
 #afooter a { font-weight: 600; }
 
+/* "Get involved" opens the dialog, so it is a button, drawn like the links beside it */
+#afooter button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--link);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+#afooter button:hover { color: var(--link-hover); }
+
 /* the language switch: the current language is plain text, the other a link */
 #afooter .alangs { display: inline-flex; align-items: center; gap: 0.5em; color: var(--ink-soft); }
 #afooter .alangs [aria-current] { color: var(--ink); font-weight: 600; }
@@ -353,7 +424,7 @@ a:focus-visible, button:focus-visible {
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(35, 34, 42, 0.45);
+  background-color: var(--backdrop);
   backdrop-filter: blur(2px);
 }
 
@@ -378,9 +449,13 @@ a:focus-visible, button:focus-visible {
   padding: 10px;
   border: 1px solid var(--card-border);
   border-radius: 10px;
+  background: var(--field);
+  color: var(--ink);
   font-family: var(--sans);
   font-size: 1rem;
 }
+
+.modal-content li::marker { color: var(--accent-soft); }
 
 .modal-content button {
   padding: 8px 18px;
@@ -395,7 +470,7 @@ a:focus-visible, button:focus-visible {
 .modal-content button:hover { border-color: var(--accent-soft); color: var(--accent); }
 
 .close {
-  color: #aaaaaa;
+  color: var(--ink-soft);
   float: right;
   font-size: 28px;
   font-weight: bold;
@@ -530,6 +605,35 @@ input:checked + .slideraa:after {
 .apage-head .amark a:hover { color: var(--accent-soft); }
 .acard .apage-head h1, .acard .apage-head h2 { margin: 0.12em 0 0.3em; }
 .apage-lead { font-size: 1.1rem; max-width: 32em; margin: 0 auto; color: var(--ink-soft); }
+.acard h2.asub { font-size: clamp(1.3rem, 3vw, 1.6rem); margin: 1em 0; } /* a section within a page */
+
+/* the other language, at the top right of every curated page */
+.apage, .acard--home { position: relative; }
+.acard a.alang-top {
+  position: absolute; z-index: 1;
+  top: clamp(10px, 2.4vw, 20px); right: clamp(12px, 3vw, 24px);
+  font-size: 0.88rem; font-weight: 600; color: var(--ink-soft); text-decoration: none;
+}
+.acard--home a.alang-top { top: 0; right: 0; }
+.acard a.alang-top:hover { color: var(--accent); }
+
+/* QR codes stay dark on white, whatever the theme */
+.aqr { display: block; width: 128px; height: 128px; box-sizing: border-box; border-radius: 10px; border: 1px solid var(--card-border); background: #fff; }
+
+/* a wallet's address and the button that copies it (support pages) */
+.awallet { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.awallet code { font-size: 0.82rem; word-break: break-all; padding: 0.3em 0.55em; border-radius: 8px; background: rgba(184, 149, 48, 0.1); }
+.acopy {
+  padding: 0.3em 0.95em;
+  border: 1px solid var(--accent-soft);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--accent);
+  font: 600 0.82rem var(--sans);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.acopy:hover { background: var(--btn-hover); }
 
 /* the dialog's close button is a real button, without the pill look of the others */
 .modal-content button.close {
@@ -537,7 +641,7 @@ input:checked + .slideraa:after {
   border: 0;
   border-radius: 6px;
   background: none;
-  color: #aaaaaa;
+  color: var(--ink-soft);
   font-size: 28px;
 }
 .modal-content button.close:hover { color: var(--ink); }
@@ -622,13 +726,13 @@ input:checked + .slideraa:after {
   display: flex; flex-direction: column; align-items: flex-start;
   padding: 22px 22px 20px;
   background: var(--card); border: 1px solid var(--card-border); border-radius: 18px;
-  box-shadow: 0 1px 2px rgba(35, 34, 42, 0.04), 0 12px 30px -20px rgba(35, 34, 42, 0.28);
+  box-shadow: var(--shadow-card);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .aproj--wide { grid-column: 1 / -1; }
 .acard .aproj--link:hover, .acard .aproj--link:focus-within {
   transform: translateY(-3px); border-color: var(--accent-soft);
-  box-shadow: 0 2px 4px rgba(35, 34, 42, 0.05), 0 22px 44px -20px rgba(35, 34, 42, 0.34);
+  box-shadow: var(--shadow-card-up);
 }
 .aico {
   display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%;
@@ -659,7 +763,7 @@ input:checked + .slideraa:after {
 .acard .aproj--feature {
   padding: clamp(24px, 4.4vw, 40px); overflow: hidden;
   border-color: rgba(184, 149, 48, 0.5);
-  background: linear-gradient(120deg, #fff8e8 0%, var(--card) 62%);
+  background: linear-gradient(120deg, var(--feature) 0%, var(--card) 62%);
 }
 .acard .aproj--feature h3 { font-size: clamp(2.2rem, 5vw, 2.9rem); }
 .aproj--feature p { font-size: 1.04rem; }
@@ -681,7 +785,7 @@ input:checked + .slideraa:after {
 .ainvite {
   margin: clamp(38px, 7vw, 66px) 0 0; padding: clamp(26px, 5vw, 46px) clamp(18px, 5vw, 46px);
   text-align: center; border-radius: 22px; border: 1px solid rgba(184, 149, 48, 0.4);
-  background: radial-gradient(120% 150% at 50% 0%, rgba(232, 194, 76, 0.24), rgba(232, 194, 76, 0.06) 58%, transparent), var(--card);
+  background: radial-gradient(120% 150% at 50% 0%, var(--invite), rgba(232, 194, 76, 0.06) 58%, transparent), var(--card);
 }
 .acard .ainvite h2 { margin: 0 0 0.3em; }
 .ainvite p { max-width: 34em; margin: 0 auto; color: var(--ink-soft); }
@@ -700,8 +804,9 @@ input:checked + .slideraa:after {
 }
     </style>
     <!-- without JavaScript the landing below is the page, so lift the veil; this comes
-         after the stylesheet above, so it overrides #loading's display: flex -->
-    <noscript><style>#loading { display: none; }</style></noscript>
+         after the stylesheet above, so it overrides #loading's display: flex. The
+         Portuguese landing needs the head script too, so its link goes as well. -->
+    <noscript><style>#loading, .alang-top { display: none; }</style></noscript>
   </head>
   <body>
     <!-- icons used by both landings: each defined once, drawn with <use> -->
@@ -729,6 +834,7 @@ input:checked + .slideraa:after {
     <!-- The landing, in plain HTML so it shows at once and without JavaScript; the bundle
          (e.welcome2 in scripts/modules/pages.js) only wires up its dialog buttons. -->
     <main id="ae-home" class="acard acard--home ae-landing" data-lang="en">
+      <a class="alang-top" href="?lang=pt" lang="pt-BR" hreflang="pt-BR">Português</a>
       <header class="ahero">
         <div class="abreath" aria-hidden="true">
           <span class="aring"></span><span class="aring"></span><span class="aring"></span>
@@ -841,6 +947,7 @@ input:checked + .slideraa:after {
     </main>
     <!-- the same landing in Portuguese; keep the two in step -->
     <main id="ae-home-pt" class="acard acard--home ae-landing" data-lang="pt" lang="pt-BR">
+      <a class="alang-top" href="?lang=en" lang="en" hreflang="en">English</a>
       <header class="ahero">
         <div class="abreath" aria-hidden="true">
           <span class="aring"></span><span class="aring"></span><span class="aring"></span>

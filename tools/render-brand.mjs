@@ -1,6 +1,6 @@
 // Render the site's raster brand images from assets/brand/ae-mark.svg with headless
-// Chrome: the favicon, the home-screen (touch) icon, and the 1200×630 image that link
-// previews show. Run `make brand`; it needs Google Chrome (set CHROME to its binary
+// Chrome: the favicon (also wrapped as /favicon.ico), the home-screen (touch) icon, and
+// the 1200×630 image that link previews show. Run `make brand`; it needs Google Chrome (set CHROME to its binary
 // when it is not in the macOS default place) and the network, for the web font.
 import { spawn } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -10,7 +10,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const PORT = 9341
 
 const markSource = readFileSync(join(root, 'assets/brand/ae-mark.svg'), 'utf8').replace(/<!--[\s\S]*?-->\s*/g, '')
 const mark = color => markSource.replace('fill="#8a6d1d"', `fill="${color}"`).replace(' width="512" height="512"', '')
@@ -58,15 +57,36 @@ const jobs = [
   { out: 'assets/imgs/og-aeterni.jpg', size: [1200, 630], html: share, format: 'jpeg' }
 ]
 
+// /favicon.ico, for the browsers and crawlers that ask for it without reading the page:
+// the 32px PNG in an icon file (one directory entry pointing at the PNG's bytes)
+const ico = png => {
+  const head = Buffer.alloc(22)
+  head.writeUInt16LE(1, 2) // an icon
+  head.writeUInt16LE(1, 4) // holding one image
+  head.writeUInt8(32, 6) // 32 wide
+  head.writeUInt8(32, 7) // 32 high
+  head.writeUInt16LE(1, 10) // one plane
+  head.writeUInt16LE(32, 12) // 32 bits per pixel
+  head.writeUInt32LE(png.length, 14)
+  head.writeUInt32LE(head.length, 18) // the PNG follows this header
+  return Buffer.concat([head, png])
+}
+
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const work = mkdtempSync(join(tmpdir(), 'render-brand-'))
+// Port 0: Chrome takes a free port and writes it to DevToolsActivePort in its profile, so
+// this never drives another Chrome that happens to listen on a fixed port.
+const profile = join(work, 'profile')
 const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run',
-  `--remote-debugging-port=${PORT}`, `--user-data-dir=${join(work, 'profile')}`, 'about:blank'], { stdio: 'ignore' })
+  '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' })
 
 try {
   let wsUrl
   for (let i = 0; i < 50 && !wsUrl; i++) {
-    try { wsUrl = (await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json()).find(t => t.type === 'page')?.webSocketDebuggerUrl } catch { /* not listening yet */ }
+    try {
+      const port = readFileSync(join(profile, 'DevToolsActivePort'), 'utf8').split('\n')[0]
+      wsUrl = (await (await fetch(`http://127.0.0.1:${port}/json/list`)).json()).find(t => t.type === 'page')?.webSocketDebuggerUrl
+    } catch { /* not listening yet */ }
     if (!wsUrl) await sleep(200)
   }
   if (!wsUrl) throw new Error(`no Chrome DevTools endpoint; is CHROME right? (${CHROME})`)
@@ -106,6 +126,8 @@ try {
     writeFileSync(join(root, job.out), Buffer.from(data, 'base64'))
     console.log('wrote', job.out)
   }
+  writeFileSync(join(root, 'favicon.ico'), ico(readFileSync(join(root, 'assets/favicon-32.png'))))
+  console.log('wrote favicon.ico')
   ws.close()
 } finally {
   // Chrome keeps writing its profile until it has exited, so wait before removing it.

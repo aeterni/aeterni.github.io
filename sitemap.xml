@@ -1,12 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- The site's curated pages, in English and Portuguese; the many older routes are kept but not listed. -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://aeterni.github.io/</loc><lastmod>2026-10-15</lastmod></url>
-  <url><loc>https://aeterni.github.io/?about</loc><lastmod>2026-10-15</lastmod></url>
-  <url><loc>https://aeterni.github.io/?daimesm</loc><lastmod>2026-10-15</lastmod></url>
-  <url><loc>https://aeterni.github.io/?angel</loc><lastmod>2026-10-15</lastmod></url>
-  <url><loc>https://aeterni.github.io/?lang=pt</loc><lastmod>2026-10-15</lastmod></url>
-  <url><loc>https://aeterni.github.io/?about&amp;lang=pt</loc><lastmod>2026-10-15</lastmod></url>
-  <url><loc>https://aeterni.github.io/?daimesm&amp;lang=pt</loc><lastmod>2026-10-15</lastmod></url>
-  <url><loc>https://aeterni.github.io/?angel&amp;lang=pt</loc><lastmod>2026-10-15</lastmod></url>
+<!-- The site's curated pages, in English and Portuguese, each naming the other as its
+     alternate; the many older routes are kept but not listed. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://aeterni.github.io/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aeterni.github.io/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://aeterni.github.io/?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aeterni.github.io/"/>
+    <lastmod>2026-10-23</lastmod>
+  </url>
+  <url>
+    <loc>https://aeterni.github.io/?lang=pt</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aeterni.github.io/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://aeterni.github.io/?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aeterni.github.io/"/>
+    <lastmod>2026-10-23</lastmod>
+  </url>
+  <url>
+    <loc>https://aeterni.github.io/?about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aeterni.github.io/?about"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://aeterni.github.io/?about&amp;lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aeterni.github.io/?about"/>
+    <lastmod>2026-10-23</lastmod>
+  </url>
+  <url>
+    <loc>https://aeterni.github.io/?about&amp;lang=pt</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aeterni.github.io/?about"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://aeterni.github.io/?about&amp;lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aeterni.github.io/?about"/>
+    <lastmod>2026-10-23</lastmod>
+  </url>
+  <url>
+    <loc>https://aeterni.github.io/?daimesm</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aeterni.github.io/?daimesm"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://aeterni.github.io/?daimesm&amp;lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aeterni.github.io/?daimesm"/>
+    <lastmod>2026-10-23</lastmod>
+  </url>
+  <url>
+    <loc>https://aeterni.github.io/?daimesm&amp;lang=pt</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aeterni.github.io/?daimesm"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://aeterni.github.io/?daimesm&amp;lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aeterni.github.io/?daimesm"/>
+    <lastmod>2026-10-23</lastmod>
+  </url>
+  <url>
+    <loc>https://aeterni.github.io/?angel</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aeterni.github.io/?angel"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://aeterni.github.io/?angel&amp;lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aeterni.github.io/?angel"/>
+    <lastmod>2026-10-23</lastmod>
+  </url>
+  <url>
+    <loc>https://aeterni.github.io/?angel&amp;lang=pt</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aeterni.github.io/?angel"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://aeterni.github.io/?angel&amp;lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aeterni.github.io/?angel"/>
+    <lastmod>2026-10-23</lastmod>
+  </url>
 </urlset>

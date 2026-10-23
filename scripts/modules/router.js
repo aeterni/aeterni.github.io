@@ -1,10 +1,16 @@
 /* global wand */
-const utils = require('./utils.js')
+const ui = require('./ui.js')
 
 const e = module.exports
 
-const pn = decodeURIComponent(window.location.href)
-const u = new URL(pn)
+// A link mangled on its way (a cut-off %-escape) cannot be decoded; read it as it came
+// rather than stop every page, which would leave the visitor on the loading veil.
+let u
+try {
+  u = new URL(decodeURIComponent(window.location.href))
+} catch {
+  u = new URL(window.location.href)
+}
 
 e.urlArgument = (arg, rotOrFun) => {
   const a = u.searchParams.get(arg)
@@ -53,42 +59,36 @@ e.mkFooter = () => {
       })
     }, 'jsonp')
   }
-  wand.modal = utils.mkModal()
-  const ft = wand.$('<div/>', {
-    id: 'afooter',
-    css: {
-      display: 'flex',
-      'white-space': 'nowrap',
-      'overflow-x': 'auto',
-      margin: '0 auto',
-      padding: '8px',
-      'text-align': 'center',
-      width: 'auto'
-    }
-  }).appendTo('body')
-  const involve = label => wand.$('<a/>', { href: '', id: 'contribL' }).text(label).appendTo(ft).click(() => {
-    wand.modal.show()
-    return false
-  })
+  wand.modal = ui.mkModal()
+  // plain DOM, as the small bundle has no jQuery
+  const add = (parent, tag, attrs, text) => {
+    const n = document.createElement(tag)
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v)
+    n.textContent = text
+    return parent.appendChild(n)
+  }
+  const ft = add(document.body, 'footer', { id: 'afooter' }, '')
+  ft.style.cssText = 'display: flex; white-space: nowrap; overflow-x: auto; margin: 0 auto; padding: 8px; text-align: center; width: auto'
+  // it opens the dialog, so it is a button that looks like the links beside it
+  const involve = label => add(ft, 'button', { type: 'button', id: 'contribL' }, label).addEventListener('click', () => wand.modal.show())
   if (!['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname)) {
-    wand.$('<a/>', { href: '?about', id: 'abouta' }).text('Regarding AV Medicine').appendTo(ft)
+    add(ft, 'a', { href: '?about', id: 'abouta' }, 'Regarding AV Medicine')
     involve('support this initiative')
     return
   }
   // The language is set in index.html's head (html.lang-pt); Portuguese links carry it.
   const pt = document.documentElement.classList.contains('lang-pt')
-  wand.$('<a/>', { href: pt ? './?lang=pt' : './', id: 'homea' }).text(pt ? 'Início' : 'Home').appendTo(ft)
-  wand.$('<a/>', { href: `?about${pt ? '&lang=pt' : ''}`, id: 'abouta' }).text(pt ? 'Sobre a Æterni' : 'Regarding Æterni').appendTo(ft)
+  add(ft, 'a', { href: pt ? './?lang=pt' : './', id: 'homea' }, pt ? 'Início' : 'Home')
+  add(ft, 'a', { href: `?about${pt ? '&lang=pt' : ''}`, id: 'abouta' }, pt ? 'Sobre a Æterni' : 'About Æterni')
   involve(pt ? 'Envolva-se' : 'Get involved')
   // this same page in each language; the current one is plain text
-  const here = window.location.search.slice(1).split('&').filter(p => p && !p.startsWith('lang='))
-  const langs = wand.$('<span/>', { class: 'alangs' }).appendTo(ft)
+  const langs = add(ft, 'span', { class: 'alangs' }, '')
   for (const [code, tag, name] of [['en', 'en', 'English'], ['pt', 'pt-BR', 'Português']]) {
-    if (code === 'pt') wand.$('<span/>', { 'aria-hidden': 'true' }).text('·').appendTo(langs)
+    if (code === 'pt') add(langs, 'span', { 'aria-hidden': 'true' }, '·')
     if ((code === 'pt') === pt) {
-      wand.$('<span/>', { lang: tag, 'aria-current': 'true' }).text(name).appendTo(langs)
+      add(langs, 'span', { lang: tag, 'aria-current': 'true' }, name)
     } else {
-      wand.$('<a/>', { href: '?' + here.concat(`lang=${code}`).join('&'), lang: tag, hreflang: tag }).text(name).appendTo(langs)
+      add(langs, 'a', { href: ui.langHref(code), lang: tag, hreflang: tag }, name)
     }
   }
   // uncomment to enable disqus

@@ -1,13 +1,12 @@
 /* global wand */
 // Entry of the small bundle, scripts/light.bundle.js, which is what index.html loads.
-// The curated pages (the landing, About, the Manifesto and the support pages) need
-// jQuery and a few helpers, not the players, visualizations and libraries that the
-// full bundle (scripts/main.js → scripts/bundle.js) carries for the older routes. Any
-// route that is not one of them loads the full bundle, which routes exactly as before.
+// The curated pages (the landing, About, the Manifesto and the support pages) are plain
+// DOM: they need none of the jQuery, players, visualizations and libraries that the
+// full bundle (scripts/main.js → scripts/bundle.js) carries for the older routes, so
+// keep pages.js, ui.js and router.js free of them. Any route that is not one of these
+// pages loads the full bundle, which routes exactly as before.
 window.wand = {
   router: require('./modules/router.js'),
-  utils: require('./modules/utils.js'),
-  $: require('jquery'),
   unloadFuncs: []
 }
 const pages = require('./modules/pages.js')
