@@ -82,6 +82,13 @@
   if (lang === 'pt' && params.indexOf('lang=pt') === -1) {
     history.replaceState(null, '', location.pathname + '?' + route.concat('lang=pt').join('&') + location.hash)
   }
+  if (!first[1] && (key === 'aa' || key === 'ufrj')) { // the AA page's own bundle, fetched beside the small one
+    var aa = document.createElement('link')
+    aa.rel = 'preload'
+    aa.as = 'script'
+    aa.href = 'scripts/aa.bundle.js'
+    document.head.appendChild(aa)
+  }
   if (!key) { // the landing's tagline is in italic, at the top
     var font = document.createElement('link')
     font.rel = 'preload'
@@ -97,7 +104,9 @@
     daimesm: ['Daimist Science Manifesto', 'Manifesto da Ciência Daimista', '?daimesm'],
     angel: ['Support', 'Apoie', '?angel'],
     paypal: ['Donate with PayPal', 'Doe com PayPal', '?paypal'],
-    bitcoin: ['Donate with Bitcoin', 'Doe com Bitcoin', '?bitcoin']
+    bitcoin: ['Donate with Bitcoin', 'Doe com Bitcoin', '?bitcoin'],
+    aa: ['Algorithmic Autoregulation', 'Autorregulação Algorítmica', '?aa'],
+    ufrj: ['Algorithmic Autoregulation', 'Autorregulação Algorítmica', '?ufrj']
   }
   // a key with a value (key=value) is a sync session, not the page of that name
   if (!Object.prototype.hasOwnProperty.call(pages, key) || first[1]) {
@@ -163,6 +172,7 @@
   --link-hover: #8a6d1d;
   --btn-hover: #fbf3df;
   --field: #fff;
+  --alert: #a33a28;
   --glow: rgba(232, 194, 76, 0.22);
   --glow-low: rgba(184, 149, 48, 0.07);
   --feature: #fff8e8;
@@ -193,6 +203,7 @@
     --link-hover: #e2c26b;
     --btn-hover: rgba(232, 194, 76, 0.1);
     --field: #121117;
+    --alert: #f0937f;
     --glow: rgba(232, 194, 76, 0.12);
     --glow-low: rgba(184, 149, 48, 0.06);
     --feature: #29231a;

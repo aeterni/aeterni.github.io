@@ -4,8 +4,10 @@
 // The curated pages (the landing, About, the Manifesto and the support pages) are plain
 // DOM: they need none of the jQuery, players, visualizations and libraries that the
 // full bundle (scripts/main.js → scripts/bundle.js) carries for the older routes, so
-// keep pages.js, ui.js and router.js free of them. Any route that is not one of these
-// pages loads the full bundle, which routes exactly as before.
+// keep pages.js, ui.js and router.js free of them. The AA page, plain DOM too, has its
+// own small bundle (scripts/aa.js → scripts/aa.bundle.js), loaded only for its routes.
+// Any route that is not one of these pages loads the full bundle, which routes exactly
+// as before.
 window.wand = {
   router: require('./modules/router.js'),
   unloadFuncs: []
@@ -27,11 +29,18 @@ const curated = new Map([
   ['', 'welcome2'], ['about', 'about2'], ['daimesm', 'daimesm'],
   ['angel', 'angel'], ['paypal', 'paypal'], ['bitcoin', 'bitcoin']
 ])
+// Algorithmic Autoregulation, and its UFRJ edition
+const aaEditions = new Map([['aa', {}], ['ufrj', { ufrj: true }]])
 const aeterniHost = ['aeterni.github.io', 'localhost', '127.0.0.1'].includes(window.location.hostname)
 
 if (aeterniHost && value === '' && curated.has(key)) {
   pages[curated.get(key)]()
   wand.router.mkFooter()
+} else if (aeterniHost && value === '' && aaEditions.has(key)) {
+  wand.aaOptions = aaEditions.get(key)
+  const aa = document.createElement('script')
+  aa.src = 'scripts/aa.bundle.js' // a classic script, as index.html's head preloads it
+  document.body.appendChild(aa)
 } else {
   const full = document.createElement('script')
   full.type = 'module'

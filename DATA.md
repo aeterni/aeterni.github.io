@@ -15,7 +15,7 @@ database account to keep alive, and nothing pauses when idle.
 ## Shape
 
 ```
-browser (scripts/modules/transfer.js)
+browser (scripts/modules/data.js, used by transfer.js and the AA page)
    │  POST {source, op, collection, query, projection, doc, limit}
    ▼
 https://aeterni-data.netlify.app/api/data   (netlify/functions/data.mjs)
@@ -126,6 +126,6 @@ make data-seed-local   # in another terminal, once: load the backups into .data/
 make serve             # the site on :8123
 ```
 
-Served from `localhost`, `transfer.js` calls `http://localhost:8788/api/data`.
+Served from `localhost`, `data.js` calls `http://localhost:8788/api/data`.
 Set `window.AETERNI_API` in the page to point anywhere else — for example at
 the deployed function, to try local page changes against the real data.

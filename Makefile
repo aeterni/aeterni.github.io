@@ -1,14 +1,15 @@
 # Æterni Anima — aeterni.github.io
 # The site is fully self-contained: scripts/ holds the sources. browserify builds
 # scripts/light.js into scripts/light.bundle.js, the small bundle index.html loads
-# for the curated pages, and scripts/main.js into scripts/bundle.js, the full one it
-# loads for every other route.
+# for the curated pages; scripts/aa.js into scripts/aa.bundle.js, the AA page's own,
+# which the small one loads for ?aa and ?ufrj; and scripts/main.js into
+# scripts/bundle.js, the full one it loads for every other route.
 
 # install dependencies (uses package-lock.json for reproducible builds):
 i:
 	npm ci
 
-# build both bundles from the sources:
+# build the three bundles from the sources:
 b:
 	npm run build
 

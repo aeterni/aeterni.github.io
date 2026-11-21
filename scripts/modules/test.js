@@ -5,7 +5,7 @@ const t = window.Tone = require('tone')
 const $ = require('jquery')
 window.jQuery = $
 require('paginationjs')
-const linkify = require('linkifyjs/html')
+const linkify = require('linkifyjs/string')
 
 const m = require('./med')
 const c = require('./conductor')
@@ -3183,231 +3183,14 @@ e.liturgy101 = () => {
   $('#loading').hide()
 }
 
-e.aa = ufrj => {
-  $('#favicon').attr('href', 'assets/aafav2.png')
-  const ws = u('ws')
-  const logsLink = (ufrj ? 'ufrj-logs2' : 'aalogs3') + (ws ? '&ws=' + ws : '')
-  const adiv = utils.stdDiv().html(`
-  ${ufrj ? '<img alt="" border="0" src="assets/UFRJ-logo.png" width="7%" style="float:right" />' : ''}
-  <span id="new-ws"></span>
-  <h2>AA is Algorithmic Autoregulation</h2>
-  Check the <a href="?${logsLink}" target="_blank">logs</a>.
-  `)
-  if (!ws) {
-    $('<div/>').appendTo('#new-ws').html('<span id="new-ws-btn"></span> or use the public workspace below.')
-    $('<button/>').html('Create a new workspace').appendTo('#new-ws-btn').on('click', () => {
-      const ws = window.prompt('Name the Workspace')
-      console.log({ ws })
-      const ws_ = ws.replaceAll(' ', '')
-      window.location.href = `?aa&ws=${ws_}`
-      // open aa url with ws=somwthing
-    })
-  } else {
-    $('#new-ws').html(`Workspace: <b>${ws}</b>.`)
-      // .css('background', '#ffdddd')
-      .css('padding', '3px')
-      .css('box-shadow', '0 30px 40px rgba(0,0,0,.4)')
-      .css('border-radius', '5%')
-  }
-  let grid = utils.mkGrid(2, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
-  $('<span/>').html('user id:').appendTo(grid)
-  const uid = $('<input/>', {
-    placeholder: 'id for user'
-  }).appendTo(grid)
-    .attr('title', 'The ID for the user (name, nick, etc).')
-    .val(u('user') || u('u'))
+// The AA page (?aa, and ?ufrj below) is plain DOM in aa.js, which the small bundle
+// serves; its logs follow.
+const aaPage = require('./aa.js')
+e.aa = () => aaPage.aa()
 
-  $('<span/>').html('shout message:').appendTo(grid)
-  const shout = $('<input/>', {
-    placeholder: utils.chooseUnique(['learning AA', 'developing X', 'doing Y', 'talking to Z', 'writing W', 'some description'], 1)[0]
-  }).appendTo(grid)
-    .attr('title', 'The shout description (what have you done or are you doing).')
-    .on('keyup', e => {
-      if (e.key === 'Enter' || e.keyCode === 13) {
-        submitShout.click()
-      }
-    })
-
-  const shoutStr = ufrj ? 'shoutFran' : 'shout'
-  const submitShout = $('<button/>')
-    .html('Submit shout')
-    .appendTo(grid)
-    .attr('title', 'Register the shout message given.')
-    .click(() => {
-      submitShout.prop('disabled', true)
-      // get current date and time, user, session ID and submit
-      const data = { uid: uid.val(), sessionId: sessionData ? sessionData.sessionId : undefined }
-      data[shoutStr] = shout.val()
-      data.ws = u('ws')
-      console.log(data)
-      if (!data.uid) {
-        window.alert('please insert a user identification string.')
-      } else if (!data[shoutStr]) {
-        window.alert('please insert shout message.')
-      } else {
-        data.date = new Date()
-        transfer.writeAny(data, true)
-          .then(resp => {
-            if (shoutsExpected !== undefined && shoutsExpected > 0) {
-              shoutsExp.html(--shoutsExpected)
-            }
-            if (sessionData && (slotsFinished === sessionData.nslots)) {
-              if (shoutsExpected <= 0) { // finish session routine:
-                ssBtn.attr('disabled', false)
-                sdur.attr('disabled', false)
-                nslots.attr('disabled', false)
-                grid.hide()
-                sessionData = undefined
-                shoutsExpected = undefined
-              }
-            }
-            shout.val('')
-          })
-          .catch(error => {
-            window.alert('error in registering the shout', error, 'more details in the console')
-            console.log('error in registering the shout', error)
-          })
-          .finally(() => submitShout.prop('disabled', false))
-      }
-    })
-
-  grid = utils.mkGrid(2, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
-  $('<span/>').html('slot duration:').appendTo(grid)
-  const sdur = $('<input/>', {
-    placeholder: '15'
-  }).appendTo(grid)
-    .attr('title', 'In minutes.')
-    .val(u('d') || 15)
-
-  $('<span/>').html('number of slots:').appendTo(grid)
-  const nslots = $('<input/>', {
-    placeholder: '8'
-  }).appendTo(grid)
-    .attr('title', 'Slots to be dedicated and reported on.')
-    .val(u('n') || 8)
-
-  const f = e => e.val() === '' ? '' : parseFloat(e.val())
-  let sessionData
-  const ssBtn = $('<button/>')
-    .html('Start session')
-    .appendTo(grid)
-    .attr('title', 'Start an AA session (sequence of slots with shouts).')
-    .click(() => {
-      // get current date and time, user, create session ID and submit
-      console.log(sdur, nslots)
-      window.sss = [sdur, nslots]
-      const data = { uid: uid.val(), sdur: f(sdur), nslots: f(nslots) }
-      if (!data.uid) {
-        window.alert('please insert a user identification string.')
-      } else if (isNaN(data.sdur)) {
-        // window.alert('type a numeric slot duration (minutes).')
-        data.sdur = 15
-      } else if (!Number.isInteger(data.nslots)) {
-        // window.alert('type an integer number of slots.')
-        data.nslots = 8
-      } else {
-        data.date = new Date()
-        transfer.writeAny(data, true).then(resp => {
-          data.sessionId = resp.insertedId.toString()
-          sessionData = data
-          startSession()
-        })
-      }
-    })
-
-  let tLeft
-  let slotsFinished
-  let shoutsExpected
-  grid = utils.mkGrid(2, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee'])).hide()
-
-  $('<span/>').html('session started at:').appendTo(grid)
-  const sStarted = $('<span/>').appendTo(grid)
-  $('<span/>').html('slots finished:').appendTo(grid)
-  const slotsFin = $('<span/>').appendTo(grid)
-  $('<span/>').html('shouts expected:').appendTo(grid)
-  const shoutsExp = $('<span/>').appendTo(grid)
-  $('<span/>').html('time left in current slot:').appendTo(grid)
-  const tLeft2 = $('<span/>', { class: 'notranslate' }).appendTo(grid)
-
-  function startSession () {
-    ssBtn.attr('disabled', true)
-    sdur.attr('disabled', true)
-    nslots.attr('disabled', true)
-
-    sStarted.html(sessionData.date.toLocaleString('en-GB', {
-      day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'
-    }).replace(/ /, '/').replace(/ /, '/'))
-    shoutsExpected = 1
-    shoutsExp.html(1)
-    grid.show()
-
-    window.ddd = { slotsFin, shoutsExp, tLeft, tLeft2 }
-
-    slotsFinished = 0
-    slotsFin.html(0)
-    setCountdown(sessionData.sdur, sFun)
-  }
-  function setCountdown (dur, fun) {
-    const duration = dur * 60
-    const targetTime = (new Date()).getTime() / 1000 + duration
-    setTimeout(() => {
-      fun()
-      clearInterval(timer)
-    }, duration * 1000)
-    const reduce = dur => [Math.floor(dur / 60), Math.floor(dur % 60)]
-    const p = num => num < 10 ? '0' + num : num
-    const timer = setInterval(() => {
-      const moment = targetTime - (new Date()).getTime() / 1000
-      let [minutes, seconds] = reduce(moment)
-      let hours = ''
-      if (minutes > 59) {
-        [hours, minutes] = reduce(minutes)
-        hours += ':'
-      }
-      tLeft2.text(`${hours}${p(minutes)}:${p(seconds)}`)
-    }, 100)
-  }
-  function sFun () {
-    mkSound()
-    shoutsExp.html(++shoutsExpected)
-    if (++slotsFinished !== sessionData.nslots) { // spork new slot:
-      setCountdown(sessionData.sdur, sFun)
-    }
-    slotsFin.html(slotsFinished)
-  }
-
-  const dat = require('dat.gui')
-  const gui = new dat.GUI()
-  let vv = 120
-  gui.add({ freq: vv }, 'freq', 50, 1000).onFinishChange(v => {
-    vv = v
-    vv = v
-    mkSound()
-  }).listen()
-
-  const sy = new t.MembraneSynth().toDestination()
-  sy.volume.value = -25
-  gui.add({ vol: sy.volume.value }, 'vol', -100, 30).onFinishChange(v => {
-    sy.volume.value = v
-    mkSound()
-  }).listen()
-
-  const st = 2 ** (1 / 12)
-  const tt = 0.1
-  const ttt = tt / 2
-  function mkSound () {
-    const now = t.now()
-    sy.triggerAttackRelease(vv, ttt, now)
-    sy.triggerAttackRelease(vv * (st ** 3), ttt, now + tt)
-    sy.triggerAttackRelease(vv * (st ** 7), ttt, now + 2 * tt)
-
-    sy.triggerAttackRelease(vv * (st ** 4), ttt, now + 3 * tt)
-    sy.triggerAttackRelease(vv * (st ** 8), ttt, now + 4 * tt)
-    sy.triggerAttackRelease(vv * (st ** 11), ttt, now + 5 * tt)
-  }
-  utils.confirmExit()
-  $('#loading').hide()
-}
+// Shouts are anyone's text, so the logs escape them (linkifyjs/string escapes what it
+// does not turn into links), and every name and id from the address or the data.
+const esc = text => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 e.aalogs3 = ufrj => {
   const ws = u('ws')
@@ -3450,7 +3233,7 @@ e.aalogs3 = ufrj => {
     const func = 'appendTo'
     const r = data
     r.forEach(s => {
-      $('<span/>', { css: { 'margin-left': '10%' }, title: `see shouts by user ${s.uid}` }).html(`<a href="?${url}&user=${s.uid}", target="_blank">${s.uid}</a>`)[func](grid)
+      $('<span/>', { css: { 'margin-left': '10%' }, title: `see shouts by user ${s.uid}` }).html(`<a href="?${url}&amp;user=${esc(s.uid)}${ws ? '&amp;ws=' + esc(ws) : ''}" target="_blank">${esc(s.uid)}</a>`)[func](grid)
       const shout = $('<span/>', { css: { 'margin-left': '10%' }, title: s[field] }).html(linkify(s[field]))[func](grid)
       const adate = (new Date(s.date - tzoffset)).toISOString()
         .replace(/T/, ' ')
@@ -3462,7 +3245,7 @@ e.aalogs3 = ufrj => {
         css.background = `rgba(${c[0]}, ${c[1]}, ${c[2]}, 0.5)`
       }
       // $('<span/>', { css, title: `see shouts in session ${s.sessionId}` }).html(s.sessionId ? `<a href="?${url}&session=${s.sessionId}" target="_blank">${s.sessionId.slice(-10)}</a>` : '')[func](grid)
-      $('<span/>', { css, title: `see shouts in session ${s.sessionId}` }).html(s.sessionId ? `<a href="?${url}&session=${s.sessionId}" target="_blank">${cod(s.sessionId)}</a>` : '')[func](grid)
+      $('<span/>', { css, title: `see shouts in session ${s.sessionId}` }).html(s.sessionId ? `<a href="?${url}&amp;session=${esc(s.sessionId)}${ws ? '&amp;ws=' + esc(ws) : ''}" target="_blank">${esc(cod(s.sessionId))}</a>` : '')[func](grid)
       if (u('admin')) { // todo: remove the shout correctly
         shout.click(() => {
           console.log(s)
@@ -3487,7 +3270,7 @@ e.aalogs3 = ufrj => {
   const session = u('session')
   const adiv = utils.centerDiv('90%', undefined, utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee'], 1)[0], 3, 2).html(`
   <h2>AA is Algorithmic Autoregulation</h2>
-  <p>This is the logs page ${user ? 'for user <b>' + user + '</b>' : ''}${session ? 'for session <b>' + session.slice(-10) + '</b><span id="sessionDur"></span>' : ''}. Check the <a href="?${url2}" target="_blank">AA interface</a>.</p>
+  <p>This is the logs page ${user ? 'for user <b>' + esc(user) + '</b>' : ''}${session ? 'for session <b>' + esc(session.slice(-10)) + '</b><span id="sessionDur"></span>' : ''}. Check the <a href="?${esc(url2)}" target="_blank">AA interface</a>.</p>
   `)
   $('<button/>', { id: 'rbutton', title: 'retrieve shouts given after last load' }).html('update').appendTo(adiv)
   const sbut = $('<button/>', { id: 'sbutton', title: 'search string in the shouts' }).html('search').appendTo(adiv)
@@ -3498,7 +3281,7 @@ e.aalogs3 = ufrj => {
         const res_ = res.toUpperCase()
         window.rrr = window.rrrBack.filter(i => i[field].toUpperCase().indexOf(res_) !== -1)
         mkPag()
-        sbut.html(`search (${res})`)
+        sbut.html(`search (${esc(res)})`)
       } else if (res === '') { // restore shouts:
         window.rrr = window.rrrBack.slice()
         mkPag()
@@ -3569,7 +3352,7 @@ e.aalogs = () => {
   // const adiv = utils.stdDiv().html(`
   const adiv = utils.centerDiv('90%', undefined, utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee'], 1)[0], 3, 2).html(`
   <h2>AA is Algorithmic Autoregulation</h2>
-  <p>This is the logs page ${user ? 'for user <b>' + user + '</b>' : ''}${session ? 'for session <b>' + session.slice(-10) + '</b><span id="sessionDur"></span>' : ''}. Check the <a href="?ufrj" target="_blank">AA interface</a>.</p>
+  <p>This is the logs page ${user ? 'for user <b>' + esc(user) + '</b>' : ''}${session ? 'for session <b>' + esc(session.slice(-10)) + '</b><span id="sessionDur"></span>' : ''}. Check the <a href="?ufrj" target="_blank">AA interface</a>.</p>
   `)
   // const grid = utils.mkGrid(4, adiv, '60%', utils.chooseUnique(['#eeeeff', '#eeffee', '#ffeeee']))
   $('<button/>', { id: 'rbutton' }).html('update').appendTo(adiv)
@@ -3598,13 +3381,13 @@ e.aalogs = () => {
     r.sort((a, b) => b.date - a.date)
     r.forEach(s => {
       ids.push(s._id)
-      const user = $('<span/>', { css: { 'margin-left': '10%' }, title: `see shouts by user ${s.uid}` }).html(`<a href="?ufrj-logs&user=${s.uid}", target="_blank">${s.uid}</a>`)[func](grid)
+      const user = $('<span/>', { css: { 'margin-left': '10%' }, title: `see shouts by user ${s.uid}` }).html(`<a href="?ufrj-logs&amp;user=${esc(s.uid)}" target="_blank">${esc(s.uid)}</a>`)[func](grid)
       const shout = $('<span/>', { css: { 'margin-left': '10%' }, title: s.shout }).html(linkify(s.shout))[func](grid)
       const adate = (new Date(s.date - tzoffset)).toISOString()
         .replace(/T/, ' ')
         .replace(/:\d\d\..+/, '')
       const date = $('<span/>', { css: { 'margin-left': '10%' }, title: adate }).html(adate)[func](grid)
-      const session = $('<span/>', { css: { 'margin-left': '10%' }, title: `see shouts in session ${s.sessionId}` }).html(s.sessionId ? `<a href="?ufrj-logs&session=${s.sessionId}" target="_blank">${s.sessionId.slice(-10)}</a>` : '')[func](grid)
+      const session = $('<span/>', { css: { 'margin-left': '10%' }, title: `see shouts in session ${s.sessionId}` }).html(s.sessionId ? `<a href="?ufrj-logs&amp;session=${esc(s.sessionId)}" target="_blank">${esc(s.sessionId.slice(-10))}</a>` : '')[func](grid)
       if (u('admin')) {
         shout.click(() => {
           console.log(s)
@@ -3628,10 +3411,10 @@ e.aalogs = () => {
         .replace(/:\d\d\..+/, '')
       utils.gridDivider(190, 190, 190, grid, 1, lastSep)
       utils.gridDivider(190, 190, 190, grid, 1, lastSep)
-      const session = $('<span/>', { css: { 'margin-left': '10%' }, title: `see shouts in session ${s.sessionId}` }).html(s.sessionId ? `<a href="?ufrj-logs&session=${s.sessionId}" target="_blank">${s.sessionId.slice(-10)}</a>` : '').insertAfter(lastSep)
+      const session = $('<span/>', { css: { 'margin-left': '10%' }, title: `see shouts in session ${s.sessionId}` }).html(s.sessionId ? `<a href="?ufrj-logs&amp;session=${esc(s.sessionId)}" target="_blank">${esc(s.sessionId.slice(-10))}</a>` : '').insertAfter(lastSep)
       const date = $('<span/>', { css: { 'margin-left': '10%' }, title: adate }).html(adate).insertAfter(lastSep)
       const shout = $('<span/>', { css: { 'margin-left': '10%' }, title: s.shout }).html(linkify(s.shout)).insertAfter(lastSep)
-      const user = $('<span/>', { css: { 'margin-left': '10%' }, title: `see shouts by user ${s.uid}` }).html(`<a href="?ufrj-logs&user=${s.uid}", target="_blank">${s.uid}</a>`).insertAfter(lastSep)
+      const user = $('<span/>', { css: { 'margin-left': '10%' }, title: `see shouts by user ${s.uid}` }).html(`<a href="?ufrj-logs&amp;user=${esc(s.uid)}" target="_blank">${esc(s.uid)}</a>`).insertAfter(lastSep)
       if (u('admin')) {
         shout.click(() => {
           console.log(s)
@@ -3891,7 +3674,7 @@ e.transportTest = () => {
   window.wand.tone = t
 }
 
-e.ufrj = () => e.aa(true)
+e.ufrj = () => aaPage.aa({ ufrj: true })
 
 e['ufrj-logs2'] = () => {
   e.aalogs3(true)

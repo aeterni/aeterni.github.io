@@ -34,6 +34,7 @@ export default [
       'assets/**',
       'scripts/bundle.js',
       'scripts/light.bundle.js',
+      'scripts/aa.bundle.js',
       'you/scripts/ok/**',
       'you/pop_ok.js',
       '**/*.min.js',
